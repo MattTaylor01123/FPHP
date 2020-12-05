@@ -1,0 +1,21 @@
+{
+    "name": "matttaylor01123/ramda-php",
+    "description": "Ramda for PHP",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matt Taylor",
+            "email": "MattTaylor012333@git.hub"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "RamdaPHP\\": "src/",
+            "tests\\": "tests/"
+        }
+    }
+}
