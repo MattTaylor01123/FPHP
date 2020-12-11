@@ -6,14 +6,14 @@
 
 namespace tests;
 
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 use PHPUnit\Framework\TestCase;
 
 final class FunctionsTest extends TestCase 
 {
     public function testCurry()
     {
-        $fnAdd = C::curry(function($arg1, $arg2) {
+        $fnAdd = R::curry(function($arg1, $arg2) {
             return $arg1 + $arg2;
         });
 
@@ -28,13 +28,13 @@ final class FunctionsTest extends TestCase
 
     public function testPlaceholder()
     {
-        $fnSub = C::curry(function($a, $b) {
+        $fnSub = R::curry(function($a, $b) {
             return $a - $b;
         });
 
         $this->assertIsCallable($fnSub);
 
-        $fnSub6 = $fnSub(C::__(), 6);
+        $fnSub6 = $fnSub(R::__(), 6);
 
         $this->assertIsCallable($fnSub6);
 
@@ -54,11 +54,11 @@ final class FunctionsTest extends TestCase
             }
         };
         
-        $add3 = C::invoker(0, "add3");
+        $add3 = R::invoker(0, "add3");
         $add3($obj);
         $this->assertSame($obj->val, 8);
         
-        $sub = C::invoker(2, "sub");
+        $sub = R::invoker(2, "sub");
         $subFrom10 = $sub(10);
         $out1 = $subFrom10(7, $obj);
         $this->assertSame($out1, 3);
@@ -68,22 +68,22 @@ final class FunctionsTest extends TestCase
     
     function testAlways()
     {
-        $fn1 = C::always(3);
+        $fn1 = R::always(3);
         $this->assertSame($fn1(), 3);
-        $fn2 = C::always("hello");
+        $fn2 = R::always("hello");
         $this->assertSame($fn2(), "hello");
     }
 
     function testComplement()
     {
-        $fn = C::complement(C::eq());
-        $this->assertSame(C::eq("a", "a"), true);
+        $fn = R::complement(R::eq());
+        $this->assertSame(R::eq("a", "a"), true);
         $this->assertSame($fn("a", "a"), false);
-        $this->assertSame(C::eq("a", "b"), false);
+        $this->assertSame(R::eq("a", "b"), false);
         $this->assertSame($fn("a", "b"), true);
 
-        $fn2 = C::eq(5);
-        $nfn2 = C::complement($fn2);
+        $fn2 = R::eq(5);
+        $nfn2 = R::complement($fn2);
 
         $this->assertSame($fn2(5), true);
         $this->assertSame($nfn2(5), false);

@@ -7,7 +7,7 @@
 namespace tests;
 
 use IteratorAggregate;
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 use PHPUnit\Framework\TestCase;
 use Traversable;
 
@@ -36,28 +36,28 @@ final class MappingTest extends TestCase
     function testMapIdx()
     {
         $fn = fn ($x) => $x * 2;
-        $o1 = C::map($fn, $this->getIndexedArray());
+        $o1 = R::map($fn, $this->getIndexedArray());
         $this->assertSame([2,4,6,8,10], $o1);
     }
 
     function testMapAssoc()
     {
         $fn = fn ($v, $k) => $k.$v;
-        $o1 = C::map($fn, $this->getAssocArray());
+        $o1 = R::map($fn, $this->getAssocArray());
         $this->assertSame(["a" => "a1", "b" => "b2", "c" => "c3", "d" => "d4", "e" => "e5"], $o1);
     }
 
     function testMapObj()
     {
         $fn = fn ($x) => $x * 2;
-        $o1 = C::map($fn, $this->getObj());
+        $o1 = R::map($fn, $this->getObj());
         $this->assertEquals((object)["f" => 4, "g" => 8, "h" => 12], (object)$o1);
     }
 
     function testMapItIdx()
     {
         $fn = fn ($x) => $x * 2;
-        $o1 = C::map($fn, $this->getItIdx());
+        $o1 = R::map($fn, $this->getItIdx());
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
@@ -66,7 +66,7 @@ final class MappingTest extends TestCase
     function testMapItAssoc()
     {
         $fn = fn ($x) => $x * 2;
-        $o1 = C::map($fn, $this->getItAssoc());
+        $o1 = R::map($fn, $this->getItAssoc());
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
@@ -76,14 +76,14 @@ final class MappingTest extends TestCase
     {
         $fn = fn ($x) => $x * 2;
         $collection = $this->buildCollectionMock2("map", $fn, ["hello", "world"]);
-        $o2 = C::map($fn, $collection);
+        $o2 = R::map($fn, $collection);
         $this->assertSame($o2, ["hello", "world"]);
     }
 
     function testIndexByIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = C::indexBy(C::prop("gender"), $v);
+        $out1 = R::indexBy(R::prop("gender"), $v);
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
         $this->assertArrayHasKey("M", $out1);
@@ -95,7 +95,7 @@ final class MappingTest extends TestCase
     function testIndexByAssoc()
     {
         $v = $this->getPersonsDataIt();
-        $out1 = C::indexBy(C::prop("gender"), $v);
+        $out1 = R::indexBy(R::prop("gender"), $v);
         $this->assertTrue(is_object($out1));
         $this->assertTrue($out1 instanceof Traversable);
 
@@ -112,9 +112,9 @@ final class MappingTest extends TestCase
     function testIndexByOverride()
     {
         $v = $this->getPersonsDataIdx();
-        $fn = C::prop("family");
+        $fn = R::prop("family");
         $collection = $this->buildCollectionMock2("indexBy", $fn, ["hello", "world"]);
-        $out2 = C::indexBy($fn, $collection);
+        $out2 = R::indexBy($fn, $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 
@@ -126,14 +126,14 @@ final class MappingTest extends TestCase
     function testColumnIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = C::column("name", $v);
+        $out1 = R::column("name", $v);
         $this->assertSame($out1, ["Matt", "Sheila", "Steve", "Cecilia", "Verity"]);
     }
 
     function testColumnIt()
     {
         $v = $this->getPersonsDataIt();
-        $out1 = C::column("name", $v);
+        $out1 = R::column("name", $v);
         $this->assertTrue(is_object($out1));
         $this->assertTrue($out1 instanceof Traversable);
         $this->assertSame(iterator_to_array($out1, false), ["Matt", "Sheila", "Steve", "Cecilia", "Verity"]);
@@ -142,14 +142,14 @@ final class MappingTest extends TestCase
     function testColumnOverride()
     {
         $collection = $this->buildCollectionMock2("column", "name", ["hello", "world"]);
-        $out2 = C::column("name", $collection);
+        $out2 = R::column("name", $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 
     function testColumnsIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = C::columns(["name", "family"], $v);
+        $out1 = R::columns(["name", "family"], $v);
         $this->assertSame($out1, [
             ["Matt", "Smith"],
             ["Sheila", "Smith"],
@@ -162,7 +162,7 @@ final class MappingTest extends TestCase
     function testColumnsOverride()
     {
         $collection = $this->buildCollectionMock2("columns", ["name", "family"], ["hello", "world"]);
-        $out2 = C::columns(["name", "family"], $collection);
+        $out2 = R::columns(["name", "family"], $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 }

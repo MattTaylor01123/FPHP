@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
 
@@ -35,64 +35,64 @@ final class ReducingTest extends TestCase
     function testFindIdx()
     {
         $arr = $this->getIndexedArray();
-        $v = C::find(fn($a) => $a === 2, $arr);
+        $v = R::find(fn($a) => $a === 2, $arr);
         $this->assertSame($v, 2);
     }
 
     function testFindAssoc()
     {
         $arr = $this->getAssocArray();
-        $out = C::find(fn($v, $k) => $k === "c", $arr);
+        $out = R::find(fn($v, $k) => $k === "c", $arr);
         $this->assertSame($out, 3);
     }
 
     function testFindItIdx()
     {
         $it = $this->getItIdx();
-        $out = C::find(fn($v) => $v === 20, $it);
+        $out = R::find(fn($v) => $v === 20, $it);
         $this->assertSame($out, 20);
     }
 
     function testFindItAssoc()
     {
         $it = $this->getItAssoc();
-        $out = C::find(fn($v, $k) => $k === "l", $it);
+        $out = R::find(fn($v, $k) => $k === "l", $it);
         $this->assertSame($out, 40);
     }
 
     function testIncludes()
     {
         $arr = [1,2,3,4,5];
-        $out1 = C::includes(1, $arr);
+        $out1 = R::includes(1, $arr);
         $this->assertSame($out1, true);
 
-        $out2 = C::includes(6, $arr);
+        $out2 = R::includes(6, $arr);
         $this->assertSame($out2, false);
     }
 
     function testIncludesAll()
     {
         $arr = [1,2,3,4,5];
-        $out1 = C::includesAll([3,4,5], $arr);
+        $out1 = R::includesAll([3,4,5], $arr);
         $this->assertSame($out1, true);
-        $out2 = C::includesAll([4,5,6], $arr);
+        $out2 = R::includesAll([4,5,6], $arr);
         $this->assertSame($out2, false);
-        $out3 = C::includesAll([5,6,7], $arr);
+        $out3 = R::includesAll([5,6,7], $arr);
         $this->assertSame($out3, false);
-        $out4 = C::includesAll([6,7,8], $arr);
+        $out4 = R::includesAll([6,7,8], $arr);
         $this->assertSame($out4, false);
     }
 
     function testIncludesAny()
     {
         $arr = [1,2,3,4,5];
-        $out1 = C::includesAny([3,4,5], $arr);
+        $out1 = R::includesAny([3,4,5], $arr);
         $this->assertSame($out1, true);
-        $out2 = C::includesAny([4,5,6], $arr);
+        $out2 = R::includesAny([4,5,6], $arr);
         $this->assertSame($out2, true);
-        $out3 = C::includesAny([5,6,7], $arr);
+        $out3 = R::includesAny([5,6,7], $arr);
         $this->assertSame($out3, true);
-        $out4 = C::includesAny([6,7,8], $arr);
+        $out4 = R::includesAny([6,7,8], $arr);
         $this->assertSame($out4, false);
     }
 
@@ -105,7 +105,7 @@ final class ReducingTest extends TestCase
             (object)["id" => 5, "name" => "paula"]
         ];
 
-        $res = C::groupBy(C::prop("id"), $arr);
+        $res = R::groupBy(R::prop("id"), $arr);
 
         $this->assertEquals($res, [
             3 => [

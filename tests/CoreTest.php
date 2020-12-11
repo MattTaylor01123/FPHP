@@ -6,14 +6,9 @@
 
 namespace tests;
 
-require_once "../vendor/autoload.php";
-
-// https://api.phpunit.de/
-
-
 use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 
 final class CoreTest extends TestCase
 {
@@ -55,7 +50,7 @@ final class CoreTest extends TestCase
             ]
         ];
 
-        $res = C::flatten($arr);
+        $res = R::flatten($arr);
 
         $this->assertEquals($res, [
             "bob",

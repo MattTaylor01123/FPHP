@@ -6,7 +6,7 @@
 
 namespace RamdaPHP;
 
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 use stdClass;
 
 trait Dictionaries
@@ -89,7 +89,7 @@ trait Dictionaries
                 $generator = function() use($target, $properties) {
                     foreach($properties as $p)
                     {
-                        $match = C::find(fn($v, $k) => $k === $p, $target);
+                        $match = R::find(fn($v, $k) => $k === $p, $target);
                         if($match !== null)
                         {
                             yield $p => $match;

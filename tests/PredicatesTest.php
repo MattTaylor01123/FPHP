@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\Core as C;
+use RamdaPHP\RamdaPHP as R;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -14,54 +14,54 @@ final class PredicatesTest extends TestCase
 {
     public function testIsInteger()
     {
-        $this->assertTrue(C::isInteger(1));
+        $this->assertTrue(R::isInteger(1));
     }
 
     public function testIsArray()
     {
-        $this->assertTrue(C::isArray([]));
+        $this->assertTrue(R::isArray([]));
     }
 
     public function testIsBool()
     {
-        $this->assertTrue(C::isBool(true));
+        $this->assertTrue(R::isBool(true));
     }
 
     public function testIsEmpty()
     {
-        $this->assertTrue(C::isEmpty([]));
-        $this->assertFalse(C::isEmpty([1]));
-        $this->assertFalse(C::isEmpty(["a" => 1]));
-        $this->assertTrue(C::isEmpty((object)[]));
-        $this->assertFalse(C::isEmpty((object)["a" => 1]));
-        $this->assertFalse(C::isEmpty(null));
-        $this->assertTrue(C::isEmpty(""));
-        $this->assertFalse(C::isEmpty("a"));
+        $this->assertTrue(R::isEmpty([]));
+        $this->assertFalse(R::isEmpty([1]));
+        $this->assertFalse(R::isEmpty(["a" => 1]));
+        $this->assertTrue(R::isEmpty((object)[]));
+        $this->assertFalse(R::isEmpty((object)["a" => 1]));
+        $this->assertFalse(R::isEmpty(null));
+        $this->assertTrue(R::isEmpty(""));
+        $this->assertFalse(R::isEmpty("a"));
     }
 
     public function testIsFloat()
     {
-        $this->assertTrue(C::isFloat(1.03));
+        $this->assertTrue(R::isFloat(1.03));
     }
 
     public function testIsObject()
     {
-        $this->assertTrue(C::isObject(new stdClass()));
+        $this->assertTrue(R::isObject(new stdClass()));
     }
 
     public function testIsString()
     {
-        $this->assertTrue(C::isString("hello"));
+        $this->assertTrue(R::isString("hello"));
     }
 
     // can't be named after the actual function's name as this breaks
     // PHPUnit
     public function testRegEx()
     {
-        $this->assertTrue(C::test("/hello/", "hello"));
-        $this->assertFalse(C::test("/hello/", "world"));
+        $this->assertTrue(R::test("/hello/", "hello"));
+        $this->assertFalse(R::test("/hello/", "world"));
 
-        $testHello = C::test("/hello/");
+        $testHello = R::test("/hello/");
         $this->assertTrue($testHello("hello"));
     }
 
@@ -76,7 +76,7 @@ final class PredicatesTest extends TestCase
             "z" => 5
         ];
 
-        $this->assertSame(C::isSequentialArray($v1), true);
-        $this->assertSame(C::isSequentialArray($v2), false);
+        $this->assertSame(R::isSequentialArray($v1), true);
+        $this->assertSame(R::isSequentialArray($v2), false);
     }
 }

@@ -23,7 +23,7 @@ trait Mapping
             }
             else
             {
-                $out = Core::map(self::prop($propName), $iterable);
+                $out = RamdaPHP::map(self::prop($propName), $iterable);
             }
             return $out;
         });
@@ -39,7 +39,7 @@ trait Mapping
             }
             else
             {
-                $out = Core::map(self::props($properties), $iterable);
+                $out = RamdaPHP::map(self::props($properties), $iterable);
             }
             return $out;
         });

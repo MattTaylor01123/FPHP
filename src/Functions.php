@@ -9,7 +9,7 @@ namespace RamdaPHP;
 use ArrayIterator;
 use ReflectionFunction;
 
-trait Functions2
+trait Functions
 {
     public static function curry(Callable $func)
     {
