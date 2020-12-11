@@ -10,7 +10,7 @@ use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
 use RamdaPHP\RamdaPHP as R;
 
-final class CoreTest extends TestCase
+final class RamdaPHPTest extends TestCase
 {
     use IterableDefs;
 
