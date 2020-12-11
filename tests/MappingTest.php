@@ -123,26 +123,26 @@ final class MappingTest extends TestCase
     //   TODO
     // }
 
-    function testColumnIdx()
+    function testPluckIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = R::column("name", $v);
+        $out1 = R::pluck("name", $v);
         $this->assertSame($out1, ["Matt", "Sheila", "Steve", "Cecilia", "Verity"]);
     }
 
-    function testColumnIt()
+    function testPluckIt()
     {
         $v = $this->getPersonsDataIt();
-        $out1 = R::column("name", $v);
+        $out1 = R::pluck("name", $v);
         $this->assertTrue(is_object($out1));
         $this->assertTrue($out1 instanceof Traversable);
         $this->assertSame(iterator_to_array($out1, false), ["Matt", "Sheila", "Steve", "Cecilia", "Verity"]);
     }
 
-    function testColumnOverride()
+    function testPluckOverride()
     {
-        $collection = $this->buildCollectionMock2("column", "name", ["hello", "world"]);
-        $out2 = R::column("name", $collection);
+        $collection = $this->buildCollectionMock2("pluck", "name", ["hello", "world"]);
+        $out2 = R::pluck("name", $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 

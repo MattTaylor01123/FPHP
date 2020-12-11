@@ -10,12 +10,12 @@ use stdClass;
 
 trait Mapping 
 {
-    public static function column(...$args)
+    public static function pluck(...$args)
     {
-        $column = self::curry(function(string $propName, iterable $iterable) {
-            if(method_exists($iterable, "column"))
+        $pluck = self::curry(function(string $propName, iterable $iterable) {
+            if(method_exists($iterable, "pluck"))
             {
-                $out = $iterable->column($propName);
+                $out = $iterable->pluck($propName);
             }
             else if(is_array($iterable))
             {
@@ -27,9 +27,9 @@ trait Mapping
             }
             return $out;
         });
-        return $column(...$args);
+        return $pluck(...$args);
     }
-
+    
     public static function columns(...$args)
     {
         $columns = self::curry(function(array $properties, iterable $iterable) {
@@ -45,7 +45,7 @@ trait Mapping
         });
         return $columns(...$args);
     }
-    
+
     public static function indexBy(...$args)
     {
         $indexBy = self::curry(function(callable $func, iterable $iterable) {
