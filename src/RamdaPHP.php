@@ -126,9 +126,9 @@ class RamdaPHP
 
             public function jsonSerialize()
             {
-                $out = self::pipex(
+                $out = RamdaPHP::pipex(
                     iterator_to_array($this->getIterator(), true),
-                    fn($a) => self::isSequentialArray($a) ? self::values($a) : $a
+                    fn($a) => RamdaPHP::isSequentialArray($a) ? RamdaPHP::values($a) : $a
                 );
                 return $out;
             }
