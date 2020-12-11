@@ -111,17 +111,11 @@ final class MappingTest extends TestCase
 
     function testIndexByOverride()
     {
-        $v = $this->getPersonsDataIdx();
         $fn = R::prop("family");
         $collection = $this->buildCollectionMock2("indexBy", $fn, ["hello", "world"]);
         $out2 = R::indexBy($fn, $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
-
-    // function testMapTo()
-    // {
-    //   TODO
-    // }
 
     function testPluckIdx()
     {
@@ -146,23 +140,4 @@ final class MappingTest extends TestCase
         $this->assertSame($out2, ["hello", "world"]);
     }
 
-    function testColumnsIdx()
-    {
-        $v = $this->getPersonsDataIdx();
-        $out1 = R::columns(["name", "family"], $v);
-        $this->assertSame($out1, [
-            ["Matt", "Smith"],
-            ["Sheila", "Smith"],
-            ["Steve", "Jones"],
-            ["Cecilia", "Jones"],
-            ["Verity", "Smith"]
-        ]);
-    }
-
-    function testColumnsOverride()
-    {
-        $collection = $this->buildCollectionMock2("columns", ["name", "family"], ["hello", "world"]);
-        $out2 = R::columns(["name", "family"], $collection);
-        $this->assertSame($out2, ["hello", "world"]);
-    }
 }
