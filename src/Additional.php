@@ -27,6 +27,27 @@ trait Additional
         return $columns(...$args);
     }
 
+    public static function first(...$args)
+    {
+        $first = self::curry(function(iterable $iterable) {
+            if(method_exists($iterable, "first"))
+            {
+                return $iterable->first();
+            }
+            else
+            {
+                $out = null;
+                foreach($iterable as $v)
+                {
+                    $out = $v;
+                    break;
+                }
+                return $out;
+            }
+        });
+        return $first(...$args);
+    }
+    
     public static function mapTo(...$args)
     {
         $mapTo = self::curry(function(string $className, iterable $iterable) {
