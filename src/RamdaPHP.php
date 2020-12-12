@@ -21,6 +21,7 @@ class RamdaPHP
     use Predicates;
     use Relational;
     use Additional;
+    use Accumulators;
 
     public static function flatten(...$args)
     {
