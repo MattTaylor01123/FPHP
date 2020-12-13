@@ -61,6 +61,9 @@ final class MappingTest extends TestCase
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
+        // repeat the check to run iterator_to_array again, to make sure
+        // of generator reuse
+        $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
     }
 
     function testMapItAssoc()
@@ -70,6 +73,9 @@ final class MappingTest extends TestCase
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
+        // repeat the check to run iterator_to_array again, to make sure
+        // of generator reuse
+        $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
     }
 
     function testMapOverride()
@@ -78,6 +84,12 @@ final class MappingTest extends TestCase
         $collection = $this->buildCollectionMock2("map", $fn, ["hello", "world"]);
         $o2 = R::map($fn, $collection);
         $this->assertSame($o2, ["hello", "world"]);
+    }
+
+    function testMapTransducer()
+    {
+        $out = R::transduce(R::map(fn($x) => $x * 2), R::concatK(), [], $this->getIndexedArray());
+        $this->assertSame([2,4,6,8,10], $out);
     }
 
     function testIndexByIdx()

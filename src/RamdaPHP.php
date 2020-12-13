@@ -108,6 +108,42 @@ class RamdaPHP
         });
     }
 
+    protected static function transformTraversable($transducer, $traversable)
+    {
+        return new class($transducer, $traversable) implements \IteratorAggregate
+        {
+            private $transducer = null;
+            private $traversable = null;
+            public function __construct($transducer, $traversable)
+            {
+                $this->transducer = $transducer;
+                $this->traversable = $traversable;
+            }
+            public function getIterator(): Traversable
+            {
+                $curr = null;
+                $key = null;
+                $set = false;
+                $step = function($acc, $v, $k) use(&$curr, &$key, &$set) {
+                    $curr = $v;
+                    $key = $k;
+                    $set = true;
+                };
+                $transducer = $this->transducer;
+                $reducer = $transducer($step);
+                foreach($this->traversable as $k => $v)
+                {
+                    $set = false;
+                    $reducer(null, $v, $k);
+                    if($set)
+                    {
+                        yield $key => $curr;
+                    }
+                }
+            }
+        };
+    }
+
     protected static function generatorToIterable($generator)
     {
         return new class($generator) implements IteratorAggregate, JsonSerializable {

@@ -11,16 +11,6 @@ use stdClass;
 
 trait Dictionaries
 {
-    public static function assoc(...$args)
-    {
-        $assoc = self::curry(function($propName, $value, $target) {
-            $out = clone $target;
-            $out->$propName = $value;
-            return $out;
-        });
-        return $assoc(...$args);
-    }
-
     public static function hasProp(...$args)
     {
         $hasProp = self::curry(function(string $propName, $target) {

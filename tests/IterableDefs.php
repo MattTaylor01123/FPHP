@@ -35,18 +35,30 @@ trait IterableDefs
 
     function getItIdx()
     {
-        yield 10;
-        yield 20;
-        yield 30;
-        yield 40;
+        return new class() implements \IteratorAggregate
+        {
+            public function getIterator(): \Traversable
+            {
+                yield 10;
+                yield 20;
+                yield 30;
+                yield 40;
+            }
+        };
     }
 
     function getItAssoc()
     {
-        yield "i" => 10;
-        yield "j" => 20;
-        yield "k" => 30;
-        yield "l" => 40;
+        return new class() implements \IteratorAggregate
+        {
+            public function getIterator(): \Traversable
+            {
+                yield "i" => 10;
+                yield "j" => 20;
+                yield "k" => 30;
+                yield "l" => 40;
+            }
+        };
     }
 
     function getPersonsDataIdx()
