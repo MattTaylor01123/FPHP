@@ -13,20 +13,26 @@ trait Mapping
 {
     public static function indexBy(...$args)
     {
-        $indexBy = self::curry(function(callable $func, iterable $iterable) {
+        $indexBy = self::curry(function(callable $func, $coll) {
             $transducer = fn($step) =>
                             fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
-            if(method_exists($iterable, "indexBy"))
+            if(method_exists($coll, "indexBy"))
             {
-                $out = $iterable->indexBy($func);
+                $out = $coll->indexBy($func);
             }
-            else if(is_array($iterable))
+            else if(is_callable($coll))
             {
-                $out = self::transduce($transducer, self::concatK(), [], $iterable);
+                // if target is a transform function, return a transducer
+                $step = $coll;
+                $out = $transducer($step);
             }
-            else if($iterable instanceof Traversable)
+            else if(is_array($coll))
             {
-                $out = self::transformTraversable($transducer, $iterable);
+                $out = self::transduce($transducer, self::concatK(), [], $coll);
+            }
+            else if($coll instanceof Traversable)
+            {
+                $out = self::transformTraversable($transducer, $coll);
             }
             else
             {
@@ -41,30 +47,30 @@ trait Mapping
 
     public static function map(...$args)
     {
-        $map = self::curry(function(callable $func, $target) {
+        $map = self::curry(function(callable $func, $coll) {
             $transducer = fn($step) =>
                             fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
-            if(method_exists($target, "map"))
+            if(method_exists($coll, "map"))
             {
-                $out = $target->map($func);
+                $out = $coll->map($func);
             }
-            else if(is_callable($target))
+            else if(is_callable($coll))
             {
                 // if target is a transform function, return a transducer
-                $step = $target;
+                $step = $coll;
                 $out = $transducer($step);
             }
-            else if($target instanceof stdClass)
+            else if($coll instanceof stdClass)
             {
-                $out = self::transduce($transducer, self::assoc(), new stdClass(), $target);
+                $out = self::transduce($transducer, self::assoc(), new stdClass(), $coll);
             }
-            else if(is_array($target))
+            else if(is_array($coll))
             {
-                $out = self::transduce($transducer, self::concatK(), [], $target);
+                $out = self::transduce($transducer, self::concatK(), [], $coll);
             }
-            else if($target instanceof Traversable)
+            else if($coll instanceof Traversable)
             {
-                $out = self::transformTraversable($transducer, $target);
+                $out = self::transformTraversable($transducer, $coll);
             }
             else
             {
