@@ -6,7 +6,10 @@
 
 namespace tests;
 
-trait IterableDefs
+use IteratorAggregate;
+use Traversable;
+
+trait TestUtils
 {
     function getIndexedArray()
     {
@@ -35,9 +38,9 @@ trait IterableDefs
 
     function getItIdx()
     {
-        return new class() implements \IteratorAggregate
+        return new class() implements IteratorAggregate
         {
-            public function getIterator(): \Traversable
+            public function getIterator(): Traversable
             {
                 yield 10;
                 yield 20;
@@ -49,9 +52,9 @@ trait IterableDefs
 
     function getItAssoc()
     {
-        return new class() implements \IteratorAggregate
+        return new class() implements IteratorAggregate
         {
-            public function getIterator(): \Traversable
+            public function getIterator(): Traversable
             {
                 yield "i" => 10;
                 yield "j" => 20;
@@ -95,5 +98,23 @@ trait IterableDefs
     function getPersonsDataIt()
     {
         yield from $this->getPersonsDataIdx();
+    }
+
+    function buildCollectionMock(string $overrideFunction, $in, $out)
+    {
+        $collection =  $this->getMockBuilder(IteratorAggregate::class)
+            ->setMethods(["getIterator", $overrideFunction])
+            ->getMock();
+        $t = $collection->expects($this->once())
+            ->method($overrideFunction);
+        if($in !== null)
+        {
+            $t->with($this->equalTo($in));
+        }
+        if($out !== null)
+        {
+            $t->willReturn($out);
+        }
+        return $collection;
     }
 }

@@ -13,7 +13,7 @@ use stdClass;
 
 final class DictionariesTest extends TestCase
 {
-    use IterableDefs;
+    use TestUtils;
 
     public function buildObject()
     {
@@ -49,24 +49,6 @@ final class DictionariesTest extends TestCase
             yield "lastName" => "Taylor";
             yield "firstName" => "Matt";
         };
-    }
-
-    function buildCollectionMock2(string $overrideFunction, $in, $out)
-    {
-        $collection =  $this->getMockBuilder(IteratorAggregate::class)
-            ->setMethods(["getIterator", $overrideFunction])
-            ->getMock();
-        $t = $collection->expects($this->once())
-            ->method($overrideFunction);
-        if($in !== null)
-        {
-            $t->with($this->equalTo($in));
-        }
-        if($out !== null)
-        {
-            $t->willReturn($out);
-        }
-        return $collection;
     }
 
     /**
@@ -154,7 +136,7 @@ final class DictionariesTest extends TestCase
 
     function testKeysOverride()
     {
-        $collection = $this->buildCollectionMock2("keys", null, ["hello", "world"]);
+        $collection = $this->buildCollectionMock("keys", null, ["hello", "world"]);
         $out2 = R::keys($collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
@@ -225,7 +207,7 @@ final class DictionariesTest extends TestCase
 
     function testValuesOverride()
     {
-        $collection = $this->buildCollectionMock2("values", null, ["hello", "world"]);
+        $collection = $this->buildCollectionMock("values", null, ["hello", "world"]);
         $out2 = R::values($collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
