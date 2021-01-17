@@ -21,8 +21,10 @@ class RamdaPHP
     use Predicates;
     use Relational;
     use Additional;
-    use Accumulators;
 
+    use Assoc;
+    use Concat;
+    use ConcatK;
     use Equals;
     use InTo;
     use Memoize;
