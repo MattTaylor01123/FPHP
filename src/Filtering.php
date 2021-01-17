@@ -21,6 +21,12 @@ trait Filtering
             {
                 return $target->filter($func);
             }
+            else if(is_callable($target))
+            {
+                // if target is a transform function, return a transducer
+                $step = $target;
+                return $transducer($step);
+            }
             else if(self::isSequentialArray($target))
             {
                 return array_values(array_filter($target, $func));

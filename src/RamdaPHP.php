@@ -23,6 +23,11 @@ class RamdaPHP
     use Additional;
     use Accumulators;
 
+    use Equals;
+    use InTo;
+    use Memoize;
+    use PropEq;
+
     public static function flatten(...$args)
     {
         $flatten = self::curry(function(iterable $target) {
