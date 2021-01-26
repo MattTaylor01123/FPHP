@@ -51,6 +51,15 @@ final class DictionariesTest extends TestCase
         };
     }
 
+    public function buildSeqArray()
+    {
+        $arr = array();
+        $arr[] = "Matt";
+        $arr[] = "Taylor";
+        $arr[] = 137;
+        return [[$arr]];
+    }
+    
     /**
      * @dataProvider buildObject
      */
@@ -93,6 +102,15 @@ final class DictionariesTest extends TestCase
         $o1 = R::props(["firstName", "middleName","lastName"], $arr);
         $e1 = ["Matt", null, "Taylor"];
         $this->assertEquals($o1, $e1);
+    }
+
+    /**
+     * @dataProvider buildSeqArray
+     */
+    public function testPropArray2(array $arr)
+    {
+        $this->assertSame(R::prop(0, $arr), "Matt");
+        $this->assertSame(R::prop(1, $arr), "Taylor");
     }
     
     /**

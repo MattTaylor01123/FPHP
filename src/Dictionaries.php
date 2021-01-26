@@ -96,7 +96,7 @@ trait Dictionaries
 
     public static function prop(...$args)
     {
-        $prop = self::curry(function(string $propName, $target) {
+        $prop = self::curry(function($propName, $target) {
             if(is_object($target))
             {
                 $out = $target->$propName ?? null;
