@@ -22,7 +22,11 @@ class RamdaPHP
     use Relational;
     use Additional;
 
-    use Assoc;
+    use Add;
+    use Adjust;
+    use Append;
+    use Appendk;
+    use Assoc;    
     use Concat;
     use ConcatK;
     use Equals;
