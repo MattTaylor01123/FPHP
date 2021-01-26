@@ -7,30 +7,11 @@
 namespace tests;
 
 use RamdaPHP\RamdaPHP as R;
-use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
 
 final class ReducingTest extends TestCase
 {
-    use IterableDefs;
-
-    function buildCollectionMock2(string $overrideFunction, $in, $out)
-    {
-        $collection =  $this->getMockBuilder(IteratorAggregate::class)
-            ->setMethods(["getIterator", $overrideFunction])
-            ->getMock();
-        $t = $collection->expects($this->once())
-            ->method($overrideFunction);
-        if($in !== null)
-        {
-            $t->with($this->equalTo($in));
-        }
-        if($out !== null)
-        {
-            $t->willReturn($out);
-        }
-        return $collection;
-    }
+    use TestUtils;
 
     function testFindIdx()
     {

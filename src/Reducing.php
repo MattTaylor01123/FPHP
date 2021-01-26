@@ -201,7 +201,7 @@ trait Reducing
 
     public static function reduce(...$args)
     {
-        $reduce = self::curry(function(callable $func, $initial, iterable $iterable) {
+        $reduce = self::curry(function(callable $func, $initial, $iterable) {
             if(method_exists($iterable, "reduce"))
             {
                 return $iterable->reduce($func, $initial);

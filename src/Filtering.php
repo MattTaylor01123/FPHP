@@ -6,16 +6,26 @@
 
 namespace RamdaPHP;
 
+use InvalidArgumentException;
 use stdClass;
+use Traversable;
 
 trait Filtering
 {
     public static function filter(...$args)
     {
         $filter = self::curry(function(callable $func, $target) {
+            $transducer = fn($step) =>
+                            fn($acc, $v, $k) => $func($v, $k) ? $step($acc, $v, $k) : $acc;
             if(method_exists($target, "filter"))
             {
                 return $target->filter($func);
+            }
+            else if(is_callable($target))
+            {
+                // if target is a transform function, return a transducer
+                $step = $target;
+                return $transducer($step);
             }
             else if(self::isSequentialArray($target))
             {
@@ -27,28 +37,18 @@ trait Filtering
             }
             else if($target instanceof stdClass)
             {
-                $out = new stdClass();
-                foreach($target as $k => $v)
-                {
-                    if($func($v, $k))
-                    {
-                        $out->$k = $v;
-                    }
-                }
-                return $out;
+                return self::transduce($transducer, self::assoc(), new stdClass(), $target);
+            }
+            else if($target instanceof Traversable)
+            {
+                return self::transformTraversable($transducer, $target);
             }
             else
             {
-                $generator = function() use($target, $func) {
-                    foreach($target as $k => $v)
-                    {
-                        if($func($v, $k))
-                        {
-                            yield $k => $v;
-                        }
-                    }
-                };
-                return self::generatorToIterable($generator);
+                throw new InvalidArgumentException(
+                    "target must be one of array, stdClass, generator, " .
+                    "functor, or transform function"
+                );
             }
         });
         return $filter(...$args);

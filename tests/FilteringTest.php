@@ -8,30 +8,11 @@ namespace tests;
 
 use PHPUnit\Framework\TestCase;
 use RamdaPHP\RamdaPHP as R;
-use IteratorAggregate;
 use Traversable;
 
 final class FilteringTest extends TestCase
 {
-    use IterableDefs;
-
-    function buildCollectionMock2(string $overrideFunction, $in, $out)
-    {
-        $collection =  $this->getMockBuilder(IteratorAggregate::class)
-            ->setMethods(["getIterator", $overrideFunction])
-            ->getMock();
-        $t = $collection->expects($this->once())
-            ->method($overrideFunction);
-        if($in !== null)
-        {
-            $t->with($this->equalTo($in));
-        }
-        if($out !== null)
-        {
-            $t->willReturn($out);
-        }
-        return $collection;
-    }
+    use TestUtils;
 
     function testFilterIdx()
     {
@@ -76,7 +57,7 @@ final class FilteringTest extends TestCase
     function testFilterOverride()
     {
         $fnEven = fn ($v) => $v > 25;
-        $collection = $this->buildCollectionMock2("filter", $fnEven, ["hello", "world"]);
+        $collection = $this->buildCollectionMock("filter", $fnEven, ["hello", "world"]);
         $out2 = R::filter($fnEven, $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }

@@ -22,6 +22,14 @@ class RamdaPHP
     use Relational;
     use Additional;
 
+    use Assoc;
+    use Concat;
+    use ConcatK;
+    use Equals;
+    use InTo;
+    use Memoize;
+    use PropEq;
+
     public static function flatten(...$args)
     {
         $flatten = self::curry(function(iterable $target) {
@@ -105,6 +113,42 @@ class RamdaPHP
                 yield from $iterable;
             }
         });
+    }
+
+    protected static function transformTraversable($transducer, $traversable)
+    {
+        return new class($transducer, $traversable) implements \IteratorAggregate
+        {
+            private $transducer = null;
+            private $traversable = null;
+            public function __construct($transducer, $traversable)
+            {
+                $this->transducer = $transducer;
+                $this->traversable = $traversable;
+            }
+            public function getIterator(): Traversable
+            {
+                $curr = null;
+                $key = null;
+                $set = false;
+                $step = function($acc, $v, $k) use(&$curr, &$key, &$set) {
+                    $curr = $v;
+                    $key = $k;
+                    $set = true;
+                };
+                $transducer = $this->transducer;
+                $reducer = $transducer($step);
+                foreach($this->traversable as $k => $v)
+                {
+                    $set = false;
+                    $reducer(null, $v, $k);
+                    if($set)
+                    {
+                        yield $key => $curr;
+                    }
+                }
+            }
+        };
     }
 
     protected static function generatorToIterable($generator)

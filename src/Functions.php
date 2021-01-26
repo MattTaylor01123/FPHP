@@ -15,14 +15,15 @@ trait Functions
     {
         $refFunc = new ReflectionFunction($func);
         $arity = $refFunc->getNumberOfParameters();
-        return self::partial($func, $arity);
+        return self::partial($func, $arity, false);
     }
 
-    public static function partial(Callable $func, $arity, ...$capturedArgs)
+    public static function partial(Callable $func, int $arity, bool $reverseParams, ...$capturedArgs)
     {
-        return function(...$args) use($func, $arity, $capturedArgs)
+        return function(...$args) use($func, $arity, $reverseParams, $capturedArgs)
         {
-            $itArgs = new ArrayIterator($args);
+            $orderedArgs = $reverseParams ? array_reverse($args) : $args;
+            $itArgs = new ArrayIterator($orderedArgs);
             $new = array();
             foreach($capturedArgs as $curr)
             {
@@ -51,7 +52,7 @@ trait Functions
             }
             else
             {
-                return self::partial($func, $arity, ...$new);
+                return self::partial($func, $arity, $reverseParams, ...$new);
             }
         };
     }
@@ -83,7 +84,12 @@ trait Functions
 
         return self::partial(function(...$args) use($func) {
             return !$func(...$args);
-        }, $arity);
+        }, $arity, false);
+    }
+
+    public static function flipN(callable $fn, int $arity)
+    {
+        return self::partial($fn, $arity, true);
     }
 
     public static function identity(...$args)
@@ -101,7 +107,7 @@ trait Functions
                 $object = $args[$arity];
                 $args = array_slice($args, 0, $arity);
                 return $object->$methodName(...$args);
-            }, $arity + 1);
+            }, $arity + 1, false);
         });
         return $invoker(...$args);
     }
@@ -132,5 +138,15 @@ trait Functions
     {
         $fn = self::pipe(...$funcs);
         return $fn($firstParameter);
+    }
+
+    public static function transduce(...$args)
+    {
+        $transduce = self::curry(function(callable $transducer, callable $step, $initial, $collection)
+        {
+            $reducer = $transducer($step);
+            return self::reduce($reducer, $initial, $collection);
+        });
+        return $transduce(...$args);
     }
 }

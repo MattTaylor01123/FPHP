@@ -5,65 +5,81 @@
  */
 namespace RamdaPHP;
 
+use InvalidArgumentException;
+use stdClass;
+use Traversable;
+
 trait Mapping 
 {
     public static function indexBy(...$args)
     {
-        $indexBy = self::curry(function(callable $func, iterable $iterable) {
-            if(method_exists($iterable, "indexBy"))
+        $indexBy = self::curry(function(callable $func, $coll) {
+            $transducer = fn($step) =>
+                            fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
+            if(method_exists($coll, "indexBy"))
             {
-                return $iterable->indexBy($func);
+                $out = $coll->indexBy($func);
             }
-            else if(is_array($iterable))
+            else if(is_callable($coll))
             {
-                $out = array();
-                foreach($iterable as $k => $v)
-                {
-                    $key = $func($v, $k);
-                    $out[$key] = $v;
-                }
-                return $out;
+                // if target is a transform function, return a transducer
+                $step = $coll;
+                $out = $transducer($step);
+            }
+            else if(is_array($coll))
+            {
+                $out = self::transduce($transducer, self::concatK(), [], $coll);
+            }
+            else if($coll instanceof Traversable)
+            {
+                $out = self::transformTraversable($transducer, $coll);
             }
             else
             {
-                $generator = function() use($iterable, $func) {
-                    foreach($iterable as $k => $v)
-                    {
-                        yield $func($v, $k) => $v;
-                    }
-                };
-                return self::generatorToIterable($generator);
+                throw new InvalidArgumentException(
+                    "unrecognised iterable"
+                );
             }
+            return $out;
         });
         return $indexBy(...$args);
     }
 
     public static function map(...$args)
     {
-        $map = self::curry(function(callable $func, $target) {
-            if(method_exists($target, "map"))
+        $map = self::curry(function(callable $func, $coll) {
+            $transducer = fn($step) =>
+                            fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
+            if(method_exists($coll, "map"))
             {
-                return $target->map($func);
+                $out = $coll->map($func);
             }
-            else if(is_array($target) || !is_iterable($target))
+            else if(is_callable($coll))
             {
-                $mapped = array();
-                foreach($target as $k => $v)
-                {
-                    $mapped[$k] = $func($v, $k);
-                }
-                return is_array($target) ? $mapped : (object)$mapped;
+                // if target is a transform function, return a transducer
+                $step = $coll;
+                $out = $transducer($step);
+            }
+            else if($coll instanceof stdClass)
+            {
+                $out = self::transduce($transducer, self::assoc(), new stdClass(), $coll);
+            }
+            else if(is_array($coll))
+            {
+                $out = self::transduce($transducer, self::concatK(), [], $coll);
+            }
+            else if($coll instanceof Traversable)
+            {
+                $out = self::transformTraversable($transducer, $coll);
             }
             else
             {
-                $generator = function() use($target, $func) {
-                    foreach($target as $k => $v)
-                    {
-                        yield $k => $func($v, $k);
-                    }
-                };
-                return self::generatorToIterable($generator);
+                throw new InvalidArgumentException(
+                    "target must be one of array, stdClass, generator, " .
+                    "functor, or transform function"
+                );
             }
+            return $out;
         });
         return $map(...$args);
     }
@@ -79,9 +95,15 @@ trait Mapping
             {
                 $out = array_column($iterable, $propName);
             }
+            else if($iterable instanceof Traversable)
+            {
+                $out = self::map(self::prop($propName), $iterable);
+            }
             else
             {
-                $out = RamdaPHP::map(self::prop($propName), $iterable);
+                throw new InvalidArgumentException(
+                    "unrecognised iterable"
+                );
             }
             return $out;
         });

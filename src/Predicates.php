@@ -50,6 +50,12 @@ trait Predicates
         return $isFloat(...$args);
     }
 
+    public static function isGenerator(...$args)
+    {
+        $isGenerator = self::curry(fn($arg) => $arg instanceof \Generator);
+        return $isGenerator(...$args);
+    }
+
     public static function isInteger(...$args)
     {
         $isInteger = self::curry(fn ($v) => is_int($v));

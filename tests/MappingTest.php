@@ -6,32 +6,67 @@
 
 namespace tests;
 
-use IteratorAggregate;
-use RamdaPHP\RamdaPHP as R;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use RamdaPHP\RamdaPHP as R;
 use Traversable;
 
 final class MappingTest extends TestCase
 {
-    use IterableDefs;
+    use TestUtils;
 
-    function buildCollectionMock2(string $overrideFunction, $in, $out)
+    // indexBy -----------------------------------------------------------------
+
+    function testIndexByIdx()
     {
-        $collection =  $this->getMockBuilder(IteratorAggregate::class)
-            ->setMethods(["getIterator", $overrideFunction])
-            ->getMock();
-        $t = $collection->expects($this->once())
-            ->method($overrideFunction);
-        if($in !== null)
-        {
-            $t->with($this->equalTo($in));
-        }
-        if($out !== null)
-        {
-            $t->willReturn($out);
-        }
-        return $collection;
+        $v = $this->getPersonsDataIdx();
+        $out1 = R::indexBy(R::prop("gender"), $v);
+        $this->assertIsArray($out1);
+        $this->assertCount(2, $out1);
+        $this->assertArrayHasKey("M", $out1);
+        $this->assertArrayHasKey("F", $out1);
+        $this->assertSame($v[2], $out1["M"]);
+        $this->assertSame($v[4], $out1["F"]);
     }
+
+    function testIndexByItAssoc()
+    {
+        $v = $this->getPersonsDataIt();
+        $out1 = R::indexBy(R::prop("gender"), $v);
+        $this->assertTrue(is_object($out1));
+        $this->assertTrue($out1 instanceof Traversable);
+
+        $i = 0;
+        $v2 = $this->getPersonsDataIdx();
+        foreach($out1 as $k => $val)
+        {
+            $this->assertEquals($v2[$i], $val);
+            $this->assertSame($v2[$i]->gender, $k);
+            $i++;
+        }
+    }
+
+    function testIndexByOverride()
+    {
+        $fn = R::prop("family");
+        $collection = $this->buildCollectionMock("indexBy", $fn, ["hello", "world"]);
+        $out2 = R::indexBy($fn, $collection);
+        $this->assertSame($out2, ["hello", "world"]);
+    }
+
+    function testIndexByTransducer()
+    {
+        $v = $this->getPersonsDataIdx();
+        $out1 = R::transduce(R::indexBy(R::prop("gender")), R::concatK(), [], $v);
+        $this->assertIsArray($out1);
+        $this->assertCount(2, $out1);
+        $this->assertArrayHasKey("M", $out1);
+        $this->assertArrayHasKey("F", $out1);
+        $this->assertSame($v[2], $out1["M"]);
+        $this->assertSame($v[4], $out1["F"]);
+    }
+
+    // map ---------------------------------------------------------------------
 
     function testMapIdx()
     {
@@ -61,6 +96,9 @@ final class MappingTest extends TestCase
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
+        // repeat the check to run iterator_to_array again, to make sure
+        // of generator reuse
+        $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
     }
 
     function testMapItAssoc()
@@ -70,52 +108,32 @@ final class MappingTest extends TestCase
         $this->assertTrue(is_object($o1));
         $this->assertTrue($o1 instanceof Traversable);
         $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
+        // repeat the check to run iterator_to_array again, to make sure
+        // of generator reuse
+        $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
     }
 
     function testMapOverride()
     {
         $fn = fn ($x) => $x * 2;
-        $collection = $this->buildCollectionMock2("map", $fn, ["hello", "world"]);
+        $collection = $this->buildCollectionMock("map", $fn, ["hello", "world"]);
         $o2 = R::map($fn, $collection);
         $this->assertSame($o2, ["hello", "world"]);
     }
 
-    function testIndexByIdx()
+    function testMapTransducer()
     {
-        $v = $this->getPersonsDataIdx();
-        $out1 = R::indexBy(R::prop("gender"), $v);
-        $this->assertIsArray($out1);
-        $this->assertCount(2, $out1);
-        $this->assertArrayHasKey("M", $out1);
-        $this->assertArrayHasKey("F", $out1);
-        $this->assertSame($v[2], $out1["M"]);
-        $this->assertSame($v[4], $out1["F"]);
+        $out = R::transduce(R::map(fn($x) => $x * 2), R::concatK(), [], $this->getIndexedArray());
+        $this->assertSame([2,4,6,8,10], $out);
     }
 
-    function testIndexByAssoc()
+    function testMapInvalid2ndArg()
     {
-        $v = $this->getPersonsDataIt();
-        $out1 = R::indexBy(R::prop("gender"), $v);
-        $this->assertTrue(is_object($out1));
-        $this->assertTrue($out1 instanceof Traversable);
-
-        $i = 0;
-        $v2 = $this->getPersonsDataIdx();
-        foreach($out1 as $k => $val)
-        {
-            $this->assertEquals($v2[$i], $val);
-            $this->assertSame($v2[$i]->gender, $k);
-            $i++;
-        }
+        $this->expectException(InvalidArgumentException::class);
+        R::map(fn($v) => $v * 2, "hello");
     }
 
-    function testIndexByOverride()
-    {
-        $fn = R::prop("family");
-        $collection = $this->buildCollectionMock2("indexBy", $fn, ["hello", "world"]);
-        $out2 = R::indexBy($fn, $collection);
-        $this->assertSame($out2, ["hello", "world"]);
-    }
+    // pluck -------------------------------------------------------------------
 
     function testPluckIdx()
     {
@@ -135,9 +153,8 @@ final class MappingTest extends TestCase
 
     function testPluckOverride()
     {
-        $collection = $this->buildCollectionMock2("pluck", "name", ["hello", "world"]);
+        $collection = $this->buildCollectionMock("pluck", "name", ["hello", "world"]);
         $out2 = R::pluck("name", $collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
-
 }
