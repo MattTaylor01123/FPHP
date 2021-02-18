@@ -12,7 +12,7 @@ trait InTo
     {
         $inTo = self::curry(function($initial, callable $transducer, $collection) {
             $transInto = self::transduce($transducer, self::__(), $initial, $collection);
-            if($initial instanceof \stdClass)
+            if(is_object($initial))
             {
                 return $transInto(self::assoc());
             }
