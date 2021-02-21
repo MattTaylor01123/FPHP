@@ -32,6 +32,7 @@ class RamdaPHP
     use Equals;
     use InTo;
     use Memoize;
+    use PickAll;
     use PropEq;
 
     public static function flatten(...$args)
