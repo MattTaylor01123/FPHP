@@ -31,6 +31,7 @@ class RamdaPHP
     use Equals;
     use InTo;
     use Memoize;
+    use Merge;
     use PickAll;
     use PropEq;
 
@@ -107,16 +108,6 @@ class RamdaPHP
             }
         });
         return $collect(...$args);
-    }
-
-    public static function merge(iterable ...$args)
-    {
-        return self::generatorToIterable(function() use($args) {
-            foreach($args as $iterable)
-            {
-                yield from $iterable;
-            }
-        });
     }
 
     protected static function transformTraversable($transducer, $traversable)
