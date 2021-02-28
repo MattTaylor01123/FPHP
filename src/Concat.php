@@ -7,18 +7,13 @@
 namespace RamdaPHP;
 
 use Exception;
-use IteratorAggregate;
 use Traversable;
 
-// based on https://stackoverflow.com/questions/5863128/ordering-of-parameters-to-make-use-of-currying
-// Chris Okasaki view, for accumulators, put the most varying argument last, e.g.
-// the value.
-
-/**
- * Concat is merge but ignores keys
- */
 trait Concat
 {
+    /**
+     * Concat is merge but ignores keys
+     */
     public static function concat(...$args)
     {
         $concat = self::curry(function($v1, $v2) {
@@ -46,28 +41,17 @@ trait Concat
             }
             else if($v1 instanceof Traversable && $v2 instanceof Traversable)
             {
-                $out = new class($v1, $v2) implements IteratorAggregate
-                {
-                    private $first;
-                    private $second;
-                    public function __construct($first, $second)
+                $fn = function() use($v1, $v2) {
+                    foreach($v1 as $v)
                     {
-                        $this->first = $first;
-                        $this->second = $second;
+                        yield $v;
                     }
-
-                    public function getIterator(): Traversable
+                    foreach($v2 as $v)
                     {
-                        foreach($this->first as $v)
-                        {
-                            yield $v;
-                        }
-                        foreach($this->second as $v)
-                        {
-                            yield $v;
-                        }
+                        yield $v;
                     }
                 };
+                $out = self::generatorToIterable($fn);
             }
             else
             {
