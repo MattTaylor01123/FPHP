@@ -57,7 +57,7 @@ final class MappingTest extends TestCase
     function testIndexByTransducer()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = R::transduce(R::indexBy(R::prop("gender")), R::concatK(), [], $v);
+        $out1 = R::transduce(R::indexBy(R::prop("gender")), R::appendK(), [], $v);
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
         $this->assertArrayHasKey("M", $out1);
@@ -123,7 +123,7 @@ final class MappingTest extends TestCase
 
     function testMapTransducer()
     {
-        $out = R::transduce(R::map(fn($x) => $x * 2), R::concatK(), [], $this->getIndexedArray());
+        $out = R::transduce(R::map(fn($x) => $x * 2), R::appendK(), [], $this->getIndexedArray());
         $this->assertSame([2,4,6,8,10], $out);
     }
 

@@ -28,7 +28,6 @@ class RamdaPHP
     use Appendk;
     use Assoc;    
     use Concat;
-    use ConcatK;
     use Equals;
     use InTo;
     use Memoize;

@@ -18,7 +18,7 @@ trait InTo
             }
             elseif(self::isArray($initial))
             {
-                return $transInto(self::concatK());
+                return $transInto(self::appendK());
             }
             else
             {

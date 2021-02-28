@@ -10,7 +10,7 @@ trait AppendK
 {
     function appendK(...$params)
     {
-        $appendK = R::curry(function(array $arr, $val, $key) {
+        $appendK = self::curry(function(array $arr, $val, $key) {
             $out = $arr;
             $out[$key] = $val;
             return $out;
