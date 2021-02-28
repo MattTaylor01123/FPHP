@@ -28,7 +28,7 @@ trait Mapping
             }
             else if(is_array($coll))
             {
-                $out = self::transduce($transducer, self::appendK(), [], $coll);
+                $out = self::transduce($transducer, self::assoc(), [], $coll);
             }
             else if($coll instanceof Traversable)
             {
@@ -66,7 +66,7 @@ trait Mapping
             }
             else if(is_array($coll))
             {
-                $out = self::transduce($transducer, self::appendK(), [], $coll);
+                $out = self::transduce($transducer, self::assoc(), [], $coll);
             }
             else if($coll instanceof Traversable)
             {

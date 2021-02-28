@@ -12,13 +12,9 @@ trait InTo
     {
         $inTo = self::curry(function($initial, callable $transducer, $collection) {
             $transInto = self::transduce($transducer, self::__(), $initial, $collection);
-            if(is_object($initial))
+            if(is_object($initial) || is_array($initial))
             {
                 return $transInto(self::assoc());
-            }
-            elseif(self::isArray($initial))
-            {
-                return $transInto(self::appendK());
             }
             else
             {

@@ -25,7 +25,6 @@ class RamdaPHP
     use Add;
     use Adjust;
     use Append;
-    use Appendk;
     use Assoc;    
     use Concat;
     use Equals;
