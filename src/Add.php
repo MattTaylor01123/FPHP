@@ -10,7 +10,7 @@ trait Add
 {
     function add(...$params)
     {
-        $add = R::curry(function($v1, $v2) {
+        $add = self::curry(function($v1, $v2) {
             return $v1 + $v2;
         });
         return $add(...$params);

@@ -72,7 +72,7 @@ final class MappingTest extends TestCase
     {
         $fn = fn ($x) => $x * 2;
         $o1 = R::map($fn, $this->getIndexedArray());
-        $this->assertSame([2,4,6,8,10], $o1);
+        $this->assertEquals([2,4,6,8,10], $o1);
     }
 
     function testMapAssoc()
@@ -119,12 +119,6 @@ final class MappingTest extends TestCase
         $collection = $this->buildCollectionMock("map", $fn, ["hello", "world"]);
         $o2 = R::map($fn, $collection);
         $this->assertSame($o2, ["hello", "world"]);
-    }
-
-    function testMapTransducer()
-    {
-        $out = R::transduce(R::map(fn($x) => $x * 2), R::assoc(), [], $this->getIndexedArray());
-        $this->assertSame([2,4,6,8,10], $out);
     }
 
     function testMapInvalid2ndArg()

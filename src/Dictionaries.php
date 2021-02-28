@@ -79,7 +79,7 @@ trait Dictionaries
                 $generator = function() use($target, $properties) {
                     foreach($properties as $p)
                     {
-                        $match = R::find(fn($v, $k) => $k === $p, $target);
+                        $match = self::find(fn($v, $k) => $k === $p, $target);
                         if($match !== null)
                         {
                             yield $p => $match;

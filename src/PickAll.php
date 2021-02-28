@@ -13,8 +13,8 @@ trait PickAll
     public static function pickAll(...$args)
     {
         // TODO - what about items that are missing?
-        $pickAll = R::curry(function(iterable $props, $target) {
-            return R::filter(fn($v, $k) => R::includes($k, $props), $target);
+        $pickAll = self::curry(function(iterable $props, $target) {
+            return self::filter(fn($v, $k) => self::includes($k, $props), $target);
         });
         return $pickAll(...$args);
     }

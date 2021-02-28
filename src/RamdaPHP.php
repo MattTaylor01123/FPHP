@@ -28,7 +28,9 @@ class RamdaPHP
     use Assoc;    
     use Concat;
     use Equals;
+    use Filter;
     use InTo;
+    use Map;
     use Memoize;
     use Merge;
     use PickAll;

@@ -16,8 +16,8 @@ final class InToTest extends TestCase
     function testInTo()
     {
         $fn = R::pipe(
-            R::map(fn($v) => $v + 1),
-            R::filter(fn($v) => $v % 2)
+            R::mapT(fn($v) => $v + 1),
+            R::filterT(fn($v) => $v % 2)
         );
 
         $out1 = R::inTo(new \stdClass(), $fn, $this->getAssocArray());
