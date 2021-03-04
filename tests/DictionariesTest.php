@@ -7,7 +7,7 @@
 namespace tests;
 
 use IteratorAggregate;
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -65,10 +65,10 @@ final class DictionariesTest extends TestCase
      */
     public function testPropObject(object $obj)
     {
-        $this->assertSame(R::prop("firstName", $obj), "Matt");
-        $this->assertSame(R::prop("middleName", $obj), null);
+        $this->assertSame(F::prop("firstName", $obj), "Matt");
+        $this->assertSame(F::prop("middleName", $obj), null);
         
-        $fn = R::prop("firstName");
+        $fn = F::prop("firstName");
         $this->assertSame($fn($obj), "Matt");
     }
     
@@ -77,10 +77,10 @@ final class DictionariesTest extends TestCase
      */
     public function testPropArray(array $arr)
     {
-        $this->assertSame(R::prop("firstName", $arr), "Matt");
-        $this->assertSame(R::prop("middleName", $arr), null);
+        $this->assertSame(F::prop("firstName", $arr), "Matt");
+        $this->assertSame(F::prop("middleName", $arr), null);
         
-        $fn = R::prop("firstName");
+        $fn = F::prop("firstName");
         $this->assertSame($fn($arr), "Matt");
     }
     
@@ -89,7 +89,7 @@ final class DictionariesTest extends TestCase
      */
     public function testPropsObject(object $obj)
     {
-        $o1 = R::props(["firstName", "middleName","lastName"], $obj);
+        $o1 = F::props(["firstName", "middleName","lastName"], $obj);
         $e1 = ["Matt", null, "Taylor"];
         $this->assertEquals($o1, $e1);
     }
@@ -99,7 +99,7 @@ final class DictionariesTest extends TestCase
      */
     public function testPropsArray(array $arr)
     {
-        $o1 = R::props(["firstName", "middleName","lastName"], $arr);
+        $o1 = F::props(["firstName", "middleName","lastName"], $arr);
         $e1 = ["Matt", null, "Taylor"];
         $this->assertEquals($o1, $e1);
     }
@@ -109,8 +109,8 @@ final class DictionariesTest extends TestCase
      */
     public function testPropArray2(array $arr)
     {
-        $this->assertSame(R::prop(0, $arr), "Matt");
-        $this->assertSame(R::prop(1, $arr), "Taylor");
+        $this->assertSame(F::prop(0, $arr), "Matt");
+        $this->assertSame(F::prop(1, $arr), "Taylor");
     }
     
     /**
@@ -118,10 +118,10 @@ final class DictionariesTest extends TestCase
      */
     public function testHasPropObject(object $obj)
     {
-        $this->assertTrue(R::hasProp("firstName", $obj));
-        $this->assertFalse(R::hasProp("middleName", $obj));
+        $this->assertTrue(F::hasProp("firstName", $obj));
+        $this->assertFalse(F::hasProp("middleName", $obj));
         
-        $fn = R::hasProp("firstName");
+        $fn = F::hasProp("firstName");
         $this->assertTrue($fn($obj));
     }
     
@@ -130,10 +130,10 @@ final class DictionariesTest extends TestCase
      */
     public function testHasPropArray(array $arr)
     {
-        $this->assertTrue(R::hasProp("firstName", $arr));
-        $this->assertFalse(R::hasProp("middleName", $arr));
+        $this->assertTrue(F::hasProp("firstName", $arr));
+        $this->assertFalse(F::hasProp("middleName", $arr));
         
-        $fn = R::hasProp("firstName");
+        $fn = F::hasProp("firstName");
         $this->assertTrue($fn($arr));
     }
 
@@ -141,35 +141,35 @@ final class DictionariesTest extends TestCase
     function testKeysAssoc()
     {
         $v = $this->getAssocArray();
-        $out1 = R::keys($v);
+        $out1 = F::keys($v);
         $this->assertSame($out1, ["a", "b", "c", "d", "e"]);
     }
 
     function testKeysObj()
     {
         $v = $this->getObj();
-        $out1 = R::keys($v);
+        $out1 = F::keys($v);
         $this->assertSame($out1, ["f", "g", "h"]);
     }
 
     function testKeysOverride()
     {
         $collection = $this->buildCollectionMock("keys", null, ["hello", "world"]);
-        $out2 = R::keys($collection);
+        $out2 = F::keys($collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 
     function testKeysItIdx()
     {
         $v = $this->getItIdx();
-        $out = R::keys($v);
+        $out = F::keys($v);
         $this->assertEquals(iterator_to_array($out, false), [0,1,2,3]);
     }
 
     function testKeysItAssoc()
     {
         $v = $this->getItAssoc();
-        $out = R::keys($v);
+        $out = F::keys($v);
         $this->assertSame(iterator_to_array($out, false), ["i","j","k","l"]);
     }
 
@@ -178,7 +178,7 @@ final class DictionariesTest extends TestCase
      */
     public function testPickObject(object $obj)
     {
-        $o1 = R::pick(["firstName", "middleName","lastName"], $obj);
+        $o1 = F::pick(["firstName", "middleName","lastName"], $obj);
         $e1 = new stdClass();
         $e1->firstName = "Matt";
         $e1->lastName = "Taylor";
@@ -190,7 +190,7 @@ final class DictionariesTest extends TestCase
      */
     public function testPickArray(array $arr)
     {
-        $o1 = R::pick(["firstName", "middleName","lastName"], $arr);
+        $o1 = F::pick(["firstName", "middleName","lastName"], $arr);
         $e1 = array();
         $e1["firstName"] = "Matt";
         $e1["lastName"] = "Taylor";
@@ -202,7 +202,7 @@ final class DictionariesTest extends TestCase
      */
     public function testPickIterable($itAssoc)
     {
-        $o1 = R::pick(["firstName", "middleName", "lastName"], $itAssoc);
+        $o1 = F::pick(["firstName", "middleName", "lastName"], $itAssoc);
         $e1 = array();
         $e1["firstName"] = "Matt";
         $e1["lastName"] = "Taylor";
@@ -212,35 +212,35 @@ final class DictionariesTest extends TestCase
     function testValuesAssoc()
     {
         $v = $this->getAssocArray();
-        $out1 = R::values($v);
+        $out1 = F::values($v);
         $this->assertSame($out1, [1,2,3,4,5]);
     }
 
     function testValuesObj()
     {
         $v = $this->getObj();
-        $out1 = R::values($v);
+        $out1 = F::values($v);
         $this->assertSame($out1, [2,4,6]);
     }
 
     function testValuesOverride()
     {
         $collection = $this->buildCollectionMock("values", null, ["hello", "world"]);
-        $out2 = R::values($collection);
+        $out2 = F::values($collection);
         $this->assertSame($out2, ["hello", "world"]);
     }
 
     function testValuesItIdx()
     {
         $v = $this->getItIdx();
-        $out = R::values($v);
+        $out = F::values($v);
         $this->assertSame(iterator_to_array($out, false), [10,20,30,40]);
     }
 
     function testValuesItAssoc()
     {
         $v = $this->getItAssoc();
-        $out = R::values($v);
+        $out = F::values($v);
         $this->assertSame(iterator_to_array($out, false), [10,20,30,40]);
     }
 }

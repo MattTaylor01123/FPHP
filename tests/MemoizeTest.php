@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
 final class MemoizeTest extends TestCase 
@@ -20,7 +20,7 @@ final class MemoizeTest extends TestCase
             return $i;
         };
         
-        $mfn = R::memoize($fn);
+        $mfn = F::memoize($fn);
         
         $out1 = $mfn("a");
         $this->assertSame($out1, 1);
@@ -39,7 +39,7 @@ final class MemoizeTest extends TestCase
             return $i;
         };
         
-        $mfn = R::memoize($fn);
+        $mfn = F::memoize($fn);
         $this->assertSame($mfn(), 1);
         $this->assertSame($mfn(), 1);
         

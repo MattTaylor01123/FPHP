@@ -7,9 +7,9 @@
 namespace tests;
 
 use PHPUnit\Framework\TestCase;
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 
-final class RamdaPHPTest extends TestCase
+final class FPHPTest extends TestCase
 {
     use TestUtils;
 
@@ -30,7 +30,7 @@ final class RamdaPHPTest extends TestCase
             ]
         ];
 
-        $res = R::flatten($arr);
+        $res = F::flatten($arr);
 
         $this->assertEquals($res, [
             "bob",

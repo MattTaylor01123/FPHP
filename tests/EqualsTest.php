@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
 final class EqualsTest extends TestCase
@@ -53,7 +53,7 @@ final class EqualsTest extends TestCase
      */
     public function testEquals($v1, $v2, $expected)
     {
-        $res = R::equals($v1, $v2);
+        $res = F::equals($v1, $v2);
         $this->assertEquals($res, $expected);
     }
 }

@@ -3,7 +3,7 @@
 /*
  * (c) Matthew Taylor
  */
-namespace RamdaPHP;
+namespace FPHP;
 
 use InvalidArgumentException;
 use stdClass;

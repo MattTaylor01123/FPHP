@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
 final class PickAllTest extends TestCase
@@ -24,7 +24,7 @@ final class PickAllTest extends TestCase
      */
     public function testPickAll($input, $expected)
     {
-        $output = R::pickAll(["a", "b"], $input);
+        $output = F::pickAll(["a", "b"], $input);
         $this->assertEquals($output, $expected);
     }
 }

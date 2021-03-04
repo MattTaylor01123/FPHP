@@ -6,7 +6,7 @@
 
 namespace tests;
 
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
 final class PropEqTest extends TestCase
@@ -38,8 +38,8 @@ final class PropEqTest extends TestCase
      */
     public function testPropEqArray(array $arr)
     {
-        $this->assertTrue(R::propEq("firstName", "Matt", $arr));
-        $this->assertFalse(R::propEq("lastName", "Matt", $arr));   
+        $this->assertTrue(F::propEq("firstName", "Matt", $arr));
+        $this->assertFalse(F::propEq("lastName", "Matt", $arr));   
     }
     
     /**
@@ -47,7 +47,7 @@ final class PropEqTest extends TestCase
      */
     public function testPropEqArray2(array $arr)
     {
-        $this->assertTrue(R::propEq(0, "Matt", $arr));
-        $this->assertFalse(R::propEq(1, "Matt", $arr));
+        $this->assertTrue(F::propEq(0, "Matt", $arr));
+        $this->assertFalse(F::propEq(1, "Matt", $arr));
     }
 }

@@ -1,6 +1,6 @@
 {
-    "name": "matttaylor01123/ramda-php",
-    "description": "Ramda for PHP",
+    "name": "matttaylor01123/fphp",
+    "description": "Functional PHP",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "RamdaPHP\\": "src/",
+            "FPHP\\": "src/",
             "tests\\": "tests/"
         }
     }

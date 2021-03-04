@@ -4,13 +4,13 @@
  * (c) Matthew Taylor
  */
 
-namespace RamdaPHP;
+namespace FPHP;
 
 use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
 
-class RamdaPHP
+class FPHP
 {
     use Mapping;
     use Filtering;
@@ -166,9 +166,9 @@ class RamdaPHP
 
             public function jsonSerialize()
             {
-                $out = RamdaPHP::pipex(
+                $out = FPHP::pipex(
                     iterator_to_array($this->getIterator(), true),
-                    fn($a) => RamdaPHP::isSequentialArray($a) ? RamdaPHP::values($a) : $a
+                    fn($a) => FPHP::isSequentialArray($a) ? FPHP::values($a) : $a
                 );
                 return $out;
             }

@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace RamdaPHP;
+namespace FPHP;
 
 trait PickAll
 {

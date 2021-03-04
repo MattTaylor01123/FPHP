@@ -6,14 +6,14 @@
 
 namespace tests;
 
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
 final class FunctionsTest extends TestCase 
 {
     public function testCurry()
     {
-        $fnAdd = R::curry(function($arg1, $arg2) {
+        $fnAdd = F::curry(function($arg1, $arg2) {
             return $arg1 + $arg2;
         });
 
@@ -28,13 +28,13 @@ final class FunctionsTest extends TestCase
 
     public function testPlaceholder()
     {
-        $fnSub = R::curry(function($a, $b) {
+        $fnSub = F::curry(function($a, $b) {
             return $a - $b;
         });
 
         $this->assertIsCallable($fnSub);
 
-        $fnSub6 = $fnSub(R::__(), 6);
+        $fnSub6 = $fnSub(F::__(), 6);
 
         $this->assertIsCallable($fnSub6);
 
@@ -54,11 +54,11 @@ final class FunctionsTest extends TestCase
             }
         };
         
-        $add3 = R::invoker(0, "add3");
+        $add3 = F::invoker(0, "add3");
         $add3($obj);
         $this->assertSame($obj->val, 8);
         
-        $sub = R::invoker(2, "sub");
+        $sub = F::invoker(2, "sub");
         $subFrom10 = $sub(10);
         $out1 = $subFrom10(7, $obj);
         $this->assertSame($out1, 3);
@@ -68,22 +68,22 @@ final class FunctionsTest extends TestCase
     
     function testAlways()
     {
-        $fn1 = R::always(3);
+        $fn1 = F::always(3);
         $this->assertSame($fn1(), 3);
-        $fn2 = R::always("hello");
+        $fn2 = F::always("hello");
         $this->assertSame($fn2(), "hello");
     }
 
     function testComplement()
     {
-        $fn = R::complement(R::eq());
-        $this->assertSame(R::eq("a", "a"), true);
+        $fn = F::complement(F::eq());
+        $this->assertSame(F::eq("a", "a"), true);
         $this->assertSame($fn("a", "a"), false);
-        $this->assertSame(R::eq("a", "b"), false);
+        $this->assertSame(F::eq("a", "b"), false);
         $this->assertSame($fn("a", "b"), true);
 
-        $fn2 = R::eq(5);
-        $nfn2 = R::complement($fn2);
+        $fn2 = F::eq(5);
+        $nfn2 = F::complement($fn2);
 
         $this->assertSame($fn2(5), true);
         $this->assertSame($nfn2(5), false);
@@ -93,9 +93,9 @@ final class FunctionsTest extends TestCase
 
     function testPipe()
     {
-        $nand = R::pipe(
-            R::andd(),
-            R::not()
+        $nand = F::pipe(
+            F::andd(),
+            F::not()
         );
 
         $this->assertSame($nand(false, false), true);
@@ -105,9 +105,9 @@ final class FunctionsTest extends TestCase
 
     function testPipex()
     {
-        $filterRes = R::pipex(
+        $filterRes = F::pipex(
             [1,2,3,4,5,6],
-            R::joinUp("-")
+            F::joinUp("-")
         );
 
         $this->assertSame($filterRes, "1-2-3-4-5-6");

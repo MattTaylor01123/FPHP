@@ -7,7 +7,7 @@
 namespace tests;
 
 use PHPUnit\Framework\TestCase;
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 
 final class AdditionalTest extends TestCase
 {
@@ -16,7 +16,7 @@ final class AdditionalTest extends TestCase
     function testColumnsIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = R::columns(["name", "family"], $v);
+        $out1 = F::columns(["name", "family"], $v);
         $this->assertEquals($out1, [
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],
@@ -32,7 +32,7 @@ final class AdditionalTest extends TestCase
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],
         ]);
-        $out2 = R::columns(["name", "family"], $collection);
+        $out2 = F::columns(["name", "family"], $collection);
         $this->assertEquals($out2, [
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],

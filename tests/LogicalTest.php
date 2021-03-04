@@ -7,13 +7,13 @@
 namespace tests;
 
 use PHPUnit\Framework\TestCase;
-use RamdaPHP\RamdaPHP as R;
+use FPHP\FPHP as F;
 
 final class LogicalTest extends TestCase
 {
     public function testAllPass()
     {
-        $fn = R::allPass(R::isArray(), R::all(R::isInteger()));
+        $fn = F::allPass(F::isArray(), F::all(F::isInteger()));
         
         $this->assertTrue($fn([1,2,3,4,5]));
         $this->assertFalse($fn([1,2,3,4, "hello"]));
@@ -22,7 +22,7 @@ final class LogicalTest extends TestCase
 
     public function testAnyPass()
     {
-        $fn = R::anyPass(R::isInteger(), R::isString());
+        $fn = F::anyPass(F::isInteger(), F::isString());
         
         $this->assertTrue($fn(1));
         $this->assertTrue($fn("hello"));
@@ -45,7 +45,7 @@ final class LogicalTest extends TestCase
      */
     public function testAndd($v1, $v2)
     {
-        $this->assertSame(R::andd($v1, $v2), ($v1 && $v2));
+        $this->assertSame(F::andd($v1, $v2), ($v1 && $v2));
     }
     
     /**
@@ -53,12 +53,12 @@ final class LogicalTest extends TestCase
      */
     public function testOrr($v1, $v2)
     {
-        $this->assertSame(R::orr($v1, $v2), ($v1 || $v2));
+        $this->assertSame(F::orr($v1, $v2), ($v1 || $v2));
     }
     
     public function testNot()
     {
-        $this->assertSame(R::not(false), true);
-        $this->assertSame(R::not(true), false);
+        $this->assertSame(F::not(false), true);
+        $this->assertSame(F::not(true), false);
     }
 }
