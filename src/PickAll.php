@@ -6,8 +6,6 @@
 
 namespace RamdaPHP;
 
-use RamdaPHP\RamdaPHP as R;
-
 trait PickAll
 {
     public static function pickAll(...$args)

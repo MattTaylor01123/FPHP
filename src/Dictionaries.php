@@ -6,7 +6,6 @@
 
 namespace RamdaPHP;
 
-use RamdaPHP\RamdaPHP as R;
 use stdClass;
 
 trait Dictionaries
