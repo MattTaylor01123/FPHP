@@ -1,0 +1,33 @@
+<?php
+
+/*
+ * (c) Matthew Taylor
+ */
+
+namespace tests;
+
+use FPHP\FPHP as F;
+use PHPUnit\Framework\TestCase;
+
+final class HasProp extends TestCase
+{
+    use TestUtils;
+
+    public function testHasPropObject()
+    {
+        $this->assertTrue(F::hasProp("f", $this->getObj()));
+        $this->assertFalse(F::hasProp("i", $this->getObj()));
+
+        $fn = F::hasProp("f");
+        $this->assertTrue($fn($this->getObj()));
+    }
+
+    public function testHasPropArray()
+    {
+        $this->assertTrue(F::hasProp("a", $this->getAssocArray()));
+        $this->assertFalse(F::hasProp("f", $this->getAssocArray()));
+
+        $fn = F::hasProp("a");
+        $this->assertTrue($fn($this->getAssocArray()));
+    }
+}

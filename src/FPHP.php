@@ -16,7 +16,6 @@ class FPHP
     use Filtering;
     use Reducing;
     use Logical;
-    use Dictionaries;
     use Functions;
     use Predicates;
     use Relational;
@@ -29,12 +28,18 @@ class FPHP
     use Concat;
     use Equals;
     use Filter;
+    use HasProp;
     use InTo;
+    use Keys;
     use Map;
     use Memoize;
     use Merge;
+    use Pick;
     use PickAll;
+    use Prop;
     use PropEq;
+    use Props;
+    use Values;
 
     public static function flatten(...$args)
     {
