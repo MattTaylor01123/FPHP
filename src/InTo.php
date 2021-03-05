@@ -8,7 +8,7 @@ namespace FPHP;
 
 trait InTo
 {
-    public function inTo(...$args)
+    public static function inTo(...$args)
     {
         $inTo = self::curry(function($initial, callable $transducer, $collection) {
             $transInto = self::transduce($transducer, self::__(), $initial, $collection);
