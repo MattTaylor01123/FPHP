@@ -26,9 +26,12 @@ class FPHP
     use Append;
     use Assoc;    
     use Concat;
+    use Dec;
+    use Emptied;
     use Equals;
     use Filter;
     use HasProp;
+    use Inc;
     use InTo;
     use Keys;
     use Map;

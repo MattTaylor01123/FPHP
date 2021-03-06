@@ -8,20 +8,14 @@ namespace FPHP;
 
 trait Adjust 
 {
-    public function adjust(...$params)
+    public static function adjust(...$params)
     {
         $adjust = self::curry(function($idx, callable $transform, $list) {
             $transducer = fn($step) => 
                 fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
-            
-            if(is_array($list))
-            {
-                return self::transduce($transducer, self::append(), []);
-            }
-            else
-            {
-                return self::transduce($transducer, fn($acc, $v, $k) => yield $k => $v, null);
-            }
+
+            $empty = self::emptied($list);
+            return self::transduce($transducer, self::assoc(), $empty, $list);
         });
         return $adjust(...$params);
     }
