@@ -31,6 +31,7 @@ class FPHP
     use Filter;
     use HasProp;
     use Inc;
+    use IndexBy;
     use InTo;
     use Keys;
     use Map;
