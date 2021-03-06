@@ -8,7 +8,7 @@ namespace FPHP;
 use InvalidArgumentException;
 use Traversable;
 
-trait Mapping 
+trait Pluck
 {
     public static function pluck(...$args)
     {

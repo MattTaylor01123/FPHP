@@ -12,7 +12,6 @@ use Traversable;
 
 class FPHP
 {
-    use Mapping;
     use Reducing;
     use Logical;
     use Functions;
@@ -39,6 +38,7 @@ class FPHP
     use Merge;
     use Pick;
     use PickAll;
+    use Pluck;
     use Prop;
     use PropEq;
     use Props;
