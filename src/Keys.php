@@ -22,24 +22,25 @@ trait Keys
             $transduceInto = self::transduce(self::keysT(), self::append(), self::__(), $target);
             if(method_exists($target, "keys"))
             {
-                return $target->keys();
+                $out = $target->keys();
             }
             else if(is_array($target))
             {
-                return array_keys($target);
+                $out = array_keys($target);
             }
             else if(is_iterable($target))
             {
-                return $transduceInto(self::emptied($target));
+                $out = $transduceInto(self::emptied($target));
             }
             else if(is_object($target))
             {
-                return $transduceInto(self::emptied([]));
+                $out = $transduceInto(self::emptied([]));
             }
             else
             {
-                throw new InvalidArgumentException("'target' must be array, traversable, or object");
+                throw new InvalidArgumentException("'target' must be iterable or object");
             }
+            return $out;
         });
         return $keys(...$args);
     }

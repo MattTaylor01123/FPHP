@@ -62,6 +62,12 @@ trait Predicates
         return $isInteger(...$args);
     }
 
+    public static function isIterable(...$args)
+    {
+        $isGenerator = self::curry(fn($arg) => is_iterable($arg));
+        return $isGenerator(...$args);
+    }
+
     public static function isObject(...$args)
     {
         $isObject = self::curry(fn ($v) => is_object($v));
@@ -83,6 +89,30 @@ trait Predicates
     {
         $isString = self::curry(fn ($v) => is_string($v));
         return $isString(...$args);
+    }
+
+    public static function isType(...$args)
+    {
+        $isType = self::curry(fn($t, $v) => gettype($v) === $t);
+        return $isType(...$args);
+    }
+
+    public static function isClass(...$args)
+    {
+        $isClass = self::curry(fn($c, $v) => get_class($v) === $c);
+        return $isClass(...$args);
+    }
+
+    public static function isStdClass(...$args)
+    {
+        $isStdClass = self::curry(fn($v) => $v instanceof \stdClass);
+        return $isStdClass(...$args);
+    }
+    
+    public static function isTraversable(...$args)
+    {
+        $isTraversable = self::curry(fn ($v) => $v instanceof \Traversable);
+        return $isTraversable(...$args);
     }
 
     public static function test(...$args)

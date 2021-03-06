@@ -6,6 +6,9 @@
 
 namespace FPHP;
 
+use InvalidArgumentException;
+use Traversable;
+
 trait Merge
 {
     /*
@@ -21,7 +24,7 @@ trait Merge
 
             if($v1type !== $v2type)
             {
-                throw new Exception("v1 and v2 must be of the same type");
+                throw new InvalidArgumentException("v1 and v2 must be of the same type");
             }
 
             if(method_exists($v1, "merge"))
@@ -32,23 +35,15 @@ trait Merge
             {
                 $out = array_merge($v1, $v2);
             }
-            else if($v1 instanceof Traversable && $v2 instanceof Traversable)
+            else if($v1 instanceof Traversable || is_object($v1))
             {
-                $fn = function() use($v1, $v2) {
-                    foreach($v1 as $k => $v)
-                    {
-                        yield $k => $v;
-                    }
-                    foreach($v2 as $k => $v)
-                    {
-                        yield $k => $v;
-                    }
-                };
-                $out = self::generatorToIterable($fn);
+                $transducer = self::identity();
+                $afterFirst = self::transduce($transducer, self::assoc(), self::emptied($v1), $v1);
+                $out = self::transduce($transducer, self::assoc(), $afterFirst, $v2);
             }
             else
             {
-                throw new Exception("v1 and v2 of unhandled type");
+                throw new InvalidArgumentException("v1 and v2 of unhandled type");
             }
             return $out;
         });

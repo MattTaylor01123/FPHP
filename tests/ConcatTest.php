@@ -12,43 +12,51 @@ use Traversable;
 
 final class ConcatTest extends TestCase
 {
-    use TestUtils;
-
-    public function testConcatSeq()
+    public function toGen($vals)
     {
-        $a = $this->getIndexedArray();
-        $b = $this->getIndexedArray();
-        $out = F::concat($a, $b);
-        $exp = [1,2,3,4,5,1,2,3,4,5];
-        $this->assertSame($exp, $out);
+        yield from $vals;
     }
 
-    public function testConcatAssoc()
+    public function cases()
     {
-        $a = $this->getAssocArray();
-        $b = $this->getAssocArray();
-        $out = F::concat($a, $b);
-        $exp = [1,2,3,4,5,1,2,3,4,5];
-        $this->assertSame($exp, $out);
+        return [
+            [
+                [0,1,2],
+                [3,4],
+                F::isArray(),
+                [0,1,2,3,4]
+            ],[
+                ["a" => 1, "b" => 2],
+                ["a" => 3, "c" => 4],
+                F::isArray(),
+                [1,2,3,4]
+            ],[
+                "hello ",
+                "world",
+                F::isString(),
+                "hello world"
+            ],[
+                $this->toGen([1,2]),
+                $this->toGen([3,4]),
+                F::isTraversable(),
+                $this->toGen([1,2,3,4])
+            ]
+        ];
     }
 
-    public function testSeqIt()
+    /**
+     * @dataProvider cases
+     */
+    public function testConcat($v1, $v2, callable $expTypeCheck, $exp)
     {
-        $a = $this->getItIdx();
-        $b = $this->getItIdx();
-        $out = F::concat($a, $b);
-        $this->assertTrue($out instanceof Traversable);
-        $exp = [10,20,30,40,10,20,30,40];
-        $this->assertEquals($exp, iterator_to_array($out, true));
-    }
+        $act = F::concat($v1, $v2);
+        $this->assertTrue($expTypeCheck($act));
 
-    public function testAssocIt()
-    {
-        $a = $this->getItAssoc();
-        $b = $this->getItAssoc();
-        $out = F::concat($a, $b);
-        $this->assertTrue($out instanceof Traversable);
-        $exp = [10,20,30,40,10,20,30,40];
-        $this->assertEquals($exp, iterator_to_array($out, true));
+        $this->assertEquals(
+            // use false here as merge ignores keys (e.g. uses append), so can't
+            // force keys as all keys will be the same (0)
+            $exp instanceof Traversable ? iterator_to_array($exp, false) : $exp,
+            $act instanceof Traversable ? iterator_to_array($act, false) : $act
+        );
     }
 }
