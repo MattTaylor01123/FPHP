@@ -6,20 +6,10 @@
 
 namespace FPHP;
 
-use InvalidArgumentException;
-use stdClass;
-use Traversable;
-
-trait Filtering
+final class Take
 {
-    public static function reject(...$args)
-    {
-        $reject = self::curry(function(callable $func, iterable $target) {
-            return self::filter(self::complement($func), $target);
-        });
-        return $reject(...$args);
-    }
-
+    // TODO - return type should depend on the input type. Should consider
+    // implementing early terminating reducer functionality.
     public static function take(...$args)
     {
         $take = self::curry(function(int $count, iterable $iterable) {

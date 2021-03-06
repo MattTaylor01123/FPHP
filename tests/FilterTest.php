@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 use FPHP\FPHP as F;
 use Traversable;
 
-final class FilteringTest extends TestCase
+final class FilterTest extends TestCase
 {
     use TestUtils;
 
@@ -60,14 +60,5 @@ final class FilteringTest extends TestCase
         $collection = $this->buildCollectionMock("filter", $fnEven, ["hello", "world"]);
         $out2 = F::filter($fnEven, $collection);
         $this->assertSame($out2, ["hello", "world"]);
-    }
-
-    function testReject()
-    {
-        $arr = [1,2,3,4,5,6];
-        $fnEven = fn ($v) => $v % 2 === 0;
-        $res = F::reject($fnEven, $arr);
-
-        $this->assertSame($res, [1,3,5]);
     }
 }

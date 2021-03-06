@@ -13,7 +13,6 @@ use Traversable;
 class FPHP
 {
     use Mapping;
-    use Filtering;
     use Reducing;
     use Logical;
     use Functions;
@@ -42,6 +41,7 @@ class FPHP
     use Prop;
     use PropEq;
     use Props;
+    use Reject;
     use Values;
 
     public static function flatten(...$args)
