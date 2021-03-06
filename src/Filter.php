@@ -7,7 +7,6 @@
 namespace FPHP;
 
 use InvalidArgumentException;
-use stdClass;
 use Traversable;
 
 trait Filter
@@ -22,34 +21,27 @@ trait Filter
 
     public static function filter(...$args)
     {
-        $filter = self::curry(function(callable $func, $target) {
-            $transducer = fn($step) =>
-                            fn($acc, $v, $k) => $func($v, $k) ? $step($acc, $v, $k) : $acc;
-            if(method_exists($target, "filter"))
+        $filter = self::curry(function(callable $func, $coll) {
+            if(method_exists($coll, "filter"))
             {
-                $out = $target->filter($func);
+                $out = $coll->filter($func);
             }
-            else if(self::isSequentialArray($target))
+            else if(self::isSequentialArray($coll))
             {
-                $out = array_values(array_filter($target, $func));
+                $out = array_values(array_filter($coll, $func));
             }
-            else if (is_array($target))
+            else if (is_array($coll))
             {
-                $out = array_filter($target, $func, ARRAY_FILTER_USE_BOTH );
+                $out = array_filter($coll, $func, ARRAY_FILTER_USE_BOTH );
             }
-            else if($target instanceof stdClass)
+            else if($coll instanceof Traversable || is_object($coll))
             {
-                $out = self::transduce(self::filterT($func), self::assoc(), new stdClass(), $target);
-            }
-            else if($target instanceof Traversable)
-            {
-                $out = self::transformTraversable($transducer, $target);
+                $out = self::transduce(self::filterT($func), self::assoc(), self::emptied($coll), $coll);
             }
             else
             {
                 throw new InvalidArgumentException(
-                    "target must be one of array, stdClass, generator, " .
-                    "functor, or transform function"
+                    "'coll' must be one of array, traversable, object, or object implementing filter"
                 );
             }
             return $out;
