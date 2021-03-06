@@ -6,6 +6,10 @@
 
 namespace FPHP;
 
+use Generator;
+use stdClass;
+use Traversable;
+
 trait Predicates
 {
     public static function isArray(...$args)
@@ -52,8 +56,7 @@ trait Predicates
 
     public static function isGenerator(...$args)
     {
-        $isGenerator = self::curry(fn($arg) => $arg instanceof \Generator);
-        return $isGenerator(...$args);
+        return self::isA(Generator::class, ...$args);
     }
 
     public static function isInteger(...$args)
@@ -105,14 +108,18 @@ trait Predicates
 
     public static function isStdClass(...$args)
     {
-        $isStdClass = self::curry(fn($v) => $v instanceof \stdClass);
-        return $isStdClass(...$args);
+        return self::isA(stdClass::class, ...$args);
     }
     
     public static function isTraversable(...$args)
     {
-        $isTraversable = self::curry(fn ($v) => $v instanceof \Traversable);
-        return $isTraversable(...$args);
+        return self::isA(Traversable::class, ...$args);
+    }
+
+    public static function isA(...$args)
+    {
+        $isA = self::curry(fn($class, $v) => is_a($v, $class));
+        return $isA(...$args);
     }
 
     public static function test(...$args)
