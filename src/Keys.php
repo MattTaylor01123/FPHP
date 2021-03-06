@@ -6,13 +6,20 @@
 
 namespace FPHP;
 
-use stdClass;
-
 trait Keys
 {
+    public static function keysT(...$args)
+    {
+        $keysT = self::curry(function($step) {
+            return fn($acc, $v, $k) => $step($acc, $k);
+        });
+        return $keysT(...$args);
+    }
+
     public static function keys(...$args)
     {
         $keys = self::curry(function($target) {
+            $transduceInto = self::transduce(self::keysT(), self::append(), self::__(), $target);
             if(method_exists($target, "keys"))
             {
                 return $target->keys();
@@ -21,19 +28,17 @@ trait Keys
             {
                 return array_keys($target);
             }
-            else if($target instanceof stdClass)
+            else if(is_iterable($target))
             {
-                return array_keys((array)$target);
+                return $transduceInto(self::emptied($target));
+            }
+            else if(is_object($target))
+            {
+                return $transduceInto(self::emptied([]));
             }
             else
             {
-                $generator = function() use($target) {
-                    foreach($target as $k => $v)
-                    {
-                        yield $k;
-                    }
-                };
-                return self::generatorToIterable($generator);
+                throw new InvalidArgumentException("'target' must be array, traversable, or object");
             }
         });
         return $keys(...$args);

@@ -14,24 +14,28 @@ trait Assoc
      */
     public static function assoc(...$args)
     {
-        $assoc = self::curry(function($target, $value, $propName) {
-            if(is_array($target))
+        $assoc = self::curry(function($acc, $val, $propName) {
+            if(is_array($acc))
             {
-                $out = $target;
-                $out[$propName] = $value;
+                $out = $acc;
+                $out[$propName] = $val;
             }
-            else if($target instanceof \Traversable)
+            else if($acc instanceof \Traversable)
             {
-                $fn = function() use($target, $propName, $value) {
-                    yield from $target;
-                    yield $propName => $value;
+                $fn = function() use($acc, $propName, $val) {
+                    yield from $acc;
+                    yield $propName => $val;
                 };
                 $out = self::generatorToIterable($fn);
             }
-            else if(is_object($target))
+            else if(is_object($acc))
             {
-                $out = clone $target;
-                $out->$propName = $value;
+                $out = clone $acc;
+                $out->$propName = $val;
+            }
+            else
+            {
+                throw new InvalidArgumentException("'acc' must be of type array, traversable, or object");
             }
             return $out;
         });
