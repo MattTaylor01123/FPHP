@@ -7,7 +7,6 @@
 namespace FPHP;
 
 use InvalidArgumentException;
-use stdClass;
 use Traversable;
 
 trait Map
@@ -27,23 +26,14 @@ trait Map
             {
                 $out = $coll->map($func);
             }
-            else if($coll instanceof Traversable)
+            else if($coll instanceof Traversable || is_object($coll) || is_array($coll))
             {
-                $out = self::transformTraversable(self::mapT($func), $coll);
-            }
-            else if(is_object($coll))
-            {
-                $out = self::transduce(self::mapT($func), self::assoc(), new stdClass(), $coll);
-            }
-            else if(is_array($coll))
-            {
-                $out = self::transduce(self::mapT($func), self::assoc(), [], $coll);
+                $out = self::transduce(self::mapT($func), self::assoc(), self::emptied($coll), $coll);
             }
             else
             {
                 throw new InvalidArgumentException(
-                    "target must be one of array, stdClass, generator, " .
-                    "functor, or transform function"
+                    "target must be one of array, stdClass, generator, functor."
                 );
             }
             return $out;
