@@ -26,4 +26,19 @@ final class InToTest extends TestCase
         $this->assertEquals((object)["a" => 2, "c" => 4, "e" => 6], $out1);
         $this->assertEquals(["a" => 2, "c" => 4, "e" => 6], $out2);
     }
+
+    public function testIntoCustType()
+    {
+        $v = new TestType();
+        $v->a = 1;
+        $v->b = "h";
+        $o = F::inTo(new TestType(), F::adjustT("a", F::inc()), $v);
+
+        $exp = new TestType();
+        $exp->a = 2;
+        $exp->b = "h";
+
+        $this->assertTrue($o instanceof TestType);
+        $this->assertEquals($exp, $o);
+    }
 }

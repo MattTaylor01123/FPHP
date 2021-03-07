@@ -30,4 +30,13 @@ final class HasProp extends TestCase
         $fn = F::hasProp("a");
         $this->assertTrue($fn($this->getAssocArray()));
     }
+
+    public function testHasPropCustType()
+    {
+        $v = new TestType();
+        $v->a = 1;
+
+        $this->assertTrue(F::hasProp("a", $v));
+        $this->assertFalse(F::hasProp("c", $v));
+    }
 }

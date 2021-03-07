@@ -45,4 +45,17 @@ final class AdjustTest extends TestCase
         $this->assertTrue($o4 instanceof \Traversable);
         $this->assertEquals(["i" => 10, "j" => 20, "k" => 31, "l" => 40], iterator_to_array($o4));
     }
+
+    public function testAdjustCusType()
+    {
+        $v = new TestType();
+        $v->a = 1;
+        $v->b = "h";
+        $o = F::adjust("a", F::inc(), $v);
+        $this->assertTrue($o instanceof TestType);
+        $exp = new TestType();
+        $exp->a = 2;
+        $exp->b = "h";
+        $this->assertEquals($exp, $o);
+    }
 }
