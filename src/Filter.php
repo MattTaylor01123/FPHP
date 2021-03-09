@@ -34,7 +34,11 @@ trait Filter
             {
                 $out = array_filter($coll, $func, ARRAY_FILTER_USE_BOTH );
             }
-            else if($coll instanceof Traversable || is_object($coll))
+            else if($coll instanceof Traversable)
+            {
+                $out = self::transformTraversable(self::filterT($func), $coll);
+            }
+            else if(is_object($coll))
             {
                 $out = self::transduce(self::filterT($func), self::assoc(), self::emptied($coll), $coll);
             }
