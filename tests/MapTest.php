@@ -50,14 +50,23 @@ final class MapTest extends TestCase
 
     function testMapItAssoc()
     {
-        $fn = fn ($x) => $x * 2;
+        $count = 0;
+        $fn = function($x) use(&$count) {
+            $count = $count + 1;
+            return $x * 2;
+        };
         $o1 = F::map($fn, $this->getItAssoc());
-        $this->assertTrue(is_object($o1));
+
         $this->assertTrue($o1 instanceof Traversable);
+
+        $this->assertEquals(0, $count);
         $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
+        $this->assertEquals(4, $count);
+
         // repeat the check to run iterator_to_array again, to make sure
         // of generator reuse
         $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
+        $this->assertEquals(8, $count);
     }
 
     function testMapOverride()

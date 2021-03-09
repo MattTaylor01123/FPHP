@@ -26,7 +26,11 @@ trait Map
             {
                 $out = $coll->map($func);
             }
-            else if($coll instanceof Traversable || is_object($coll) || is_array($coll))
+            else if($coll instanceof \Traversable)
+            {
+                $out = self::transformTraversable(self::mapT($func), $coll);
+            }
+            else if( is_object($coll) || is_array($coll))
             {
                 $out = self::transduce(self::mapT($func), self::assoc(), self::emptied($coll), $coll);
             }
