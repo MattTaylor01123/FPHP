@@ -38,14 +38,33 @@ final class MapTest extends TestCase
 
     function testMapItIdx()
     {
-        $fn = fn ($x) => $x * 2;
+        $count = 0;
+        $fn = function($x) use(&$count) {
+            $count = $count + 1;
+            return $x * 2;
+        };
         $o1 = F::map($fn, $this->getItIdx());
-        $this->assertTrue(is_object($o1));
+        
         $this->assertTrue($o1 instanceof Traversable);
-        $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
+
+        // check for laziness
+        $this->assertEquals(0, $count);
+
+        // check for laziness during the run
+        $results = [];
+        foreach($o1 as $v)
+        {
+            $results[] = $v;
+            $this->assertEquals(count($results), $count);
+        }
+
+        // check overall result
+        $this->assertEquals([20, 40, 60, 80], $results);
+
         // repeat the check to run iterator_to_array again, to make sure
         // of generator reuse
-        $this->assertEquals(iterator_to_array($o1), [20, 40, 60, 80]);
+        $this->assertEquals([20, 40, 60, 80], iterator_to_array($o1));
+        $this->assertEquals(8, $count);
     }
 
     function testMapItAssoc()
@@ -59,13 +78,23 @@ final class MapTest extends TestCase
 
         $this->assertTrue($o1 instanceof Traversable);
 
+        // check for laziness
         $this->assertEquals(0, $count);
-        $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
-        $this->assertEquals(4, $count);
+
+        // check for laziness during the run
+        $results = [];
+        foreach($o1 as $k => $v)
+        {
+            $results[$k] = $v;
+            $this->assertEquals(count($results), $count);
+        }
+
+        // check overall result
+        $this->assertEquals(["i" => 20, "j" => 40, "k" => 60, "l" => 80], $results);
 
         // repeat the check to run iterator_to_array again, to make sure
         // of generator reuse
-        $this->assertEquals(iterator_to_array($o1), ["i" => 20, "j" => 40, "k" => 60, "l" => 80]);
+        $this->assertEquals(["i" => 20, "j" => 40, "k" => 60, "l" => 80], iterator_to_array($o1));
         $this->assertEquals(8, $count);
     }
 
