@@ -29,10 +29,19 @@ final class IndexByTest extends TestCase
 
     function testIndexByItAssoc()
     {
+        $count = 0;
+        $fn = function($v) use(&$count) {
+            $count = $count + 1;
+            return F::prop("gender", $v);
+        };
+
         $v = $this->getPersonsDataIt();
-        $out1 = F::indexBy(F::prop("gender"), $v);
-        $this->assertTrue(is_object($out1));
+        $out1 = F::indexBy($fn, $v);
+
         $this->assertTrue($out1 instanceof Traversable);
+
+        // check for laziness
+        $this->assertEquals(0, $count);
 
         $i = 0;
         $v2 = $this->getPersonsDataIdx();
@@ -41,6 +50,7 @@ final class IndexByTest extends TestCase
             $this->assertEquals($v2[$i], $val);
             $this->assertSame($v2[$i]->gender, $k);
             $i++;
+            $this->assertEquals($i, $count);
         }
     }
 
