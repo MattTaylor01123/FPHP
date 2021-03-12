@@ -7,7 +7,6 @@
 namespace FPHP\collection;
 
 use InvalidArgumentException;
-use Traversable;
 
 trait Append 
 {
@@ -21,7 +20,8 @@ trait Append
             }
             else if(self::isTraversable($acc) || self::isGenerator($acc))
             {
-                $fn = function() use($val) {
+                $fn = function() use($val, $acc) {
+                    yield from $acc;
                     yield $val;
                 };
                 $out = self::generatorToIterable($fn);

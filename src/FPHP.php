@@ -160,7 +160,8 @@ class FPHP
                 $step = $this->step;
                 
                 $stepWrapper = function(...$args) use(&$curr, &$step, &$set) {
-                    $curr = $step(...$args);
+                    $acc = fn() => yield from [];
+                    $curr = $step($acc(), ...array_slice($args, 1));
                     $set = true;
                 };
 

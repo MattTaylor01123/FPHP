@@ -7,7 +7,6 @@
 namespace FPHP\collection;
 
 use InvalidArgumentException;
-use Traversable;
 
 trait Assoc
 {
@@ -25,8 +24,25 @@ trait Assoc
             }
             else if(self::isTraversable($acc) || self::isGenerator($acc))
             {
-                $fn = function() use($propName, $val) {
-                    yield $propName => $val;
+                $returnedVal = false;
+                $fn = function() use($propName, $val, $acc, &$returnedVal) {
+                    foreach($acc as $k => $v)
+                    {
+                        if($k === $propName)
+                        {
+                            $returnedVal = true;
+                            yield $k => $val;
+                        }
+                        else
+                        {
+                            yield $k => $v;
+                        }
+                    }
+                    if(!$returnedVal)
+                    {
+                        $returnedVal = true;
+                        yield $propName => $val;
+                    }
                 };
                 $out = self::generatorToIterable($fn);
             }
