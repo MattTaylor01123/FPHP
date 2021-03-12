@@ -44,10 +44,35 @@ final class AdjustTest extends TestCase
 
     public function testAdjustItAssoc()
     {
+        $count = 0;
+        $fn = function($x) use(&$count) {
+            $count = $count + 1;
+            return $x + 1;
+        };
+
         $v4 = $this->getItAssoc();
-        $o4 = F::adjust("k", F::inc(), $v4);
+        $o4 = F::adjust("k", $fn, $v4);
+
         $this->assertTrue($o4 instanceof Traversable);
+
+        // check for laziness
+        $this->assertEquals(0, $count);
+
+        // check for laziness during the run
+        $results = [];
+        foreach($o4 as $k => $v)
+        {
+            $results[$k] = $v;
+            $this->assertEquals(in_array($k, ["k", "l"]) ? 1 : 0, $count);
+        }
+
+        // check overall result
+        $this->assertEquals(["i" => 10, "j" => 20, "k" => 31, "l" => 40], $results);
+
+        // repeat the check to run iterator_to_array again, to make sure
+        // of generator reuse
         $this->assertEquals(["i" => 10, "j" => 20, "k" => 31, "l" => 40], iterator_to_array($o4));
+        $this->assertEquals(2, $count);
     }
 
     public function testAdjustCusType()
