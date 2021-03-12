@@ -7,12 +7,14 @@
 namespace FPHP;
 
 use InvalidArgumentException;
-use Traversable;
 
 trait Merge
 {
-    /*
-     * concat but for indexed data structures
+    /**
+     * Merge two associative arrays or objects together.
+     *
+     * Does not support generators / traversables as the result would just be a
+     * concatenation.
      */
     public static function merge(...$args)
     {
@@ -31,15 +33,15 @@ trait Merge
             {
                 $out = $v1->merge($v2);
             }
-            else if(is_array($v1) && is_array($v2))
+            else if(is_array($v1))
             {
                 $out = array_merge($v1, $v2);
             }
-            else if($v1 instanceof Traversable || is_object($v1))
+            else if(is_object($v1))
             {
-                $transducer = self::identity();
-                $afterFirst = self::transduce($transducer, self::assoc(), self::emptied($v1), $v1);
-                $out = self::transduce($transducer, self::assoc(), $afterFirst, $v2);
+                $out = self::reduce(function($acc, $v) {
+                    return self::reduce(self::assoc(), $acc, $v);
+                }, self::emptied($v1), [$v1, $v2]);
             }
             else
             {

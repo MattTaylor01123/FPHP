@@ -11,7 +11,7 @@ trait Keys
     public static function keysT(...$args)
     {
         $keysT = self::curry(function($step) {
-            return fn($acc, $v, $k) => $step($acc, $k);
+            return fn($acc, $v, $k) => $step($acc, $k, 0);
         });
         return $keysT(...$args);
     }

@@ -56,7 +56,19 @@ trait Predicates
 
     public static function isGenerator(...$args)
     {
-        return self::isA(Generator::class, ...$args);
+        $isGenerator = self::curry(function($v) {
+            $refFunc = fn($x) => new \ReflectionFunction($x);
+            if($v instanceof \Generator)
+            {
+                return true;
+            }
+            if($v instanceof \Closure &&
+               $refFunc($v)->isGenerator())
+            {
+                return true;
+            }
+        });
+        return $isGenerator(...$args);
     }
 
     public static function isInteger(...$args)

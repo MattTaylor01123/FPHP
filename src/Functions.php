@@ -144,8 +144,14 @@ trait Functions
     {
         $transduce = self::curry(function(callable $transducer, callable $step, $initial, $collection)
         {
-            $reducer = $transducer($step);
-            return self::reduce($reducer, $initial, $collection);
+            if($initial instanceof \Traversable)
+            {
+                return self::transformTraversable($transducer, $step, $collection);
+            }
+            else
+            {
+                return self::reduce($transducer($step), $initial, $collection);
+            }
         });
         return $transduce(...$args);
     }

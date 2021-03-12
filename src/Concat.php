@@ -12,7 +12,8 @@ use Traversable;
 trait Concat
 {
     /**
-     * Concat is merge but ignores keys
+     * Join, one after the other, strings, sequential arrays, and traversables
+     * and generators.
      */
     public static function concat(...$args)
     {
@@ -41,9 +42,11 @@ trait Concat
             }
             else if($v1 instanceof Traversable && $v2 instanceof Traversable)
             {
-                $transducer = self::identity();
-                $afterFirst = self::transduce($transducer, self::append(), self::emptied($v1), $v1);
-                $out = self::transduce($transducer, self::append(), $afterFirst, $v2);
+                $fn = function() use($v1, $v2) {
+                    yield from $v1;
+                    yield from $v2;
+                };
+                $out = self::generatorToIterable($fn);
             }
             else
             {

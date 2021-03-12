@@ -6,6 +6,9 @@
 
 namespace FPHP;
 
+use InvalidArgumentException;
+use Traversable;
+
 trait Assoc
 {
     /*
@@ -20,10 +23,9 @@ trait Assoc
                 $out = $acc;
                 $out[$propName] = $val;
             }
-            else if($acc instanceof \Traversable)
+            else if(self::isTraversable($acc) || self::isGenerator($acc))
             {
-                $fn = function() use($acc, $propName, $val) {
-                    yield from $acc;
+                $fn = function() use($propName, $val) {
                     yield $propName => $val;
                 };
                 $out = self::generatorToIterable($fn);

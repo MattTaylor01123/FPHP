@@ -6,6 +6,9 @@
 
 namespace FPHP;
 
+use InvalidArgumentException;
+use Traversable;
+
 trait Append 
 {
     function append(...$params)
@@ -16,10 +19,9 @@ trait Append
                 $out = $acc;
                 $out[] = $val;
             }
-            else if($acc instanceof \Traversable)
+            else if(self::isTraversable($acc) || self::isGenerator($acc))
             {
-                $fn = function() use($acc, $val) {
-                    yield from $acc;
+                $fn = function() use($val) {
                     yield $val;
                 };
                 $out = self::generatorToIterable($fn);

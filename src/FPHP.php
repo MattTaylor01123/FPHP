@@ -120,36 +120,41 @@ class FPHP
         return $collect(...$args);
     }
 
-    protected static function transformTraversable($transducer, $traversable)
+    protected static function transformTraversable($transducer, $step, $traversable)
     {
-        return new class($transducer, $traversable) implements \IteratorAggregate
+        return new class($transducer, $step, $traversable) implements \IteratorAggregate
         {
             private $transducer = null;
             private $traversable = null;
-            public function __construct($transducer, $traversable)
+            private $step = null;
+            public function __construct($transducer, $step, $traversable)
             {
                 $this->transducer = $transducer;
+                $this->step = $step;
                 $this->traversable = $traversable;
             }
             public function getIterator(): Traversable
             {
                 $curr = null;
-                $key = null;
                 $set = false;
-                $step = function($acc, $v, $k) use(&$curr, &$key, &$set) {
-                    $curr = $v;
-                    $key = $k;
+                $step = $this->step;
+                
+                $stepWrapper = function(...$args) use(&$curr, &$step, &$set) {
+                    $curr = $step(...$args);
                     $set = true;
                 };
+
+                $initial = function() { yield 7; };
+
                 $transducer = $this->transducer;
-                $reducer = $transducer($step);
+                $reducer = $transducer($stepWrapper);
                 foreach($this->traversable as $k => $v)
                 {
                     $set = false;
-                    $reducer(null, $v, $k);
+                    $reducer($initial, $v, $k);
                     if($set)
                     {
-                        yield $key => $curr;
+                        yield from $curr;
                     }
                 }
             }
