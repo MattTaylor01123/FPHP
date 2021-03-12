@@ -7,7 +7,6 @@
 namespace FPHP;
 
 use InvalidArgumentException;
-use Traversable;
 
 trait Map
 {
@@ -26,11 +25,8 @@ trait Map
             {
                 $out = $coll->map($func);
             }
-            else if($coll instanceof \Traversable)
-            {
-                $out = self::transformTraversable(self::mapT($func), $coll);
-            }
-            else if( is_object($coll) || is_array($coll))
+            // array_map callback doesn't support keys
+            else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
             {
                 $out = self::transduce(self::mapT($func), self::assoc(), self::emptied($coll), $coll);
             }
