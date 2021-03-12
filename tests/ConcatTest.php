@@ -39,7 +39,14 @@ final class ConcatTest extends TestCase
                 $this->toGen([1,2]),
                 $this->toGen([3,4]),
                 F::isTraversable(),
-                $this->toGen([1,2,3,4])
+                $this->toGen([1,2,3,4]),
+                false
+            ],[
+                $this->toGen(["a" => 1, "b" => 2]),
+                $this->toGen(["a" => 3, "c" => 4]),
+                F::isTraversable(),
+                $this->toGen(["a" => 3, "b" => 2, "c" => 4]),
+                true
             ]
         ];
     }
@@ -47,7 +54,7 @@ final class ConcatTest extends TestCase
     /**
      * @dataProvider cases
      */
-    public function testConcat($v1, $v2, callable $expTypeCheck, $exp)
+    public function testConcat($v1, $v2, callable $expTypeCheck, $exp, $isAssoc = false)
     {
         $act = F::concat($v1, $v2);
         $this->assertTrue($expTypeCheck($act));
@@ -55,8 +62,8 @@ final class ConcatTest extends TestCase
         $this->assertEquals(
             // use false here as merge ignores keys (e.g. uses append), so can't
             // force keys as all keys will be the same (0)
-            $exp instanceof Traversable ? iterator_to_array($exp, false) : $exp,
-            $act instanceof Traversable ? iterator_to_array($act, false) : $act
+            $exp instanceof Traversable ? iterator_to_array($exp, $isAssoc) : $exp,
+            $act instanceof Traversable ? iterator_to_array($act, $isAssoc) : $act
         );
     }
 }

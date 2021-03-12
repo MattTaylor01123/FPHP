@@ -35,11 +35,6 @@ final class MergeTest extends TestCase
                 (object)["a" => 3, "c" => 4],
                 F::isStdClass(),
                 (object)["a" => 3, "b" => 2, "c" => 4]
-            ],[
-                $this->toGen(["a" => 1, "b" => 2]),
-                $this->toGen(["a" => 3, "c" => 4]),
-                F::isTraversable(),
-                $this->toGen(["a" => 3, "b" => 2, "c" => 4])
             ]
         ];
     }
