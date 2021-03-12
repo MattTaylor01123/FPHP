@@ -6,6 +6,26 @@
 
 namespace FPHP;
 
+use FPHP\collection\Adjust;
+use FPHP\collection\Append;
+use FPHP\collection\Assoc;
+use FPHP\collection\Concat;
+use FPHP\collection\Emptied;
+use FPHP\collection\Filter;
+use FPHP\collection\HasProp;
+use FPHP\collection\IndexBy;
+use FPHP\collection\InTo;
+use FPHP\collection\Keys;
+use FPHP\collection\Map;
+use FPHP\collection\Merge;
+use FPHP\collection\Pick;
+use FPHP\collection\PickAll;
+use FPHP\collection\Pluck;
+use FPHP\collection\Prop;
+use FPHP\collection\PropEq;
+use FPHP\collection\Props;
+use FPHP\collection\Reject;
+use FPHP\collection\Values;
 use IteratorAggregate;
 use JsonSerializable;
 use Traversable;
@@ -22,7 +42,7 @@ class FPHP
     use Add;
     use Adjust;
     use Append;
-    use Assoc;    
+    use Assoc;
     use Concat;
     use Dec;
     use Emptied;
