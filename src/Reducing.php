@@ -212,6 +212,10 @@ trait Reducing
                 foreach($iterable as $k => $v)
                 {
                     $out = $func($out, $v, $k);
+                    if($out instanceof collection\Reduced)
+                    {
+                        return $out->v;
+                    }
                 }
                 return $out;
             }
