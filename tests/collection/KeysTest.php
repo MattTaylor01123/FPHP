@@ -9,6 +9,7 @@ namespace tests\collection;
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 use tests\TestUtils;
+use Traversable;
 
 final class KeysTest extends TestCase
 {
@@ -39,6 +40,7 @@ final class KeysTest extends TestCase
     {
         $v = $this->getItIdx();
         $out = F::keys($v);
+        $this->assertTrue($out instanceof Traversable);
         $this->assertEquals(iterator_to_array($out, false), [0,1,2,3]);
     }
 
@@ -46,6 +48,7 @@ final class KeysTest extends TestCase
     {
         $v = $this->getItAssoc();
         $out = F::keys($v);
+        $this->assertTrue($out instanceof Traversable);
         $this->assertSame(iterator_to_array($out, false), ["i","j","k","l"]);
     }
 }
