@@ -25,6 +25,7 @@ use FPHP\collection\Prop;
 use FPHP\collection\PropEq;
 use FPHP\collection\Props;
 use FPHP\collection\Reject;
+use FPHP\collection\TakeWhile;
 use FPHP\collection\Values;
 use IteratorAggregate;
 use JsonSerializable;
@@ -63,6 +64,7 @@ class FPHP
     use PropEq;
     use Props;
     use Reject;
+    use TakeWhile;
     use Values;
 
     public static function flatten(...$args)
