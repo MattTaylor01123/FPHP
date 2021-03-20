@@ -31,8 +31,6 @@ final class Take
         return $takeT(...$args);
     }
 
-    // TODO - return type should depend on the input type. Should consider
-    // implementing early terminating reducer functionality.
     public static function take(...$args)
     {
         $take = self::curry(function(int $count, $target) {
