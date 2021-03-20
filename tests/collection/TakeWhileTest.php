@@ -46,4 +46,42 @@ final class TakeWhileTest extends TestCase
         
         $this->assertEquals($exp, iterator_to_array($res2, false));
     }
+
+    public function testLazyness()
+    {
+        $count = 0;
+        $fn = function($v) use(&$count) {
+            $count = $count + 1;
+            return $v > 10;
+        };
+
+        $count2 = 0;
+        $fn2 = function($v) use(&$count2) {
+            $count2 = $count2 + 1;
+            return $count2 < 2;
+        };
+
+        $out = F::pipex($this->getItIdx(),
+            F::filter($fn),
+            F::takeWhile($fn2)
+        );
+
+        // no iteration has occurred yet
+        $this->assertEquals(0, $count);
+        $this->assertEquals(0, $count2);
+
+        $vals = array();
+        $i = 0;
+        foreach($out as $v)
+        {
+            $i = $i + 1;
+            $this->assertEquals($i + 1, $count);
+            $this->assertEquals($i, $count2);
+            $vals[] = $v;
+        }
+
+        $this->assertEquals(3, $count);
+        $this->assertEquals(2, $count2);
+        $this->assertEquals([20], $vals);
+    }
 }

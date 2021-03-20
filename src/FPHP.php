@@ -25,11 +25,10 @@ use FPHP\collection\Prop;
 use FPHP\collection\PropEq;
 use FPHP\collection\Props;
 use FPHP\collection\Reject;
+use FPHP\collection\Take;
 use FPHP\collection\TakeWhile;
 use FPHP\collection\Values;
-use IteratorAggregate;
-use JsonSerializable;
-use Traversable;
+use FPHP\utilities\IterableGenerator;
 
 class FPHP
 {
@@ -64,6 +63,7 @@ class FPHP
     use PropEq;
     use Props;
     use Reject;
+    use Take;
     use TakeWhile;
     use Values;
 
@@ -142,73 +142,8 @@ class FPHP
         return $collect(...$args);
     }
 
-    protected static function transformTraversable($transducer, $step, $traversable)
+    public static function generatorToIterable($generator)
     {
-        return new class($transducer, $step, $traversable) implements \IteratorAggregate
-        {
-            private $transducer = null;
-            private $traversable = null;
-            private $step = null;
-            public function __construct($transducer, $step, $traversable)
-            {
-                $this->transducer = $transducer;
-                $this->step = $step;
-                $this->traversable = $traversable;
-            }
-            public function getIterator(): Traversable
-            {
-                $curr = null;
-                $set = false;
-                $step = $this->step;
-                
-                $stepWrapper = function(...$args) use(&$curr, &$step, &$set) {
-                    $acc = fn() => yield from [];
-                    $curr = $step($acc(), ...array_slice($args, 1));
-                    $set = true;
-                };
-
-                $initial = function() { yield 7; };
-
-                $transducer = $this->transducer;
-                $reducer = $transducer($stepWrapper);
-                foreach($this->traversable as $k => $v)
-                {
-                    $set = false;
-                    $reducer($initial, $v, $k);
-                    if($set)
-                    {
-                        yield from $curr;
-                    }
-                }
-            }
-        };
-    }
-
-    protected static function generatorToIterable($generator)
-    {
-        return new class($generator) implements IteratorAggregate, JsonSerializable {
-
-            private $generator;
-
-            public function __construct($generator)
-            {
-                $this->generator = $generator;
-            }
-
-            public function getIterator(): Traversable
-            {
-                $fn = $this->generator;
-                return $fn();
-            }
-
-            public function jsonSerialize()
-            {
-                $out = FPHP::pipex(
-                    iterator_to_array($this->getIterator(), true),
-                    fn($a) => FPHP::isSequentialArray($a) ? FPHP::values($a) : $a
-                );
-                return $out;
-            }
-        };
+        return new IterableGenerator($generator);
     }
 }

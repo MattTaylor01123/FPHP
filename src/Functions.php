@@ -7,7 +7,9 @@
 namespace FPHP;
 
 use ArrayIterator;
+use FPHP\utilities\TransformedTraversable;
 use ReflectionFunction;
+use Traversable;
 
 trait Functions
 {
@@ -144,9 +146,9 @@ trait Functions
     {
         $transduce = self::curry(function(callable $transducer, callable $step, $initial, $collection)
         {
-            if($initial instanceof \Traversable)
+            if($initial instanceof Traversable)
             {
-                return self::transformTraversable($transducer, $step, $collection);
+                return new TransformedTraversable($transducer, $step, $collection);
             }
             else
             {

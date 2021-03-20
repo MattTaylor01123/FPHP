@@ -6,7 +6,7 @@
 
 namespace FPHP\collection;
 
-final class Take
+trait Take
 {
     public static function takeT(...$args)
     {
