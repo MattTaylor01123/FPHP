@@ -79,4 +79,25 @@ final class PredicatesTest extends TestCase
         $this->assertSame(F::isSequentialArray($v1), true);
         $this->assertSame(F::isSequentialArray($v2), false);
     }
+
+    public function dpTestIsScalar()
+    {
+        return [
+            ["hello", true],
+            [1, true],
+            [1.5, true],
+            [false, true],
+            [[1,2,3], false],
+            [(object)["a" => 1], false]
+        ];
+    }
+
+    /**
+     * @dataProvider dpTestIsScalar
+     */
+    public function testIsScalar($in, $exp)
+    {
+        $act = F::isScalarType($in);
+        $this->assertSame($exp, $act);
+    }
 }

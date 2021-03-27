@@ -134,6 +134,14 @@ trait Predicates
         return $isA(...$args);
     }
 
+    public static function isScalarType(...$args)
+    {
+        $isScalar = self::curry(function($v) {
+            return self::includes(gettype($v), ["boolean", "double", "integer", "string"]);
+        });
+        return $isScalar(...$args);
+    }
+
     public static function test(...$args)
     {
         $test = self::curry(function(string $regex, string $str) {
