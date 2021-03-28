@@ -7,10 +7,12 @@
 namespace FPHP\utilities;
 
 use FPHP\collection\Reduced;
+use FPHP\FPHP;
 use IteratorAggregate;
+use JsonSerializable;
 use Traversable;
 
-final class TransformedTraversable implements IteratorAggregate
+final class TransformedTraversable implements IteratorAggregate, JsonSerializable
 {
     private $transducer = null;
     private $traversable = null;
@@ -53,5 +55,10 @@ final class TransformedTraversable implements IteratorAggregate
                 }
             }
         }
+    }
+
+    public function jsonSerialize()
+    {
+        return FPHP::iterableToArray($this->getIterator());
     }
 }

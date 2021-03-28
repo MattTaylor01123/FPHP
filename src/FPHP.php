@@ -15,6 +15,7 @@ use FPHP\collection\Filter;
 use FPHP\collection\HasProp;
 use FPHP\collection\IndexBy;
 use FPHP\collection\InTo;
+use FPHP\collection\IterableToArray;
 use FPHP\collection\Keys;
 use FPHP\collection\Map;
 use FPHP\collection\Merge;
@@ -52,6 +53,7 @@ class FPHP
     use Inc;
     use IndexBy;
     use InTo;
+    use IterableToArray;
     use Keys;
     use Map;
     use Memoize;

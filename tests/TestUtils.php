@@ -95,6 +95,26 @@ trait TestUtils
         ];
     }
 
+    function getGenIdx()
+    {
+        return function() {
+            yield 10;
+            yield 20;
+            yield 30;
+            yield 40;
+        };
+    }
+
+    function getGenAssoc()
+    {
+        return function () {
+            yield "i" => 10;
+            yield "j" => 20;
+            yield "k" => 30;
+            yield "l" => 40;
+        };
+    }
+
     function getPersonsDataIt()
     {
         yield from $this->getPersonsDataIdx();

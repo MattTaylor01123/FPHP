@@ -28,10 +28,6 @@ final class IterableGenerator implements IteratorAggregate, JsonSerializable
 
     public function jsonSerialize()
     {
-        $out = FPHP::pipex(
-            iterator_to_array($this->getIterator(), true),
-            fn($a) => FPHP::isSequentialArray($a) ? FPHP::values($a) : $a
-        );
-        return $out;
+        return FPHP::iterableToArray($this->getIterator());
     }
 }
