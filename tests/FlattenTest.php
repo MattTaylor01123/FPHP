@@ -9,7 +9,7 @@ namespace tests;
 use PHPUnit\Framework\TestCase;
 use FPHP\FPHP as F;
 
-final class FPHPTest extends TestCase
+final class FlattenTest extends TestCase
 {
     use TestUtils;
 
@@ -32,7 +32,7 @@ final class FPHPTest extends TestCase
 
         $res = F::flatten($arr);
 
-        $this->assertEquals($res, [
+        $this->assertEquals([
             "bob",
             "steve",
             "lucy",
@@ -41,6 +41,6 @@ final class FPHPTest extends TestCase
             [
                 "barbara"
             ]
-        ]);
+        ], $res);
     }
 }
