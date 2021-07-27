@@ -21,7 +21,7 @@ trait Map
     public static function map(...$args)
     {
         $map = self::curry(function(callable $func, $coll) {
-            if(method_exists($coll, "map"))
+            if(is_object($coll) && method_exists($coll, "map"))
             {
                 $out = $coll->map($func);
             }

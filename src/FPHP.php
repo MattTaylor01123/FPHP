@@ -13,6 +13,7 @@ use FPHP\collection\Concat;
 use FPHP\collection\Emptied;
 use FPHP\collection\Filter;
 use FPHP\collection\HasProp;
+use FPHP\collection\HasProps;
 use FPHP\collection\IndexBy;
 use FPHP\collection\InTo;
 use FPHP\collection\IterableToArray;
@@ -51,6 +52,7 @@ class FPHP
     use Filter;
     use Flatten;
     use HasProp;
+    use HasProps;
     use Inc;
     use IndexBy;
     use InTo;

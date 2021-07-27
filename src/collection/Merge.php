@@ -29,7 +29,7 @@ trait Merge
                 throw new InvalidArgumentException("v1 and v2 must be of the same type");
             }
 
-            if(method_exists($v1, "merge"))
+            if(is_object($v1) && method_exists($v1, "merge"))
             {
                 $out = $v1->merge($v2);
             }

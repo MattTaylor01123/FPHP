@@ -22,7 +22,7 @@ trait IndexBy
     public static function indexBy(...$args)
     {
         $indexBy = self::curry(function(callable $func, $coll) {
-            if(method_exists($coll, "indexBy"))
+            if(is_object($coll) && method_exists($coll, "indexBy"))
             {
                 $out = $coll->indexBy($func);
             }

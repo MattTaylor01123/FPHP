@@ -13,7 +13,7 @@ trait Flatten
     public static function flatten(...$args)
     {
         $flatten = self::curry(function(iterable $target) {
-            if(method_exists($target, "flatten"))
+            if(is_object($target) && method_exists($target, "flatten"))
             {
                 return $target->flatten();
             }

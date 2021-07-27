@@ -10,7 +10,7 @@ use InvalidArgumentException;
 
 trait Append 
 {
-    function append(...$params)
+    public static function append(...$params)
     {
         $append = self::curry(function($acc, $val) {
             if(is_array($acc))

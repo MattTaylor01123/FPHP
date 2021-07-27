@@ -30,7 +30,7 @@ trait TakeWhile
     public static function takeWhile(...$args)
     {
         $takeWhile = self::curry(function(callable $pred, $target) {
-            if(method_exists($target, "take"))
+            if(is_object($target) && method_exists($target, "take"))
             {
                 return $target->takeWhile($pred);
             }

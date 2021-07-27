@@ -20,7 +20,7 @@ trait Keys
     {
         $keys = self::curry(function($target) {
             $transduceInto = self::transduce(self::keysT(), self::append(), self::__(), $target);
-            if(method_exists($target, "keys"))
+            if(is_object($target) && method_exists($target, "keys"))
             {
                 $out = $target->keys();
             }

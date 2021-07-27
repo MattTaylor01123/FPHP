@@ -21,7 +21,7 @@ trait Filter
     public static function filter(...$args)
     {
         $filter = self::curry(function(callable $func, $coll) {
-            if(method_exists($coll, "filter"))
+            if(is_object($coll) && method_exists($coll, "filter"))
             {
                 $out = $coll->filter($func);
             }

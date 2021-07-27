@@ -20,7 +20,7 @@ trait Values
     {
         $values = self::curry(function($target) {
             $transduceInto = self::transduce(self::valuesT(), self::append(), self::__(), $target);
-            if(method_exists($target, "values"))
+            if(is_object($target) && method_exists($target, "values"))
             {
                 $out = $target->values();
             }

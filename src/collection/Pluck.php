@@ -13,7 +13,7 @@ trait Pluck
     public static function pluck(...$args)
     {
         $pluck = self::curry(function(string $propName, iterable $iterable) {
-            if(method_exists($iterable, "pluck"))
+            if(is_object($iterable) && method_exists($iterable, "pluck"))
             {
                 $out = $iterable->pluck($propName);
             }

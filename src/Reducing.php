@@ -11,7 +11,7 @@ trait Reducing
     public static function all(...$args)
     {
         $all = self::curry(function(callable $func, iterable $iterable) {
-            if(method_exists($iterable, "all"))
+            if(is_object($iterable) && method_exists($iterable, "all"))
             {
                 return $iterable->all($func);
             }
@@ -33,7 +33,7 @@ trait Reducing
     public static function any(...$args)
     {
         $any = self::curry(function(callable $func, iterable $iterable) {
-            if(method_exists($iterable, "any"))
+            if(is_object($iterable) && method_exists($iterable, "any"))
             {
                 return $iterable->any($func);
             }
@@ -55,7 +55,7 @@ trait Reducing
     public static function find(...$args)
     {
         $find = self::curry(function(callable $predicate, iterable $iterable) {
-            if(method_exists($iterable, "find"))
+            if(is_object($iterable) && method_exists($iterable, "find"))
             {
                 return $iterable->length();
             }
@@ -160,7 +160,7 @@ trait Reducing
     public static function joinUp(...$args)
     {
         $join = self::curry(function($glue, iterable $iterable) {
-            if(method_exists($iterable, "joinUp"))
+            if(is_object($iterable) && method_exists($iterable, "joinUp"))
             {
                 return $iterable->joinUp($glue, $iterable);
             }
@@ -179,7 +179,7 @@ trait Reducing
     public static function length(...$args)
     {
         $length = self::curry(function(iterable $iterable) {
-            if(method_exists($iterable, "length"))
+            if(is_object($iterable) && method_exists($iterable, "length"))
             {
                 return $iterable->length();
             }
@@ -202,7 +202,7 @@ trait Reducing
     public static function reduce(...$args)
     {
         $reduce = self::curry(function(callable $func, $initial, $iterable) {
-            if(method_exists($iterable, "reduce"))
+            if(is_object($iterable) && method_exists($iterable, "reduce"))
             {
                 return $iterable->reduce($func, $initial);
             }

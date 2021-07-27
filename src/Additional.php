@@ -14,7 +14,7 @@ trait Additional
     public static function columns(...$args)
     {
         $columns = self::curry(function(array $properties, iterable $iterable) {
-            if(method_exists($iterable, "columns"))
+            if(is_object($iterable) && method_exists($iterable, "columns"))
             {
                 $out = $iterable->columns($properties);
             }

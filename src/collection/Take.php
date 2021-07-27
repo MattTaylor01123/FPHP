@@ -34,7 +34,7 @@ trait Take
     public static function take(...$args)
     {
         $take = self::curry(function(int $count, $target) {
-            if(method_exists($target, "take"))
+            if(is_object($target) && method_exists($target, "take"))
             {
                 return $target->take($count);
             }
