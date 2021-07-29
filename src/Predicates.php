@@ -6,7 +6,6 @@
 
 namespace FPHP;
 
-use Generator;
 use stdClass;
 use Traversable;
 
@@ -140,6 +139,14 @@ trait Predicates
             return self::includes(gettype($v), ["boolean", "double", "integer", "string"]);
         });
         return $isScalar(...$args);
+    }
+
+    public static function isNull(...$args)
+    {
+        $isNull = self::curry(function($v) {
+            return is_null($v);
+        });
+        return $isNull(...$args);
     }
 
     public static function test(...$args)
