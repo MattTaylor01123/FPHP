@@ -134,7 +134,7 @@ trait Reducing
     public static function indexOf(...$args)
     {
         $indexOf = self::curry(function($needle, iterable $iterable) {
-            if(method_exists($iterable, "indexOf"))
+            if(is_object($iterable) && method_exists($iterable, "indexOf"))
             {
                 return $iterable->length();
             }

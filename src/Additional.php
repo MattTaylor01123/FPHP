@@ -30,7 +30,7 @@ trait Additional
     public static function first(...$args)
     {
         $first = self::curry(function(iterable $iterable) {
-            if(method_exists($iterable, "first"))
+            if(is_object($iterable) && method_exists($iterable, "first"))
             {
                 return $iterable->first();
             }
@@ -51,7 +51,7 @@ trait Additional
     public static function mapTo(...$args)
     {
         $mapTo = self::curry(function(string $className, iterable $iterable) {
-            if(method_exists($iterable, "mapTo"))
+            if(is_object($iterable) && method_exists($iterable, "mapTo"))
             {
                 return $iterable->mapTo($className);
             }
