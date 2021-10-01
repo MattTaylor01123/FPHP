@@ -27,7 +27,7 @@ final class InToTest extends TestCase
         $out2 = F::inTo([], $fn, $this->getAssocArray());
         
         $this->assertEquals((object)["a" => 2, "c" => 4, "e" => 6], $out1);
-        $this->assertEquals(["a" => 2, "c" => 4, "e" => 6], $out2);
+        $this->assertEquals([2, 4, 6], $out2);
     }
 
     public function testIntoCustType()
