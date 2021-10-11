@@ -8,6 +8,7 @@ namespace FPHP\collection;
 
 trait IterableToArray
 {
+    // is this function deprecated by inTo ??
     public static function iterableToArray(...$args)
     {
         $fn = self::curry(function(iterable $it) {
