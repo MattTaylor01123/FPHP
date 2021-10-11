@@ -42,17 +42,14 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
         {
             $set = false;
             $curr = $reducer($initial, $v, $k);
-            if(true)
+            if($curr instanceof Reduced)
             {
-                if($curr instanceof Reduced)
-                {
-                    yield from $curr->v;
-                    break;
-                }
-                else
-                {
-                    yield from $curr;
-                }
+                yield from $curr->v;
+                break;
+            }
+            else
+            {
+                yield from $curr;
             }
         }
     }
