@@ -25,15 +25,13 @@ final class MapTest extends TestCase
 
     function testMapAssoc()
     {
-        $fn = fn ($v, $k) => $k.$v;
-        $o1 = F::map($fn, $this->getAssocArray());
+        $o1 = F::map(fn ($v, $k) => $k.$v, ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5]);
         $this->assertSame(["a" => "a1", "b" => "b2", "c" => "c3", "d" => "d4", "e" => "e5"], $o1);
     }
 
     function testMapObj()
     {
-        $fn = fn ($x) => $x * 2;
-        $o1 = F::map($fn, $this->getObj());
+        $o1 = F::map(fn ($x) => $x * 2, (object)["f" => 2, "g" => 4, "h" => 6]);
         $this->assertEquals((object)["f" => 4, "g" => 8, "h" => 12], (object)$o1);
     }
 
