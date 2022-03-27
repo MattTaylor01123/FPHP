@@ -6,6 +6,9 @@
 
 namespace FPHP;
 
+use Closure;
+use Generator;
+use ReflectionFunction;
 use stdClass;
 use Traversable;
 
@@ -13,13 +16,17 @@ trait Predicates
 {
     public static function isArray(...$args)
     {
-        $isArray = self::curry(fn ($v) => is_array($v));
+        $isArray = self::curry(function($v) {
+            return is_array($v);
+        });
         return $isArray(...$args);
     }
 
     public static function isBool(...$args)
     {
-        $isBool = self::curry(fn ($v) => is_bool($v));
+        $isBool = self::curry(function($v) {
+            return is_bool($v);
+        });
         return $isBool(...$args);
     }
 
@@ -49,20 +56,21 @@ trait Predicates
     
     public static function isFloat(...$args)
     {
-        $isFloat = self::curry(fn ($v) => is_float($v));
+        $isFloat = self::curry(function($v) {
+            return is_float($v);
+        });
         return $isFloat(...$args);
     }
 
     public static function isGenerator(...$args)
     {
         $isGenerator = self::curry(function($v) {
-            $refFunc = fn($x) => new \ReflectionFunction($x);
-            if($v instanceof \Generator)
+            if($v instanceof Generator)
             {
                 return true;
             }
-            if($v instanceof \Closure &&
-               $refFunc($v)->isGenerator())
+            if($v instanceof Closure &&
+               (new ReflectionFunction($v))->isGenerator())
             {
                 return true;
             }
@@ -72,19 +80,25 @@ trait Predicates
 
     public static function isInteger(...$args)
     {
-        $isInteger = self::curry(fn ($v) => is_int($v));
+        $isInteger = self::curry(function($v) {
+            return is_int($v);
+        });
         return $isInteger(...$args);
     }
 
     public static function isIterable(...$args)
     {
-        $isGenerator = self::curry(fn($arg) => is_iterable($arg));
+        $isGenerator = self::curry(function($arg) {
+            return is_iterable($arg);
+        });
         return $isGenerator(...$args);
     }
 
     public static function isObject(...$args)
     {
-        $isObject = self::curry(fn ($v) => is_object($v));
+        $isObject = self::curry(function($v) {
+            return is_object($v);
+        });
         return $isObject(...$args);
     }
 
@@ -101,19 +115,25 @@ trait Predicates
 
     public static function isString(...$args)
     {
-        $isString = self::curry(fn ($v) => is_string($v));
+        $isString = self::curry(function($v) {
+            return is_string($v);
+        });
         return $isString(...$args);
     }
 
     public static function isType(...$args)
     {
-        $isType = self::curry(fn($t, $v) => gettype($v) === $t);
+        $isType = self::curry(function($t, $v) {
+            return gettype($v) === $t;
+        });
         return $isType(...$args);
     }
 
     public static function isClass(...$args)
     {
-        $isClass = self::curry(fn($c, $v) => get_class($v) === $c);
+        $isClass = self::curry(function($c, $v) {
+            return get_class($v) === $c;
+        });
         return $isClass(...$args);
     }
 
@@ -129,7 +149,9 @@ trait Predicates
 
     public static function isA(...$args)
     {
-        $isA = self::curry(fn($class, $v) => is_a($v, $class));
+        $isA = self::curry(function($class, $v) {
+            return is_a($v, $class);
+        });
         return $isA(...$args);
     }
 
