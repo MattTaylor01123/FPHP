@@ -13,7 +13,9 @@ trait Filter
     public static function filterT(...$args)
     {
         $filterT = self::curry(function(callable $func, callable $step) {
-            return fn($acc, $v, $k) => $func($v, $k) ? $step($acc, $v, $k) : $acc;
+            return function($acc, $v, $k) use($func, $step) {
+                return ($func($v, $k) ? $step($acc, $v, $k) : $acc);
+            };
         });
         return $filterT(...$args);
     }

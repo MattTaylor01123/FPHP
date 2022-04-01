@@ -11,7 +11,9 @@ trait Adjust
     public static function adjustT(...$args)
     {
         $adjustT = self::curry(function($idx, callable $transform, callable $step) {
-            return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
+            return function($acc, $v, $k) use($step, $idx, $transform) {
+                return $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
+            };
         });
         return $adjustT(...$args);
     }
