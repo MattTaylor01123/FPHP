@@ -50,7 +50,7 @@ trait Functions
 
             if(count($noPlaceholders) >= $arity)
             {
-                return $func(...$noPlaceholders);
+                return $func(...array_slice($noPlaceholders, 0, $arity));
             }
             else
             {
@@ -81,12 +81,9 @@ trait Functions
 
     public static function complement(callable $func)
     {
-        $refFunc = new ReflectionFunction($func);
-        $arity = $refFunc->getNumberOfParameters();
-
-        return self::partial(function(...$args) use($func) {
+        return function(...$args) use($func) {
             return !$func(...$args);
-        }, $arity, false);
+        };
     }
 
     public static function flipN(callable $fn, int $arity)
