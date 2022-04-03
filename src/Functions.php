@@ -17,12 +17,12 @@ trait Functions
     {
         $refFunc = new ReflectionFunction($func);
         $arity = $refFunc->getNumberOfParameters();
-        return self::partial($func, $arity, false);
+        return self::curryN($func, $arity, false);
     }
 
-    public static function partial(Callable $func, int $arity, bool $reverseParams, ...$capturedArgs)
+    public static function curryN(Callable $func, int $arity, bool $reverseParams, ...$capturedArgs)
     {
-        return function(...$args) use($func, $arity, $reverseParams, $capturedArgs)
+        $outFunc = function(...$args) use($func, $arity, $reverseParams, $capturedArgs)
         {
             $orderedArgs = $reverseParams ? array_reverse($args) : $args;
             $itArgs = new ArrayIterator($orderedArgs);
@@ -54,9 +54,10 @@ trait Functions
             }
             else
             {
-                return self::partial($func, $arity, $reverseParams, ...$new);
+                return self::curryN($func, $arity, $reverseParams, ...$new);
             }
         };
+        return $outFunc;
     }
 
     public static function __()
@@ -88,7 +89,7 @@ trait Functions
 
     public static function flipN(callable $fn, int $arity)
     {
-        return self::partial($fn, $arity, true);
+        return self::curryN($fn, $arity, true);
     }
 
     public static function identity(...$args)
@@ -102,15 +103,29 @@ trait Functions
     public static function invoker(...$args)
     {
         $invoker = self::curry(function(int $arity, string $methodName) {
-            return self::partial(function(...$args) use($methodName, $arity) {
+            $func = self::buildFixedArityFunc($arity + 1, function(...$args) use($arity, $methodName) {
                 $object = $args[$arity];
                 $args = array_slice($args, 0, $arity);
                 return $object->$methodName(...$args);
-            }, $arity + 1, false);
+            });
+            return self::curry($func);
         });
         return $invoker(...$args);
     }
-    
+
+
+    public static function partial(Callable $func, ...$args)
+    {
+        $refFunc = new ReflectionFunction($func);
+        $arity = $refFunc->getNumberOfParameters();
+        $argCount = count($args);
+        $missingArgs = $arity - $argCount;
+
+        return self::buildFixedArityFunc(max(0, $missingArgs), function(...$newArgs) use($args, $func) {
+            return $func(...array_merge($args, $newArgs));
+        });
+    }
+
     public static function pipe(callable ...$funcs)
     {
         return function(...$args) use($funcs)
@@ -153,5 +168,36 @@ trait Functions
             }
         });
         return $transduce(...$args);
+    }
+
+    private static function buildFixedArityFunc(int $arity, callable $func)
+    {
+        switch($arity)
+        {
+            case 0:
+                return function() use($func) { return $func(); };
+            case 1:
+                return function($a0) use($func) { return $func($a0); };
+            case 2:
+                return function($a0, $a1) use($func) { return $func($a0, $a1); };
+            case 3:
+                return function($a0, $a1, $a2) use($func) { return $func($a0, $a1, $a2); };
+            case 4:
+                return function($a0, $a1, $a2, $a3) use($func) { return $func($a0, $a1, $a2, $a3); };
+            case 5:
+                return function($a0, $a1, $a2, $a3, $a4) use($func) { return $func($a0, $a1, $a2, $a3, $a4); };
+            case 6:
+                return function($a0, $a1, $a2, $a3, $a4, $a5) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5); };
+            case 7:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6); };
+            case 8:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7); };
+            case 9:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8); };
+            case 10:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9); };
+            default:
+                throw new Exception("Arity must be non-negative integer and less than or equal to 10");
+        }
     }
 }
