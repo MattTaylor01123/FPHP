@@ -54,6 +54,16 @@ trait Logical
         return $or(...$args);
     }
 
+    public static function both(...$args)
+    {
+        $both = self::curry(function(callable $fn1, callable $fn2) {
+            return function(...$args) use($fn1, $fn2) {
+                return $fn1(...$args) && $fn2(...$args);
+            };
+        });
+        return $both(...$args);
+    }
+
     public static function either(...$args)
     {
         $either = self::curry(function(callable $fn1, callable $fn2) {
