@@ -48,7 +48,6 @@ class FPHP
     use Concat;
     use Dec;
     use Emptied;
-    use Equals;
     use Filter;
     use Flatten;
     use HasProp;

@@ -9,9 +9,9 @@ namespace tests;
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
-final class EqualsTest extends TestCase
+final class EqTest extends TestCase
 {
-    public function equalsProvider()
+    public function eqProvider()
     {
         return [
             // scalar types ----------------------------------------------------
@@ -49,11 +49,11 @@ final class EqualsTest extends TestCase
     }
     
     /**
-     * @dataProvider equalsProvider
+     * @dataProvider eqProvider
      */
-    public function testEquals($v1, $v2, $expected)
+    public function testEq($v1, $v2, $expected)
     {
-        $res = F::equals($v1, $v2);
+        $res = F::eq($v1, $v2);
         $this->assertEquals($res, $expected);
     }
 }

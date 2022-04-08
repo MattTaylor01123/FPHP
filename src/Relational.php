@@ -1,6 +1,6 @@
 <?php
 
-/* 
+/*
  * (c) Matthew Taylor
  */
 
@@ -74,24 +74,54 @@ trait Relational
 
     public static function eq(...$args)
     {
-        $eq = self::curry(function($a, $b) {
-            if(is_object($b) && method_exists($b, "eq"))
+        $eq = self::curry(function($v1, $v2) {
+            if(is_object($v2) && method_exists($v2, "eq"))
             {
-                return $b->eq($a);
+                return $v2->eq($v1);
             }
-            if(is_object($b) && method_exists($b, "equals"))
+            if(is_object($v2) && method_exists($v2, "equals"))
             {
-                return $b->equals($a);
+                return $v2->equals($v1);
             }
-            if(is_object($a) && method_exists($a, "eq"))
+            if(is_object($v1) && method_exists($v1, "eq"))
             {
-                return $a->eq($b);
+                return $v1->eq($v2);
             }
-            if(is_object($a) && method_exists($a, "equals"))
+            if(is_object($v1) && method_exists($v1, "equals"))
             {
-                return $a->equals($b);
+                return $v1->equals($v2);
             }
-            return $a === $b;
+
+            if($v1 === $v2)
+            {
+                return true;
+            }
+            $t1 = gettype($v1);
+            $t2 = gettype($v2);
+            if($t1 !== $t2)
+            {
+                return false;
+            }
+            if(self::isIterable($v1) || $v1 instanceof \stdClass)
+            {
+                foreach($v1 as $k => $v)
+                {
+                    if(!self::propEq($k, $v, $v2))
+                    {
+                        return false;
+                    }
+                }
+                
+                foreach($v2 as $k => $v)
+                {
+                    if(!self::propEq($k, $v, $v1))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
         });
         return $eq(...$args);
     }
