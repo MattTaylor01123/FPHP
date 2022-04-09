@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 use tests\TestType;
 use tests\TestUtils;
 
-final class HasProp extends TestCase
+final class HasPropTest extends TestCase
 {
     use TestUtils;
 
