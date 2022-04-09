@@ -21,7 +21,9 @@ trait IterableToArray
             }
 
             $step = $hasKeys ? self::assoc() : self::append();
-            $out = self::reduce(fn($acc, $v) => $step($acc, $v[0], $v[1]), [], $entries);
+            $out = self::reduce(function($acc, $v) use($step)  {
+                return $step($acc, $v[0], $v[1]);
+            }, [], $entries);
             return $out;
         });
         return $fn(...$args);

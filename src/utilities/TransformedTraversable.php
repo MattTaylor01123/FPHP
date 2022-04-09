@@ -29,13 +29,16 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
         $step = $this->step;
 
         $stepWrapper = function(...$args) use($step, &$set) {
-            $acc = new IterableGenerator(fn() => yield from []);
+            $acc = new IterableGenerator(function() {
+                yield from [];
+            });
             $set = true;
             return $step($acc, ...array_slice($args, 1));
         };
 
-        $initial = new IterableGenerator(fn() => yield from []);
-
+        $initial = new IterableGenerator(function() {
+            yield from [];
+        });
         $transducer = $this->transducer;
         $reducer = $transducer($stepWrapper);
         foreach($this->traversable as $k => $v)

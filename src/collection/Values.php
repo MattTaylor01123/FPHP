@@ -11,7 +11,9 @@ trait Values
     public static function valuesT(...$args)
     {
         $valuesT = self::curry(function(callable $step) {
-            return fn($acc, $v) => $step($acc, $v);
+            return function($acc, $v) use($step) {
+                return $step($acc, $v);
+            };
         });
         return $valuesT(...$args);
     }

@@ -13,7 +13,9 @@ trait Map
     public static function mapT(...$args)
     {
         $mapT = self::curry(function(callable $func, callable $step) {
-            return fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
+            return function($acc, $v, $k) use($func, $step) {
+                return $step($acc, $func($v, $k), $k);
+            };
         });
         return $mapT(...$args);
     }

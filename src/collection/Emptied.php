@@ -17,7 +17,9 @@ trait Emptied
             }
             if(is_iterable($v))
             {
-                $fn = fn() => yield from [];
+                $fn = function() {
+                    yield from [];
+                };
                 $init = self::generatorToIterable($fn);
                 return $init;
             }

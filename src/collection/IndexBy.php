@@ -14,7 +14,9 @@ trait IndexBy
     public static function indexByT(...$args)
     {
         $indexByT = self::curry(function(callable $func, callable $step) {
-            return fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
+            return function($acc, $v, $k) use($func, $step) {
+                return $step($acc, $v, $func($v, $k));
+            };
         });
         return $indexByT(...$args);
     }
