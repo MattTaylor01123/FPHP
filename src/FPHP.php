@@ -19,6 +19,7 @@ use FPHP\collection\InTo;
 use FPHP\collection\IterableToArray;
 use FPHP\collection\Keys;
 use FPHP\collection\Map;
+use FPHP\collection\Matches;
 use FPHP\collection\Merge;
 use FPHP\collection\Pick;
 use FPHP\collection\PickAll;
@@ -58,6 +59,7 @@ class FPHP
     use IterableToArray;
     use Keys;
     use Map;
+    use Matches;
     use Memoize;
     use Merge;
     use Pick;
@@ -113,5 +115,22 @@ class FPHP
     public static function generatorToIterable($generator)
     {
         return new IterableGenerator($generator);
+    }
+
+    public static function defaultStep($target)
+    {
+        if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
+        {
+            $out = self::append();
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            $out = self::assoc();
+        }
+        else
+        {
+            throw new Exception("Not possible to determine a step function for type " . gettype($target));
+        }
+        return $out;
     }
 }

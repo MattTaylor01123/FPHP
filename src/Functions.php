@@ -154,6 +154,26 @@ trait Functions
         return $fn($firstParameter);
     }
 
+    public static function tapT(...$args)
+    {
+        $tapT = self::curry(function(callable $func, callable $step) {
+            return function($acc, $v, $k) use($func, $step) {
+                $func($v, $k);
+                return $step($acc, $v, $k);
+            };
+        });
+        return $tapT(...$args);
+    }
+
+    public static function tap(...$args)
+    {
+        $tap = self::curry(function(callable $func, $value) {
+            return self::transduce(self::tapT($func), self::defaultStep($value), self::emptied($value), $value);
+        });
+
+        return $tap(...$args);
+    }
+
     public static function transduce(...$args)
     {
         $transduce = self::curry(function(callable $transducer, callable $step, $initial, $collection)
