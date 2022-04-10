@@ -13,11 +13,11 @@ trait Relational
         $lt = self::curry(function($a, $b) {
             if(is_object($b) && method_exists($b, "lt"))
             {
-                return $b->lt($a);
+                return $b->gt($a);
             }
             if(is_object($a) && method_exists($a, "gt"))
             {
-                return $a->gt($b);
+                return $a->lt($b);
             }
             return $a < $b;
         });
@@ -29,11 +29,11 @@ trait Relational
         $lte = self::curry(function($a, $b) {
             if(is_object($b) && method_exists($b, "lte"))
             {
-                return $b->lte($a);
+                return $b->gte($a);
             }
             if(is_object($a) && method_exists($a, "gte"))
             {
-                return $a->gte($b);
+                return $a->lte($b);
             }
             return $a <= $b;
         });
@@ -45,11 +45,11 @@ trait Relational
         $gt = self::curry(function($a, $b) {
             if(is_object($b) && method_exists($b, "gt"))
             {
-                return $b->gt($a);
+                return $b->lt($a);
             }
             if(is_object($a) && method_exists($a, "lt"))
             {
-                return $a->lt($b);
+                return $a->gt($b);
             }
             return $a > $b;
         });
@@ -61,11 +61,11 @@ trait Relational
         $gte = self::curry(function($a, $b) {
             if(is_object($b) && method_exists($b, "gte"))
             {
-                return $b->gte($a);
+                return $b->lte($a);
             }
             if(is_object($a) && method_exists($a, "lte"))
             {
-                return $a->lte($b);
+                return $a->gte($b);
             }
             return $a >= $b;
         });
