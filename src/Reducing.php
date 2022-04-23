@@ -95,14 +95,23 @@ trait Reducing
     public static function includes(...$args)
     {
         $includes = self::curry(function($v, iterable $iterable) {
-            foreach($iterable as $itV)
+            if(is_object($iterable) && method_exists($iterable, "includes"))
             {
-                if($itV === $v)
+                $out = $iterable->includes($v);
+            }
+            else
+            {
+                $out = false;
+                foreach($iterable as $itV)
                 {
-                    return true;
+                    if($itV === $v)
+                    {
+                        $out = true;
+                        break;
+                    }
                 }
             }
-            return false;
+            return $out;
         });
         return $includes(...$args);
     }
