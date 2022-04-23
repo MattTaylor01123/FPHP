@@ -6,6 +6,7 @@
 
 namespace FPHP;
 
+use Exception;
 use FPHP\collection\Adjust;
 use FPHP\collection\Append;
 use FPHP\collection\Assoc;
@@ -21,6 +22,7 @@ use FPHP\collection\Keys;
 use FPHP\collection\Map;
 use FPHP\collection\Matches;
 use FPHP\collection\Merge;
+use FPHP\collection\Path;
 use FPHP\collection\Pick;
 use FPHP\collection\PickAll;
 use FPHP\collection\Pluck;
@@ -62,6 +64,7 @@ class FPHP
     use Matches;
     use Memoize;
     use Merge;
+    use Path;
     use Pick;
     use PickAll;
     use Pluck;
