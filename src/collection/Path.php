@@ -28,34 +28,59 @@ trait Path
 
     public static function assocPath(...$args)
     {
-        $assocPath = self::curry(function(iterable $path, $val, $target)
-        {
+        $assocPath = self::curry(function(iterable $path, $val, $target) {
             $pathArr = is_array($path) ? $path : iterator_to_array($path, false);
+            $pathLen = count($pathArr);
 
-            // iteratively call assoc, starting at the deepest level, against the depest
-            // entry in the path
-            // i.e. trying to build something like this -
-            //        self::pipe(
-            //            self::assoc("uniform", self::__(), self::path(["jobs", 0], $target)),
-            //            self::assoc(0, self::__(), self::path(["jobs"], $target)),
-            //            self::assoc("jobs", self::__(), $target)
-            //        );
-
-            $targets = self::reduce(function($acc, $prop) {
-                return array_merge($acc, [self::prop($prop, $acc[array_key_last($acc)])]);
-            }, [$target], $pathArr);
-
-            $assocs = array_map(function($prop, $target) {
-                return self::assoc($target, self::__(), $prop);
-            }, $pathArr, array_slice($targets, 0, -1));
-
-            $fn = self::pipe(...array_reverse($assocs));
-
-            // we call the assoc chain now, kicking it off with the new value for
-            // the deepest level in the path. this will produce the value which will
-            // be passed into the next deepest level in the path and so forth
-
-            return $fn($val);
+            if($pathLen === 0)
+            {
+                throw new InvalidArgumentException("Invalid path length");
+            }
+            else if($pathLen === 1)
+            {
+                return self::assoc($target, $val, $path[0]);
+            }
+            else if(self::isTraversable($target) || self::isGenerator($target))
+            {
+                $fn = function() use($pathArr, $val, $target, $pathLen) {
+                    $returnedVal = false;
+                    foreach($target as $k => $v)
+                    {
+                        if($k === $pathArr[0] && $pathLen > 1)
+                        {
+                            $returnedVal = true;
+                            yield $k => self::assocPath(array_slice($pathArr, 1), $val, $v);
+                        }
+                        else
+                        {
+                            yield $k => $v;
+                        }
+                    }
+                    if(!$returnedVal)
+                    {
+                        throw new Exception("Invalid path");
+                    }
+                };
+                $out = self::generatorToIterable($fn);
+            }
+            else if(is_array($target) || is_object($target))
+            {
+                if(self::hasProp($pathArr[0], $target))
+                {
+                    $currV = self::prop($path[0], $target);
+                    $newV = self::assocPath(array_slice($pathArr, 1), $val, $currV);
+                    $out = self::assoc($target, $newV, $pathArr[0]);
+                }
+                else
+                {
+                    throw new Exception("Invalid path");
+                }
+            }
+            else
+            {
+                throw new InvalidArgumentException("'target' must be of type array, traversable, generator, or object");
+            }
+            return $out;
         });
         return $assocPath(...$args);
     }
