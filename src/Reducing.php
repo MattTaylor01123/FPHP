@@ -74,24 +74,6 @@ trait Reducing
         return $find(...$args);
     }
 
-    public static function groupBy(...$args)
-    {
-        $groupBy = self::curry(function(callable $fn, iterable $target) {
-            $out = array();
-            foreach($target as $k => $v)
-            {
-                $g = $fn($v, $k);
-                if(!self::hasProp($g, $out))
-                {
-                    $out[$g] = [];
-                }
-                $out[$g][] = $v;
-            }
-            return $out;
-        });
-        return $groupBy(...$args);
-    }
-
     public static function includes(...$args)
     {
         $includes = self::curry(function($v, iterable $iterable) {
