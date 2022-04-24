@@ -28,60 +28,73 @@ trait Path
 
     public static function assocPath(...$args)
     {
-        $assocPath = self::curry(function(iterable $path, $val, $target) {
-            $pathArr = is_array($path) ? $path : iterator_to_array($path, false);
-            $pathLen = count($pathArr);
+        $assocPath = self::curry(function (iterable $path, $val, $target) {
+            return self::ssocPath($path, $val, $target, self::assoc());
+        });
+        return $assocPath(...$args);
+    }
 
-            if($pathLen === 0)
-            {
-                throw new InvalidArgumentException("Invalid path length");
-            }
-            else if($pathLen === 1)
-            {
-                return self::assoc($target, $val, $path[0]);
-            }
-            else if(self::isTraversable($target) || self::isGenerator($target))
-            {
-                $fn = function() use($pathArr, $val, $target, $pathLen) {
-                    $returnedVal = false;
-                    foreach($target as $k => $v)
-                    {
-                        if($k === $pathArr[0] && $pathLen > 1)
-                        {
-                            $returnedVal = true;
-                            yield $k => self::assocPath(array_slice($pathArr, 1), $val, $v);
-                        }
-                        else
-                        {
-                            yield $k => $v;
-                        }
-                    }
-                    if(!$returnedVal)
-                    {
-                        throw new Exception("Invalid path");
-                    }
-                };
-                $out = self::generatorToIterable($fn);
-            }
-            else if(is_array($target) || is_object($target))
-            {
-                if(self::hasProp($pathArr[0], $target))
+    public static function dissocPath(...$args)
+    {
+        $dissocPath = self::curry(function (iterable $path, $val, $target) {
+            return self::ssocPath($path, $val, $target, self::dissoc());
+        });
+        return $dissocPath(...$args);
+    }
+
+    private static function ssocPath(iterable $path, $val, $target, $step)
+    {
+        $pathArr = is_array($path) ? $path : iterator_to_array($path, false);
+        $pathLen = count($pathArr);
+
+        if($pathLen === 0)
+        {
+            throw new InvalidArgumentException("Invalid path length");
+        }
+        else if($pathLen === 1)
+        {
+            return $step($target, $val, $path[0]);
+        }
+        else if(self::isTraversable($target) || self::isGenerator($target))
+        {
+            $fn = function() use($pathArr, $val, $target, $pathLen, $step) {
+                $returnedVal = false;
+                foreach($target as $k => $v)
                 {
-                    $currV = self::prop($path[0], $target);
-                    $newV = self::assocPath(array_slice($pathArr, 1), $val, $currV);
-                    $out = self::assoc($target, $newV, $pathArr[0]);
+                    if($k === $pathArr[0] && $pathLen > 1)
+                    {
+                        $returnedVal = true;
+                        yield $k => self::ssocPath(array_slice($pathArr, 1), $val, $v, $step);
+                    }
+                    else
+                    {
+                        yield $k => $v;
+                    }
                 }
-                else
+                if(!$returnedVal)
                 {
                     throw new Exception("Invalid path");
                 }
+            };
+            $out = self::generatorToIterable($fn);
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            if(self::hasProp($pathArr[0], $target))
+            {
+                $currV = self::prop($path[0], $target);
+                $newV = self::ssocPath(array_slice($pathArr, 1), $val, $currV, $step);
+                $out = $step($target, $newV, $pathArr[0]);
             }
             else
             {
-                throw new InvalidArgumentException("'target' must be of type array, traversable, generator, or object");
+                throw new Exception("Invalid path");
             }
-            return $out;
-        });
-        return $assocPath(...$args);
+        }
+        else
+        {
+            throw new InvalidArgumentException("'target' must be of type array, traversable, generator, or object");
+        }
+        return $out;
     }
 }
