@@ -8,38 +8,28 @@ namespace FPHP\collection;
 
 trait Path
 {
-    public static function path(...$args)
+    public static function path(iterable $path, $target)
     {
-        $propPath = self::curry(function(iterable $path, $target) {
-            return self::reduce(function($acc, $part) {
-                if($acc)
-                {
-                    return self::prop($part, $acc);
-                }
-                else
-                {
-                    return new Reduced($acc);
-                }
-            }, $target, $path);
-        });
-
-        return $propPath(...$args);
+        return self::reduce(function($acc, $part) {
+            if($acc)
+            {
+                return self::prop($part, $acc);
+            }
+            else
+            {
+                return new Reduced($acc);
+            }
+        }, $target, $path);
     }
 
-    public static function assocPath(...$args)
+    public static function assocPath(iterable $path, $val, $target)
     {
-        $assocPath = self::curry(function (iterable $path, $val, $target) {
-            return self::ssocPath($path, $val, $target, fn($acc, $v, $k) => self::assoc($acc, $v, $k));
-        });
-        return $assocPath(...$args);
+        return self::ssocPath($path, $val, $target, fn($acc, $v, $k) => self::assoc($acc, $v, $k));
     }
 
-    public static function dissocPath(...$args)
+    public static function dissocPath(iterable $path, $val, $target)
     {
-        $dissocPath = self::curry(function (iterable $path, $val, $target) {
-            return self::ssocPath($path, $val, $target, self::dissoc());
-        });
-        return $dissocPath(...$args);
+        return self::ssocPath($path, $val, $target, fn($acc, $p) => self::dissoc($acc, $p));
     }
 
     private static function ssocPath(iterable $path, $val, $target, $step)
