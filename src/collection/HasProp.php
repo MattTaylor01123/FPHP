@@ -8,12 +8,9 @@ namespace FPHP\collection;
 
 trait HasProp
 {
-    public static function hasProp(...$args)
+    public static function hasProp(string $propName, $target)
     {
-        $hasProp = self::curry(function(string $propName, $target) {
-            return ((is_object($target) && property_exists($target, $propName)) ||
-                    (is_array($target) && key_exists($propName, $target)));
-        });
-        return $hasProp(...$args);
+        return ((is_object($target) && property_exists($target, $propName)) ||
+                (is_array($target) && key_exists($propName, $target)));
     }
 }
