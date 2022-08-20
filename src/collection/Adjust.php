@@ -8,26 +8,20 @@ namespace FPHP\collection;
 
 trait Adjust 
 {
-    public static function adjustT(...$args)
+    public static function adjustT($idx, callable $transform, callable $step)
     {
-        $adjustT = self::curry(function($idx, callable $transform, callable $step) {
-            return function($acc, $v, $k) use($step, $idx, $transform) {
-                return $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
-            };
-        });
-        return $adjustT(...$args);
+        return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
 
-    public static function adjust(...$params)
-    {
-        $adjust = self::curry(function($idx, callable $transform, $list) {
-            return self::transduce(
-                self::adjustT($idx, $transform),
-                self::assoc(),
-                self::emptied($list),
-                $list
-            );
-        });
-        return $adjust(...$params);
+    public static function adjust($idx, callable $transform, $list) {
+        return self::transduce(
+            fn($step) => self::adjustT($idx, $transform, $step),
+            // always use "assoc" for step function as we can't tell if a traversable is
+            // associative or not without iterating it, and we can't do that in case it
+            // is infinite. Adjust preserves keys anyway, so using assoc is fine.
+            self::assoc(),
+            self::emptied($list),
+            $list
+        );
     }
 }
