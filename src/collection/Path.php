@@ -29,7 +29,7 @@ trait Path
     public static function assocPath(...$args)
     {
         $assocPath = self::curry(function (iterable $path, $val, $target) {
-            return self::ssocPath($path, $val, $target, self::assoc());
+            return self::ssocPath($path, $val, $target, fn($acc, $v, $k) => self::assoc($acc, $v, $k));
         });
         return $assocPath(...$args);
     }

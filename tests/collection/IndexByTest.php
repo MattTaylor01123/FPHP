@@ -65,7 +65,7 @@ final class IndexByTest extends TestCase
     function testIndexByTransducer()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = F::transduce(F::indexByT(F::prop("gender")), F::assoc(), [], $v);
+        $out1 = F::transduce(F::indexByT(F::prop("gender")), fn($acc, $v, $k) => F::assoc($acc, $v, $k), [], $v);
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
         $this->assertArrayHasKey("M", $out1);

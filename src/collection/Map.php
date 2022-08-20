@@ -33,7 +33,7 @@ trait Map
             // is infinite. Map preserves keys anyway, so using assoc is fine.
             else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
             {
-                $out = self::transduce(self::mapT($func), self::assoc(), self::emptied($coll), $coll);
+                $out = self::transduce(self::mapT($func), fn($acc, $v, $k) => self::assoc($acc, $v, $k), self::emptied($coll), $coll);
             }
             else
             {

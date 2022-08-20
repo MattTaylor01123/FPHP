@@ -40,7 +40,7 @@ trait Merge
             else if(is_object($v1))
             {
                 $out = self::reduce(function($acc, $v) {
-                    return self::reduce(self::assoc(), $acc, $v);
+                    return self::reduce(fn($acc, $v, $k) => self::assoc($acc, $v, $k), $acc, $v);
                 }, self::emptied($v1), [$v1, $v2]);
             }
             else

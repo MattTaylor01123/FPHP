@@ -30,7 +30,7 @@ trait IndexBy
             }
             else if(is_array($coll) || $coll instanceof Traversable)
             {
-                $out = self::transduce(self::indexByT($func), self::assoc(), self::emptied($coll), $coll);
+                $out = self::transduce(self::indexByT($func), fn($acc, $v, $k) => self::assoc($acc, $v, $k), self::emptied($coll), $coll);
             }
             else
             {

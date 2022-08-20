@@ -64,45 +64,4 @@ final class ExamplesTest extends TestCase
         $this->assertEquals(["a" => 2, "b" => 4, "c" => 6], iterator_to_array($actGen));
         $this->assertEquals(3, $count);
     }
-
-    public function testExample3()
-    {
-        $out1 = F::assoc();
-        $this->assertTrue(is_callable($out1));
-
-        $out2 = F::assoc([]);
-        $this->assertTrue(is_callable($out2));
-
-        $out3 = F::assoc([], 27);
-        $this->assertTrue(is_callable($out3));
-
-        $out4 = F::assoc([], 27, "age");
-        $this->assertEquals(["age" => 27], $out4);
-    }
-
-    public function testExample4()
-    {
-        $out1 = f::assoc([], F::__(), "age");
-        $this->assertTrue(is_callable($out1));
-        $out2 = $out1(27);
-        $this->assertEquals(["age" => 27], $out2);
-    }
-
-    public function testExample5()
-    {
-        $count = 0;
-        $fnTransformT = F::pipe(
-            F::mapT(function($v) use(&$count) {
-                $count++;
-                return $v * 2;
-            }),
-            F::takeT(3)
-        );
-        $assocArr = ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5];
-        $out = F::transduce($fnTransformT, F::assoc(), [], $assocArr);
-
-        $this->assertEquals(3, $count);
-        $this->assertEquals(["a" => 2, "b" => 4, "c" => 6], $out);
-        $this->assertEquals(3, $count);
-    }
 }

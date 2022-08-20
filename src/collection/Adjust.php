@@ -19,7 +19,7 @@ trait Adjust
             // always use "assoc" for step function as we can't tell if a traversable is
             // associative or not without iterating it, and we can't do that in case it
             // is infinite. Adjust preserves keys anyway, so using assoc is fine.
-            self::assoc(),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
             self::emptied($list),
             $list
         );

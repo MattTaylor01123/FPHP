@@ -41,7 +41,7 @@ trait Filter
                 // if it's an iterable (traversable / generator) we can't tell whether it is
                 // associative or not. Err on the side of keeping the keys as they
                 // can be stripped out later with values().
-                $out = self::transduce(self::filterT($func), self::assoc(), self::emptied($coll), $coll);
+                $out = self::transduce(self::filterT($func), fn($acc, $v, $k) => self::assoc($acc, $v, $k), self::emptied($coll), $coll);
             }
             else
             {

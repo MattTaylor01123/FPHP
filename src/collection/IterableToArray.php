@@ -20,7 +20,7 @@ trait IterableToArray
                 $hasKeys = $hasKeys || ($k !== 0);
             }
 
-            $step = $hasKeys ? self::assoc() : self::append();
+            $step = $hasKeys ? fn($acc, $v, $k) => self::assoc($acc, $v, $k) : fn($acc, $v) => self::append($acc, $v);
             $out = self::reduce(function($acc, $v) use($step)  {
                 return $step($acc, $v[0], $v[1]);
             }, [], $entries);
