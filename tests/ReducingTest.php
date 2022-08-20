@@ -86,7 +86,7 @@ final class ReducingTest extends TestCase
             (object)["id" => 5, "name" => "paula"]
         ];
 
-        $res = F::groupBy(F::prop("id"), $arr);
+        $res = F::groupBy(fn($v) => F::prop("id", $v), $arr);
 
         $this->assertEquals($res, [
             3 => [

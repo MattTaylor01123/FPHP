@@ -18,7 +18,7 @@ final class IndexByTest extends TestCase
     function testIndexByIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = F::indexBy(F::prop("gender"), $v);
+        $out1 = F::indexBy(fn($x) => F::prop("gender", $x), $v);
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
         $this->assertArrayHasKey("M", $out1);
@@ -56,7 +56,7 @@ final class IndexByTest extends TestCase
 
     function testIndexByOverride()
     {
-        $fn = F::prop("family");
+        $fn = fn($v) => F::prop("family", $v);
         $collection = $this->buildCollectionMock("indexBy", $fn, ["hello", "world"]);
         $out2 = F::indexBy($fn, $collection);
         $this->assertSame($out2, ["hello", "world"]);
@@ -65,7 +65,12 @@ final class IndexByTest extends TestCase
     function testIndexByTransducer()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = F::transduce(fn($step) => F::indexByT(F::prop("gender"), $step), fn($acc, $v, $k) => F::assoc($acc, $v, $k), [], $v);
+        $out1 = F::transduce(
+            fn($step) => F::indexByT(fn($x) => F::prop("gender", $x), $step),
+            fn($acc, $v, $k) => F::assoc($acc, $v, $k),
+            [],
+            $v
+        );
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
         $this->assertArrayHasKey("M", $out1);

@@ -22,7 +22,7 @@ trait Pluck
         }
         else if($iterable instanceof Traversable)
         {
-            $out = self::map(self::prop($propName), $iterable);
+            $out = self::map(fn($o) => self::prop($propName, $o), $iterable);
         }
         else
         {

@@ -18,18 +18,12 @@ final class PropTest extends TestCase
     {
         $this->assertSame(F::prop("f", $this->getObj()), 2);
         $this->assertSame(F::prop("i", $this->getObj()), null);
-
-        $fn = F::prop("f");
-        $this->assertSame($fn($this->getObj()), 2);
     }
 
     public function testPropArray()
     {
         $this->assertSame(F::prop("a", $this->getAssocArray()), 1);
         $this->assertSame(F::prop("f", $this->getAssocArray()), null);
-
-        $fn = F::prop("a");
-        $this->assertSame($fn($this->getAssocArray()), 1);
     }
 
     public function testPropArray2()
