@@ -8,12 +8,9 @@ namespace FPHP\collection;
 
 trait PropEq 
 {
-    public static function propEq(...$args)
+    public static function propEq(string $propName, $val, $target)
     {
-        $propEq = self::curry(function($propName, $val, $target) {
-            return self::hasProp($propName, $target) &&
-                   self::eq(self::prop($propName, $target), $val);
-        });
-        return $propEq(...$args);
+        return self::hasProp($propName, $target) &&
+               self::eq(self::prop($propName, $target), $val);
     }
 }
