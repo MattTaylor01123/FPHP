@@ -71,7 +71,7 @@ final class MatchTest extends TestCase
             F::tap(function() use(&$i) {
                 $i = $i + 1;
             }),
-            F::match(["age" => F::gt(F::__(), 30)]),
+            fn($c) => F::match(["age" => F::gt(F::__(), 30)], $c),
             F::take(1)
         );
 
