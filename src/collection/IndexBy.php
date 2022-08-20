@@ -11,35 +11,29 @@ use Traversable;
 
 trait IndexBy
 {
-    public static function indexByT(...$args)
-    {
-        $indexByT = self::curry(function(callable $func, callable $step) {
-            return function($acc, $v, $k) use($func, $step) {
-                return $step($acc, $v, $func($v, $k));
-            };
-        });
-        return $indexByT(...$args);
+    public static function indexByT(callable $func, callable $step) {
+        return fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
     }
 
-    public static function indexBy(...$args)
+    public static function indexBy(callable $func, $coll)
     {
-        $indexBy = self::curry(function(callable $func, $coll) {
-            if(is_object($coll) && method_exists($coll, "indexBy"))
-            {
-                $out = $coll->indexBy($func);
-            }
-            else if(is_array($coll) || $coll instanceof Traversable)
-            {
-                $out = self::transduce(self::indexByT($func), fn($acc, $v, $k) => self::assoc($acc, $v, $k), self::emptied($coll), $coll);
-            }
-            else
-            {
-                throw new InvalidArgumentException(
-                    "unrecognised iterable"
-                );
-            }
-            return $out;
-        });
-        return $indexBy(...$args);
+        if(is_object($coll) && method_exists($coll, "indexBy"))
+        {
+            $out = $coll->indexBy($func);
+        }
+        else if(is_array($coll) || $coll instanceof Traversable)
+        {
+            $out = self::transduce(
+                fn($step) => self::indexByT($func, $step),
+                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::emptied($coll),
+                $coll
+            );
+        }
+        else
+        {
+            throw new InvalidArgumentException("unrecognised iterable");
+        }
+        return $out;
     }
 }
