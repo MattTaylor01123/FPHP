@@ -20,7 +20,7 @@ trait Additional
             }
             else
             {
-                $out = self::map(self::pick($properties), $iterable);
+                $out = self::map(fn($v) => self::pick($properties, $v), $iterable);
             }
             return $out;
         });
