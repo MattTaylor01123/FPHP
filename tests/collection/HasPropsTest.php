@@ -19,18 +19,12 @@ final class HasPropsTest extends TestCase
     {
         $this->assertTrue(F::hasProps(["f", "g", "h"], $this->getObj()));
         $this->assertFalse(F::hasProps(["f", "g", "h", "i"], $this->getObj()));
-
-        $fn = F::hasProps(["f", "g", "h"]);
-        $this->assertTrue($fn($this->getObj()));
     }
 
     public function testHasPropsArray()
     {
         $this->assertTrue(F::hasProps(["c", "d", "e"], $this->getAssocArray()));
         $this->assertFalse(F::hasProps(["c", "d", "e", "f"], $this->getAssocArray()));
-
-        $fn = F::hasProps(["c", "d", "e"]);
-        $this->assertTrue($fn($this->getAssocArray()));
     }
 
     public function testHasPropsCustType()

@@ -8,11 +8,8 @@ namespace FPHP\collection;
 
 trait HasProps
 {
-    public static function hasProps(...$args)
+    public static function hasProps(array $propNames, $target)
     {
-        $hasProp = self::curry(function(array $propNames, $target) {
-            return self::all(fn($p) => self::hasProp($p, $target), $propNames);
-        });
-        return $hasProp(...$args);
+        return self::all(fn($p) => self::hasProp($p, $target), $propNames);
     }
 }
