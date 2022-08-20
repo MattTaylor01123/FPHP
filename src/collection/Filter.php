@@ -37,6 +37,10 @@ trait Filter
             }
             else if(is_object($coll) || self::isTraversable($coll) || self::isGenerator($coll))
             {
+                // already dealt with the case of col being a sequential array.
+                // if it's an iterable (traversable / generator) we can't tell whether it is
+                // associative or not. Err on the side of keeping the keys as they
+                // can be stripped out later with values().
                 $out = self::transduce(self::filterT($func), self::assoc(), self::emptied($coll), $coll);
             }
             else

@@ -28,6 +28,9 @@ trait Map
                 $out = $coll->map($func);
             }
             // array_map callback doesn't support keys
+            // always use "assoc" for step function as we can't tell if a traversable is
+            // associative or not without iterating it, and we can't do that in case it
+            // is infinite. Map preserves keys anyway, so using assoc is fine.
             else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
             {
                 $out = self::transduce(self::mapT($func), self::assoc(), self::emptied($coll), $coll);
