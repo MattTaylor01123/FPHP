@@ -9,23 +9,19 @@ namespace FPHP\collection;
 trait IterableToArray
 {
     // is this function deprecated by inTo ??
-    public static function iterableToArray(...$args)
+    public static function iterableToArray(iterable $it)
     {
-        $fn = self::curry(function(iterable $it) {
-            $entries = array();
-            $hasKeys = false;
-            foreach($it as $k => $v)
-            {
-                $entries[] = [$v, $k];
-                $hasKeys = $hasKeys || ($k !== 0);
-            }
+        $entries = array();
+        $hasKeys = false;
+        foreach($it as $k => $v)
+        {
+            $entries[] = [$v, $k];
+            $hasKeys = $hasKeys || ($k !== 0);
+        }
 
-            $step = $hasKeys ? fn($acc, $v, $k) => self::assoc($acc, $v, $k) : fn($acc, $v) => self::append($acc, $v);
-            $out = self::reduce(function($acc, $v) use($step)  {
-                return $step($acc, $v[0], $v[1]);
-            }, [], $entries);
-            return $out;
-        });
-        return $fn(...$args);
+        $step = $hasKeys ? fn($acc, $v, $k) => self::assoc($acc, $v, $k)
+                         : fn($acc, $v) => self::append($acc, $v);
+        $out = self::reduce(fn($acc, $v) => $step($acc, $v[0], $v[1]), [], $entries);
+        return $out;
     }
 }
