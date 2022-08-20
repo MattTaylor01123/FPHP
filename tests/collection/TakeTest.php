@@ -53,7 +53,7 @@ final class TakeTest extends TestCase
         };
 
         $out = F::pipex($this->getItIdx(),
-            F::filter($fn),
+            fn($coll) => F::filter($fn, $coll),
             F::take(1)
         );
 
