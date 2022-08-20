@@ -11,7 +11,7 @@ trait InTo
     public static function inTo(...$args)
     {
         $inTo = self::curry(function($initial, callable $transducer, $collection) {
-            return self::transduce($transducer, self::append(), $initial, $collection);
+            return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $collection);
         });
         return $inTo(...$args);
     }

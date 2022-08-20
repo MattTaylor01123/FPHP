@@ -21,7 +21,7 @@ trait Keys
     public static function keys(...$args)
     {
         $keys = self::curry(function($target) {
-            $transduceInto = self::transduce(self::keysT(), self::append(), self::__(), $target);
+            $transduceInto = self::transduce(self::keysT(), fn($acc, $v) => self::append($acc, $v), self::__(), $target);
             if(is_object($target) && method_exists($target, "keys"))
             {
                 $out = $target->keys();

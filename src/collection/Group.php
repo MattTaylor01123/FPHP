@@ -10,7 +10,7 @@ trait Group
 {
     public static function groupBy(...$args)
     {
-        $groupBy = self::groupReduceBy(self::__(), self::append(), [], self::__());
+        $groupBy = self::groupReduceBy(self::__(), fn($acc, $v) => self::append($acc, $v), [], self::__());
         return $groupBy(...$args);
     }
 

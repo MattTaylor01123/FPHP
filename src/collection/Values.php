@@ -21,7 +21,7 @@ trait Values
     public static function values(...$args)
     {
         $values = self::curry(function($target) {
-            $transduceInto = self::transduce(self::valuesT(), self::append(), self::__(), $target);
+            $transduceInto = self::transduce(self::valuesT(), fn($acc, $v) => self::append($acc, $v), self::__(), $target);
             if(is_object($target) && method_exists($target, "values"))
             {
                 $out = $target->values();

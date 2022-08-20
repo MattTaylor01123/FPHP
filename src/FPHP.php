@@ -130,7 +130,7 @@ class FPHP
     {
         if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
         {
-            $out = self::append();
+            $out = fn($acc, $v) => self::append($acc, $v);
         }
         else if(is_array($target) || is_object($target))
         {
