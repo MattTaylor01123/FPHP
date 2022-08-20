@@ -8,23 +8,20 @@ namespace FPHP\collection;
 
 trait Props
 {
-    public static function props(...$args)
+    public static function props(array $properties, $target)
     {
-        $props = self::curry(function(array $properties, $target) {
-            $out = array();
-            foreach($properties as $prop)
+        $out = array();
+        foreach($properties as $prop)
+        {
+            if(self::hasProp($prop, $target))
             {
-                if(self::hasProp($prop, $target))
-                {
-                    $out[] = self::prop($prop, $target);
-                }
-                else
-                {
-                    $out[] = null;
-                }
+                $out[] = self::prop($prop, $target);
             }
-            return $out;
-        });
-        return $props(...$args);
+            else
+            {
+                $out[] = null;
+            }
+        }
+        return $out;
     }
 }
