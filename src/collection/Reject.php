@@ -8,11 +8,8 @@ namespace FPHP\collection;
 
 trait Reject
 {
-    public static function reject(...$args)
+    public static function reject(callable $func, iterable $target)
     {
-        $reject = self::curry(function(callable $func, iterable $target) {
-            return self::filter(self::complement($func), $target);
-        });
-        return $reject(...$args);
+        return self::filter(self::complement($func), $target);
     }
 }
