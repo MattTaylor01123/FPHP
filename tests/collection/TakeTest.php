@@ -54,7 +54,7 @@ final class TakeTest extends TestCase
 
         $out = F::pipex($this->getItIdx(),
             fn($coll) => F::filter($fn, $coll),
-            F::take(1)
+            fn($coll) => F::take(1, $coll)
         );
 
         // no iteration has occurred yet

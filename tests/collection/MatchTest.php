@@ -72,7 +72,7 @@ final class MatchTest extends TestCase
                 $i = $i + 1;
             }),
             fn($c) => F::match(["age" => F::gt(F::__(), 30)], $c),
-            F::take(1)
+            fn($c) => F::take(1, $c)
         );
 
         $res = $func($generator());
