@@ -63,7 +63,7 @@ final class TakeWhileTest extends TestCase
 
         $out = F::pipex($this->getItIdx(),
             fn($c) => F::filter($fn, $c),
-            F::takeWhile($fn2)
+            fn($c) => F::takeWhile($fn2, $c)
         );
 
         // no iteration has occurred yet
