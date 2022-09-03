@@ -51,7 +51,6 @@ class FPHP
     use Predicates;
     use Relational;
 
-    use Add;
     use Adjust;
     use All;
     use Any;
@@ -59,7 +58,6 @@ class FPHP
     use Assoc;
     use Concat;
     use Dissoc;
-    use Dec;
     use Emptied;
     use Find;
     use Filter;
@@ -68,7 +66,6 @@ class FPHP
     use Group;
     use HasProp;
     use HasProps;
-    use Inc;
     use IndexBy;
     use InTo;
     use IterableToArray;

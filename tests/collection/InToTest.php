@@ -35,7 +35,7 @@ final class InToTest extends TestCase
         $v = new TestType();
         $v->a = 1;
         $v->b = "h";
-        $o = F::inToAssoc(new TestType(), fn($step) => F::adjustT("a", F::inc(), $step), $v);
+        $o = F::inToAssoc(new TestType(), fn($step) => F::adjustT("a", fn($v) => $v+1, $step), $v);
 
         $exp = new TestType();
         $exp->a = 2;

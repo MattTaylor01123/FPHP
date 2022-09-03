@@ -20,7 +20,7 @@ final class AdjustTest extends TestCase
     public function testAdjustArrayIdx()
     {
         $v1 = $this->getIndexedArray();
-        $o1 = F::adjust(2, F::inc(), $v1);
+        $o1 = F::adjust(2, fn($v) => $v+1, $v1);
         $this->assertEquals([1,2,3,4,5], $v1);
         $this->assertEquals([1,2,4,4,5], $o1);
     }
@@ -28,7 +28,7 @@ final class AdjustTest extends TestCase
     public function testAdjustArrayAssoc()
     {
         $v2 = $this->getAssocArray();
-        $o2 = F::adjust("c", F::dec(), $v2);
+        $o2 = F::adjust("c", fn($v) => $v-1, $v2);
         $this->assertEquals(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5], $v2);
         $this->assertEquals(["a" => 1, "b" => 2, "c" => 2, "d" => 4, "e" => 5], $o2);
     }
@@ -36,7 +36,7 @@ final class AdjustTest extends TestCase
     public function testAdjustStdClass()
     {
         $v3 = $this->getObj();
-        $o3 = F::adjust("g", F::inc(), $v3);
+        $o3 = F::adjust("g", fn($v) => $v+1, $v3);
         $this->assertTrue($o3 instanceof stdClass);
         $this->assertEquals((object)["f" => 2, "g" => 4, "h" => 6], $v3);
         $this->assertEquals((object)["f" => 2, "g" => 5, "h" => 6], $o3);
@@ -80,7 +80,7 @@ final class AdjustTest extends TestCase
         $v = new TestType();
         $v->a = 1;
         $v->b = "h";
-        $o = F::adjust("a", F::inc(), $v);
+        $o = F::adjust("a", fn($x)=>$x+1, $v);
         $this->assertTrue($o instanceof TestType);
         $exp = new TestType();
         $exp->a = 2;
