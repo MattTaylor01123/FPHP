@@ -8,28 +8,6 @@ namespace FPHP;
 
 trait Reducing
 {
-    public static function find(...$args)
-    {
-        $find = self::curry(function(callable $predicate, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "find"))
-            {
-                return $iterable->length();
-            }
-            else
-            {
-                foreach($iterable as $k => $v)
-                {
-                    if($predicate($v, $k))
-                    {
-                        return $v;
-                    }
-                }
-                return null;
-            }
-        });
-        return $find(...$args);
-    }
-
     public static function includes(...$args)
     {
         $includes = self::curry(function($v, iterable $iterable) {

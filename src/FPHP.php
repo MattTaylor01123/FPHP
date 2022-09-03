@@ -14,6 +14,7 @@ use FPHP\collection\Concat;
 use FPHP\collection\Dissoc;
 use FPHP\collection\Emptied;
 use FPHP\collection\Filter;
+use FPHP\collection\Find;
 use FPHP\collection\First;
 use FPHP\collection\Flatten;
 use FPHP\collection\Group;
@@ -61,6 +62,7 @@ class FPHP
     use Dissoc;
     use Dec;
     use Emptied;
+    use Find;
     use Filter;
     use First;
     use Flatten;
