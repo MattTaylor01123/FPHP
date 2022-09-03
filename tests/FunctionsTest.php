@@ -93,14 +93,12 @@ final class FunctionsTest extends TestCase
 
     function testPipe()
     {
-        $nand = F::pipe(
-            F::andd(),
-            F::not()
+        $fn = F::pipe(
+           fn($coll) => F::map(fn($v) => $v * 2, $coll),
+           fn($coll) => F::filter(fn($v) => $v < 7, $coll)
         );
 
-        $this->assertSame($nand(false, false), true);
-        $this->assertSame($nand(true, false), true);
-        $this->assertSame($nand(true, true), false);
+        $this->assertEquals([2,4,6], $fn([1,2,3,4,5]));
     }
 
     function testPipex()

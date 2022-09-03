@@ -47,7 +47,6 @@ use FPHP\utilities\IterableGenerator;
 class FPHP
 {
     use Reducing;
-    use Logical;
     use Functions;
     use Predicates;
     use Relational;

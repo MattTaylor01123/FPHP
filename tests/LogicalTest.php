@@ -29,36 +29,4 @@ final class LogicalTest extends TestCase
         $this->assertFalse($fn(true));
         $this->assertFalse($fn([]));
     }
-    
-    public function booleanCases()
-    {
-        return [
-            [true, true],
-            [true, false],
-            [false, true],
-            [false, false]
-        ];
-    }
-    
-    /**
-     * @dataProvider booleanCases
-     */
-    public function testAndd($v1, $v2)
-    {
-        $this->assertSame(F::andd($v1, $v2), ($v1 && $v2));
-    }
-    
-    /**
-     * @dataProvider booleanCases
-     */
-    public function testOrr($v1, $v2)
-    {
-        $this->assertSame(F::orr($v1, $v2), ($v1 || $v2));
-    }
-    
-    public function testNot()
-    {
-        $this->assertSame(F::not(false), true);
-        $this->assertSame(F::not(true), false);
-    }
 }
