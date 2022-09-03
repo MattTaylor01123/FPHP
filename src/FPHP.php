@@ -15,6 +15,7 @@ use FPHP\collection\Dissoc;
 use FPHP\collection\Emptied;
 use FPHP\collection\Filter;
 use FPHP\collection\First;
+use FPHP\collection\Flatten;
 use FPHP\collection\Group;
 use FPHP\collection\HasProp;
 use FPHP\collection\HasProps;
