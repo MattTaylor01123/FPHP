@@ -4,19 +4,20 @@
  * (c) Matthew Taylor
  */
 
-namespace tests;
+namespace tests\collection;
 
-use PHPUnit\Framework\TestCase;
 use FPHP\FPHP as F;
+use PHPUnit\Framework\TestCase;
+use tests\TestUtils;
 
 final class AdditionalTest extends TestCase
 {
     use TestUtils;
 
-    function testColumnsIdx()
+    function testProjectIdx()
     {
         $v = $this->getPersonsDataIdx();
-        $out1 = F::columns(["name", "family"], $v);
+        $out1 = F::project(["name", "family"], $v);
         $this->assertEquals($out1, [
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],
@@ -26,21 +27,16 @@ final class AdditionalTest extends TestCase
         ]);
     }
 
-    function testColumnsOverride()
+    function testProjectOverride()
     {
-        $collection = $this->buildCollectionMock("columns", ["name", "family"], [
+        $collection = $this->buildCollectionMock("project", ["name", "family"], [
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],
         ]);
-        $out2 = F::columns(["name", "family"], $collection);
+        $out2 = F::project(["name", "family"], $collection);
         $this->assertEquals($out2, [
             (object)["name" => "Matt", "family" => "Smith"],
             (object)["name" => "Sheila", "family" => "Smith"],
         ]);
     }
-
-    // function testMapTo()
-    // {
-    //   TODO
-    // }
 }

@@ -11,22 +11,6 @@ use stdClass;
 
 trait Additional
 {
-    public static function columns(...$args)
-    {
-        $columns = self::curry(function(array $properties, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "columns"))
-            {
-                $out = $iterable->columns($properties);
-            }
-            else
-            {
-                $out = self::map(fn($v) => self::pick($properties, $v), $iterable);
-            }
-            return $out;
-        });
-        return $columns(...$args);
-    }
-
     public static function mapTo(...$args)
     {
         $mapTo = self::curry(function(string $className, iterable $iterable) {

@@ -30,6 +30,7 @@ use FPHP\collection\Path;
 use FPHP\collection\Pick;
 use FPHP\collection\PickAll;
 use FPHP\collection\Pluck;
+use FPHP\collection\Project;
 use FPHP\collection\Prop;
 use FPHP\collection\PropEq;
 use FPHP\collection\Props;
@@ -76,6 +77,7 @@ class FPHP
     use Pick;
     use PickAll;
     use Pluck;
+    use Project;
     use Prop;
     use PropEq;
     use Props;
