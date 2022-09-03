@@ -8,21 +8,6 @@ namespace FPHP;
 
 trait Logical
 {
-    public static function anyPass(callable ...$args)
-    {
-        return function($v) use($args)
-        {
-            foreach($args as $fn)
-            {
-                if($fn($v))
-                {
-                    return true;
-                }
-            }
-            return false;
-        };
-    }
-
     public static function andd(...$args)
     {
         $and = self::curry(function(bool $a, bool $b) {

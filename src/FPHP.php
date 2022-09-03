@@ -40,6 +40,7 @@ use FPHP\collection\Take;
 use FPHP\collection\TakeWhile;
 use FPHP\collection\Values;
 use FPHP\logic\All;
+use FPHP\logic\Any;
 use FPHP\utilities\IterableGenerator;
 
 class FPHP
@@ -53,6 +54,7 @@ class FPHP
     use Add;
     use Adjust;
     use All;
+    use Any;
     use Append;
     use Assoc;
     use Concat;
