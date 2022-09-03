@@ -8,21 +8,6 @@ namespace FPHP;
 
 trait Logical
 {
-    public static function allPass(callable ...$args)
-    {
-        return function($v) use($args)
-        {
-            foreach($args as $fn)
-            {
-                if(!$fn($v))
-                {
-                    return false;
-                }
-            }
-            return true;
-        };
-    }
-
     public static function anyPass(callable ...$args)
     {
         return function($v) use($args)

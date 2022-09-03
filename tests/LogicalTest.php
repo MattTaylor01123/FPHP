@@ -13,7 +13,7 @@ final class LogicalTest extends TestCase
 {
     public function testAllPass()
     {
-        $fn = F::allPass(F::isArray(), F::all(F::isInteger()));
+        $fn = F::allPass(F::isArray(), fn($coll) => F::all(F::isInteger(), $coll));
         
         $this->assertTrue($fn([1,2,3,4,5]));
         $this->assertFalse($fn([1,2,3,4, "hello"]));

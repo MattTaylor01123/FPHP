@@ -8,28 +8,6 @@ namespace FPHP;
 
 trait Reducing
 {
-    public static function all(...$args)
-    {
-        $all = self::curry(function(callable $func, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "all"))
-            {
-                return $iterable->all($func);
-            }
-            else
-            {
-                foreach($iterable as $k => $v)
-                {
-                    if(!$func($v, $k))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        });
-        return $all(...$args);
-    }
-
     public static function any(...$args)
     {
         $any = self::curry(function(callable $func, iterable $iterable) {
