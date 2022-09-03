@@ -42,6 +42,7 @@ use FPHP\collection\TakeWhile;
 use FPHP\collection\Values;
 use FPHP\logic\All;
 use FPHP\logic\Any;
+use FPHP\logic\Equal;
 use FPHP\utilities\IterableGenerator;
 
 class FPHP
@@ -49,8 +50,7 @@ class FPHP
     use Reducing;
     use Functions;
     use Predicates;
-    use Relational;
-
+    
     use Adjust;
     use All;
     use Any;
@@ -59,6 +59,7 @@ class FPHP
     use Concat;
     use Dissoc;
     use Emptied;
+    use Equal;
     use Find;
     use Filter;
     use First;

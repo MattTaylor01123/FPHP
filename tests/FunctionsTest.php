@@ -76,13 +76,13 @@ final class FunctionsTest extends TestCase
 
     function testComplement()
     {
-        $fn = F::complement(F::eq());
+        $fn = F::complement(fn($a, $b) => F::eq($a, $b));
         $this->assertSame(F::eq("a", "a"), true);
         $this->assertSame($fn("a", "a"), false);
         $this->assertSame(F::eq("a", "b"), false);
         $this->assertSame($fn("a", "b"), true);
 
-        $fn2 = F::eq(5);
+        $fn2 = fn($v) => F::eq(5, $v);
         $nfn2 = F::complement($fn2);
 
         $this->assertSame($fn2(5), true);

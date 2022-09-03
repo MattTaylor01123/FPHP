@@ -14,12 +14,12 @@ final class MatchTest extends TestCase
     public function cases()
     {
         return [
-            [["name" => F::eq("Emma"), "age" => F::eq(25)], [(object)["name" => "Emma", "age" => 25]]],
-            [["name" => F::eq("Emma")],                     [(object)["name" => "Emma", "age" => 36],
-                                                             (object)["name" => "Emma", "age" => 25]]],
-            [["name" => F::eq("Steve")],                    []],
-            [["age" => F::gt(F::__(), 30)],                 [(object)["name" => "Annie", "age" => 45],
-                                                             (object)["name" => "Emma", "age" => 36]]]
+            [["name" => fn($v) => $v === "Emma", "age" => fn($v) => $v === 25], [(object)["name" => "Emma", "age" => 25]]],
+            [["name" => fn($v) => $v === "Emma"],                               [(object)["name" => "Emma", "age" => 36],
+                                                                                 (object)["name" => "Emma", "age" => 25]]],
+            [["name" => fn($v) => $v === "Steve"],                              []],
+            [["age" =>  fn($v) => $v > 30],                                     [(object)["name" => "Annie", "age" => 45],
+                                                                                 (object)["name" => "Emma", "age" => 36]]]
         ];
     }
 
@@ -71,7 +71,7 @@ final class MatchTest extends TestCase
             F::tap(function() use(&$i) {
                 $i = $i + 1;
             }),
-            fn($c) => F::match(["age" => F::gt(F::__(), 30)], $c),
+            fn($c) => F::match(["age" => fn($v) => $v > 30], $c),
             fn($c) => F::take(1, $c)
         );
 
