@@ -47,7 +47,6 @@ class FPHP
     use Functions;
     use Predicates;
     use Relational;
-    use Additional;
 
     use Add;
     use Adjust;
