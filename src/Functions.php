@@ -174,22 +174,6 @@ trait Functions
         return $tap(...$args);
     }
 
-    public static function transduce(...$args)
-    {
-        $transduce = self::curry(function(callable $transducer, callable $step, $initial, $collection)
-        {
-            if($initial instanceof Traversable)
-            {
-                return new TransformedTraversable($transducer, $step, $collection);
-            }
-            else
-            {
-                return self::reduce($transducer($step), $initial, $collection);
-            }
-        });
-        return $transduce(...$args);
-    }
-
     private static function buildFixedArityFunc(int $arity, callable $func)
     {
         switch($arity)

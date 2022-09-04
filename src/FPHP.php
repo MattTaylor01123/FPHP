@@ -39,6 +39,7 @@ use FPHP\collection\Props;
 use FPHP\collection\Reject;
 use FPHP\collection\Take;
 use FPHP\collection\TakeWhile;
+use FPHP\collection\Transduce;
 use FPHP\collection\Values;
 use FPHP\logic\All;
 use FPHP\logic\Any;
@@ -87,6 +88,7 @@ class FPHP
     use Reject;
     use Take;
     use TakeWhile;
+    use Transduce;
     use Values;
 
     public static function walk(...$args)
