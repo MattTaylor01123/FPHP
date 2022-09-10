@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP\collection;
+namespace src\collection;
 
 trait PickAll
 {

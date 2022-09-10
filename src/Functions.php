@@ -4,12 +4,12 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP;
+namespace src;
 
 use ArrayIterator;
-use FPHP\utilities\TransformedTraversable;
+use Exception;
 use ReflectionFunction;
-use Traversable;
+use src\utilities\IterableGenerator;
 
 trait Functions
 {
@@ -203,5 +203,66 @@ trait Functions
             default:
                 throw new Exception("Arity must be non-negative integer and less than or equal to 10");
         }
+    }
+
+    public static function walk(...$args)
+    {
+        $walk = self::curry(function(callable $func, iterable $iterable) {
+            if(method_exists($iterable, "walk"))
+            {
+                return $iterable->walk($func);
+            }
+            else
+            {
+                $generator = function() use($iterable, $func) {
+                    foreach($iterable as $k => $v)
+                    {
+                        $func($v, $k);
+                        yield $k => $v;
+                    }
+                };
+                return self::generatorToIterable($generator);
+            }
+        });
+        return $walk(...$args);
+    }
+
+    public static function collect(...$args)
+    {
+        $collect = self::curry(function($iterable){
+            if(is_array($iterable))
+            {
+                return $iterable;
+            }
+            else
+            {
+                // implicit TRUE means repeated keys get overridden
+                // but FALSE would mean keys not returned
+                return iterator_to_array($iterable);
+            }
+        });
+        return $collect(...$args);
+    }
+
+    public static function generatorToIterable($generator)
+    {
+        return new IterableGenerator($generator);
+    }
+
+    public static function defaultStep($target)
+    {
+        if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
+        {
+            $out = fn($acc, $v) => self::append($acc, $v);
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            $out = self::assoc();
+        }
+        else
+        {
+            throw new Exception("Not possible to determine a step function for type " . gettype($target));
+        }
+        return $out;
     }
 }

@@ -7,8 +7,8 @@
 namespace tests\utilities;
 
 use FPHP\FPHP as F;
-use FPHP\utilities\IterableGenerator;
 use PHPUnit\Framework\TestCase;
+use src\utilities\IterableGenerator;
 use tests\TestUtils;
 
 final class IterableGeneratorTest extends TestCase

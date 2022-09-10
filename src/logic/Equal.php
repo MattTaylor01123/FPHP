@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP\logic;
+namespace src\logic;
 
 trait Equal
 {

@@ -4,11 +4,20 @@
  * (c) Matthew Taylor
  */
 
-namespace src;
+namespace FPHP;
 
-use FPHP\collection\Reduced;
+use ArrayIterator;
+use Closure;
+use Exception;
+use InvalidArgumentException;
+use ReflectionFunction;
+use src\collection\Reduced;
+use src\utilities\IterableGenerator;
+use src\utilities\TransformedTraversable;
+use stdClass;
+use Traversable;
 
-final class Matt
+final class FPHP
 {
         public static function adjustT($idx, callable $transform, callable $step)
     {
@@ -1075,6 +1084,573 @@ final class Matt
             return true;
         }
         return false;
+    }
+
+    public static function curry(Callable $func)
+    {
+        $refFunc = new ReflectionFunction($func);
+        $arity = $refFunc->getNumberOfParameters();
+        return self::curryN($func, $arity, false);
+    }
+
+    public static function curryN(Callable $func, int $arity, bool $reverseParams, ...$capturedArgs)
+    {
+        $outFunc = function(...$args) use($func, $arity, $reverseParams, $capturedArgs)
+        {
+            $orderedArgs = $reverseParams ? array_reverse($args) : $args;
+            $itArgs = new ArrayIterator($orderedArgs);
+            $new = array();
+            foreach($capturedArgs as $curr)
+            {
+                if($curr === self::__() && $itArgs->valid())
+                {
+                    $new[] = $itArgs->current();
+                    $itArgs->next();
+                }
+                else
+                {
+                    $new[] = $curr;
+                }
+            }
+            while($itArgs->valid())
+            {
+                $new[] = $itArgs->current();
+                $itArgs->next();
+            }
+            $noPlaceholders = array_filter($new, function($e) {
+                return $e !== self::__();
+            });
+
+            if(count($noPlaceholders) >= $arity)
+            {
+                return $func(...array_slice($noPlaceholders, 0, $arity));
+            }
+            else
+            {
+                return self::curryN($func, $arity, $reverseParams, ...$new);
+            }
+        };
+        return $outFunc;
+    }
+
+    public static function __()
+    {
+        return "__";
+    }
+
+    public static function always($v)
+    {
+        return function() use($v) {
+            return $v;
+        };
+    }
+
+    public static function apply(...$args)
+    {
+        $apply = self::curry(function(callable $func, array $params) {
+            return $func(...$params);
+        });
+        return $apply(...$args);
+    }
+
+    public static function complement(callable $func)
+    {
+        return function(...$args) use($func) {
+            return !$func(...$args);
+        };
+    }
+
+    public static function flipN(callable $fn, int $arity)
+    {
+        return self::curryN($fn, $arity, true);
+    }
+
+    public static function identity(...$args)
+    {
+        $identity = self::curry(function($v) {
+            return $v;
+        });
+        return $identity(...$args);
+    }
+
+    public static function invoker(...$args)
+    {
+        $invoker = self::curry(function(int $arity, string $methodName) {
+            $func = self::buildFixedArityFunc($arity + 1, function(...$args) use($arity, $methodName) {
+                $object = $args[$arity];
+                $args = array_slice($args, 0, $arity);
+                return $object->$methodName(...$args);
+            });
+            return self::curry($func);
+        });
+        return $invoker(...$args);
+    }
+
+    public static function partial(Callable $func, ...$args)
+    {
+        $refFunc = new ReflectionFunction($func);
+        $arity = $refFunc->getNumberOfParameters();
+        $argCount = count($args);
+        $missingArgs = $arity - $argCount;
+
+        return self::buildFixedArityFunc(max(0, $missingArgs), function(...$newArgs) use($args, $func) {
+            return $func(...array_merge($args, $newArgs));
+        });
+    }
+
+    public static function pipe(callable ...$funcs)
+    {
+        return function(...$args) use($funcs)
+        {
+            $first = true;
+            $out = null;
+            foreach($funcs as $fn)
+            {
+                if($first)
+                {
+                    $first = false;
+                    $out = $fn(...$args);
+                }
+                else
+                {
+                    $out = $fn($out);
+                }
+            }
+            return $out;
+        };
+    }
+
+    public static function pipex($firstParameter, callable ...$funcs)
+    {
+        $fn = self::pipe(...$funcs);
+        return $fn($firstParameter);
+    }
+
+    public static function tapT(...$args)
+    {
+        $tapT = self::curry(function(callable $func, callable $step) {
+            return function($acc, $v, $k) use($func, $step) {
+                $func($v, $k);
+                return $step($acc, $v, $k);
+            };
+        });
+        return $tapT(...$args);
+    }
+
+    public static function tap(...$args)
+    {
+        $tap = self::curry(function(callable $func, $value) {
+            return self::transduce(self::tapT($func), self::defaultStep($value), self::emptied($value), $value);
+        });
+
+        return $tap(...$args);
+    }
+
+    private static function buildFixedArityFunc(int $arity, callable $func)
+    {
+        switch($arity)
+        {
+            case 0:
+                return function() use($func) { return $func(); };
+            case 1:
+                return function($a0) use($func) { return $func($a0); };
+            case 2:
+                return function($a0, $a1) use($func) { return $func($a0, $a1); };
+            case 3:
+                return function($a0, $a1, $a2) use($func) { return $func($a0, $a1, $a2); };
+            case 4:
+                return function($a0, $a1, $a2, $a3) use($func) { return $func($a0, $a1, $a2, $a3); };
+            case 5:
+                return function($a0, $a1, $a2, $a3, $a4) use($func) { return $func($a0, $a1, $a2, $a3, $a4); };
+            case 6:
+                return function($a0, $a1, $a2, $a3, $a4, $a5) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5); };
+            case 7:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6); };
+            case 8:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7); };
+            case 9:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8); };
+            case 10:
+                return function($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9) use($func) { return $func($a0, $a1, $a2, $a3, $a4, $a5, $a6, $a7, $a8, $a9); };
+            default:
+                throw new Exception("Arity must be non-negative integer and less than or equal to 10");
+        }
+    }
+
+    public static function walk(...$args)
+    {
+        $walk = self::curry(function(callable $func, iterable $iterable) {
+            if(method_exists($iterable, "walk"))
+            {
+                return $iterable->walk($func);
+            }
+            else
+            {
+                $generator = function() use($iterable, $func) {
+                    foreach($iterable as $k => $v)
+                    {
+                        $func($v, $k);
+                        yield $k => $v;
+                    }
+                };
+                return self::generatorToIterable($generator);
+            }
+        });
+        return $walk(...$args);
+    }
+
+    public static function collect(...$args)
+    {
+        $collect = self::curry(function($iterable){
+            if(is_array($iterable))
+            {
+                return $iterable;
+            }
+            else
+            {
+                // implicit TRUE means repeated keys get overridden
+                // but FALSE would mean keys not returned
+                return iterator_to_array($iterable);
+            }
+        });
+        return $collect(...$args);
+    }
+
+    public static function generatorToIterable($generator)
+    {
+        return new IterableGenerator($generator);
+    }
+
+    public static function defaultStep($target)
+    {
+        if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
+        {
+            $out = fn($acc, $v) => self::append($acc, $v);
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            $out = self::assoc();
+        }
+        else
+        {
+            throw new Exception("Not possible to determine a step function for type " . gettype($target));
+        }
+        return $out;
+    }
+
+    public static function memoize(callable $fn)
+    {
+        return function(...$args) use($fn) {
+            static $prev = array();
+            $v = self::find(fn($v) => self::propEq(0, $args, $v), $prev);
+            if(!$v)
+            {
+                $out = $fn(...$args);
+                $prev[] = [$args, $out];
+            }
+            else
+            {
+                $out = $v[1];
+            }
+            return $out;
+        };
+    }    
+
+    public static function isArray(...$args)
+    {
+        $isArray = self::curry(function($v) {
+            return is_array($v);
+        });
+        return $isArray(...$args);
+    }
+
+    public static function isBool(...$args)
+    {
+        $isBool = self::curry(function($v) {
+            return is_bool($v);
+        });
+        return $isBool(...$args);
+    }
+
+    public static function isEmpty(...$args)
+    {
+        $isEmpty = self::curry(function($v) {
+            if(self::isString($v))
+            {
+                return strlen($v) === 0;
+            }
+            if(is_iterable($v))
+            {
+                return self::length($v) === 0;
+            }
+            if(is_object($v))
+            {
+                return self::length(self::keys($v)) === 0;
+            }
+            if($v === null)
+            {
+                return false;
+            }
+            return false;
+        });
+        return $isEmpty(...$args);
+    }
+
+    public static function isFloat(...$args)
+    {
+        $isFloat = self::curry(function($v) {
+            return is_float($v);
+        });
+        return $isFloat(...$args);
+    }
+
+    public static function isGenerator(...$args)
+    {
+        $isGenerator = self::curry(function($v) {
+            if($v instanceof Generator)
+            {
+                return true;
+            }
+            if($v instanceof Closure &&
+               (new ReflectionFunction($v))->isGenerator())
+            {
+                return true;
+            }
+        });
+        return $isGenerator(...$args);
+    }
+
+    public static function isInteger(...$args)
+    {
+        $isInteger = self::curry(function($v) {
+            return is_int($v);
+        });
+        return $isInteger(...$args);
+    }
+
+    public static function isIterable(...$args)
+    {
+        $isGenerator = self::curry(function($arg) {
+            return is_iterable($arg);
+        });
+        return $isGenerator(...$args);
+    }
+
+    public static function isObject(...$args)
+    {
+        $isObject = self::curry(function($v) {
+            return is_object($v);
+        });
+        return $isObject(...$args);
+    }
+
+    public static function isSequentialArray($target)
+    {
+        // https://stackoverflow.com/questions/173400/how-to-check-if-php-array-is-associative-or-sequential
+        $out = false;
+        if(is_array($target) && count($target) > 0 && array_key_exists(0, $target))
+        {
+            $out = (array_keys($target) === range(0, count($target) - 1));
+        }
+        return $out;
+    }
+
+    public static function isString(...$args)
+    {
+        $isString = self::curry(function($v) {
+            return is_string($v);
+        });
+        return $isString(...$args);
+    }
+
+    public static function isType(...$args)
+    {
+        $isType = self::curry(function($t, $v) {
+            return gettype($v) === $t;
+        });
+        return $isType(...$args);
+    }
+
+    public static function isClass(...$args)
+    {
+        $isClass = self::curry(function($c, $v) {
+            return get_class($v) === $c;
+        });
+        return $isClass(...$args);
+    }
+
+    public static function isStdClass(...$args)
+    {
+        return self::isA(stdClass::class, ...$args);
+    }
+
+    public static function isTraversable(...$args)
+    {
+        return self::isA(Traversable::class, ...$args);
+    }
+
+    public static function isA(...$args)
+    {
+        $isA = self::curry(function($class, $v) {
+            return is_a($v, $class);
+        });
+        return $isA(...$args);
+    }
+
+    public static function isScalarType(...$args)
+    {
+        $isScalar = self::curry(function($v) {
+            return self::includes(gettype($v), ["boolean", "double", "integer", "string"]);
+        });
+        return $isScalar(...$args);
+    }
+
+    public static function isNull(...$args)
+    {
+        $isNull = self::curry(function($v) {
+            return is_null($v);
+        });
+        return $isNull(...$args);
+    }
+
+    public static function test(...$args)
+    {
+        $test = self::curry(function(string $regex, string $str) {
+            return preg_match($regex, $str) === 1;
+        });
+        return $test(...$args);
+    }
+
+    public static function includes(...$args)
+    {
+        $includes = self::curry(function($v, iterable $iterable) {
+            if(is_object($iterable) && method_exists($iterable, "includes"))
+            {
+                $out = $iterable->includes($v);
+            }
+            else
+            {
+                $out = false;
+                foreach($iterable as $itV)
+                {
+                    if($itV === $v)
+                    {
+                        $out = true;
+                        break;
+                    }
+                }
+            }
+            return $out;
+        });
+        return $includes(...$args);
+    }
+
+    public static function includesAll(...$args)
+    {
+        $includesAll = self::curry(function(iterable $vals, iterable $list) {
+            return self::all(self::includes(self::__(), $list), $vals);
+        });
+        return $includesAll(...$args);
+    }
+
+    public static function includesAny(...$args)
+    {
+        $includesAll = self::curry(function(iterable $vals, iterable $list) {
+            return self::any(self::includes(self::__(), $list), $vals);
+        });
+        return $includesAll(...$args);
+    }
+
+    public static function indexOf(...$args)
+    {
+        $indexOf = self::curry(function($needle, iterable $iterable) {
+            if(is_object($iterable) && method_exists($iterable, "indexOf"))
+            {
+                return $iterable->length();
+            }
+            elseif(is_array($iterable))
+            {
+                return array_search($needle, $iterable, true) ?: -1;
+            }
+            else
+            {
+                foreach($iterable as $k => $v)
+                {
+                    if($v === $needle)
+                    {
+                        return $k;
+                    }
+                }
+                return -1;
+            }
+        });
+        return $indexOf(...$args);
+    }
+
+    public static function joinUp(...$args)
+    {
+        $join = self::curry(function($glue, iterable $iterable) {
+            if(is_object($iterable) && method_exists($iterable, "joinUp"))
+            {
+                return $iterable->joinUp($glue, $iterable);
+            }
+            else
+            {
+                // exclude keys, we don't need them, and if include them in
+                // iterator_to_array call, values with duplicate keys will be
+                // overwritten
+                $arr = is_array($iterable) ? $iterable : iterator_to_array($iterable, false);
+                return implode($glue, $arr);
+            }
+        });
+        return $join(...$args);
+    }
+
+    public static function length(...$args)
+    {
+        $length = self::curry(function(iterable $iterable) {
+            if(is_object($iterable) && method_exists($iterable, "length"))
+            {
+                return $iterable->length();
+            }
+            elseif(is_array($iterable))
+            {
+                return count($iterable);
+            }
+            else
+            {
+                $out = self::reduce(function($count) {
+                    return ++$count;
+                }, 0, $iterable);
+                return $out;
+            }
+        });
+
+        return $length(...$args);
+    }
+
+    public static function reduce(...$args)
+    {
+        $reduce = self::curry(function(callable $func, $initial, $iterable) {
+            if(is_object($iterable) && method_exists($iterable, "reduce"))
+            {
+                return $iterable->reduce($func, $initial);
+            }
+            else
+            {
+                $out = $initial;
+                foreach($iterable as $k => $v)
+                {
+                    $out = $func($out, $v, $k);
+                    if($out instanceof Reduced)
+                    {
+                        return $out->v;
+                    }
+                }
+                return $out;
+            }
+        });
+        return $reduce(...$args);
     }
 
 }

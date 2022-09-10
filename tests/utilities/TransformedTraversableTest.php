@@ -7,8 +7,8 @@
 namespace tests\utilities;
 
 use FPHP\FPHP as F;
-use FPHP\utilities\TransformedTraversable;
 use PHPUnit\Framework\TestCase;
+use src\utilities\TransformedTraversable;
 use tests\TestUtils;
 
 final class TransformedTraversableTest extends TestCase

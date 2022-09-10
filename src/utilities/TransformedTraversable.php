@@ -4,12 +4,12 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP\utilities;
+namespace src\utilities;
 
-use FPHP\collection\Reduced;
 use FPHP\FPHP;
 use IteratorAggregate;
 use JsonSerializable;
+use src\collection\Reduced;
 use Traversable;
 
 final class TransformedTraversable implements IteratorAggregate, JsonSerializable

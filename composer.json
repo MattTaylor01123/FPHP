@@ -14,7 +14,8 @@
     },
     "autoload": {
         "psr-4": {
-            "FPHP\\": "src/",
+            "src\\": "src/",
+            "FPHP\\": "bin/",
             "tests\\": "tests/"
         }
     }

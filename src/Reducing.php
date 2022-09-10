@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP;
+namespace src;
 
 trait Reducing
 {

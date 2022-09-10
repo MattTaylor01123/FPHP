@@ -4,30 +4,43 @@
  * (c) Matthew Taylor
  */
 
-require_once "vendor/autoload.php";
+$rootPath = realpath(__DIR__ . "/..");
+error_log($rootPath);
+
+require_once $rootPath . "/vendor/autoload.php";
 
 // get file list
-
 $folders = [
-    __DIR__ . "/src/collection",
-    __DIR__ . "/src/logic",
+    $rootPath . "/src/collection",
+    $rootPath . "/src/logic",
+    $rootPath . "/src/Functions.php",
+    $rootPath . "/src/Memoize.php",
+    $rootPath . "/src/Predicates.php",
+    $rootPath . "/src/Reducing.php"
 ];
 
 $excludePaths = [
-    __DIR__ . "/src/collection/Reduced.php"
+    $rootPath . "/src/collection/Reduced.php"
 ];
 
 function getDirFiles(string $path, array $excludePaths)
 {
-    $it = new DirectoryIterator($path);
-    foreach($it as $fileInfo)
+    if(str_contains($path, ".php"))
     {
-        if(!$fileInfo->isDot())
+        yield $path;
+    }
+    else
+    {
+        $it = new DirectoryIterator($path);
+        foreach($it as $fileInfo)
         {
-            $out = $path . "/" . $fileInfo->getFilename();
-            if(!in_array($out, $excludePaths))
+            if(!$fileInfo->isDot())
             {
-                yield $out;
+                $out = $path . "/" . $fileInfo->getFilename();
+                if(!in_array($out, $excludePaths))
+                {
+                    yield $out;
+                }
             }
         }
     }
@@ -47,7 +60,8 @@ function convertToFQClassNames(string $base, iterable $paths)
 {
     foreach($paths as $path)
     {
-        $nsName = str_replace([__DIR__, "/", ".php", "\src"], ["", "\\", "", "FPHP"], $path);
+        $nsName = str_replace([$base, "/", ".php", "\src"], ["", "\\", "", "src"], $path);
+        error_log($nsName);
         yield $nsName;
     }
 }
@@ -78,13 +92,13 @@ function getMethodCode(iterable $refMethods)
 }
 
 // combine all the above
-$funcCode = getMethodCode(toReflectionMethods(convertToFQClassNames(__DIR__, getAllPaths($folders, $excludePaths))));
+$funcCode = getMethodCode(toReflectionMethods(convertToFQClassNames($rootPath, getAllPaths($folders, $excludePaths))));
 $arrFuncCode = iterator_to_array($funcCode);
 
 // read template contents
 $template = file_get_contents(__DIR__ . "/Template.php");
 $modified = str_replace(["Template", "// code here"], ["Matt", implode("\r\n", $arrFuncCode)], $template);
-$fout = fopen(__DIR__ . "/Matt.php", "w");
+$fout = fopen($rootPath . "/bin/FPHP.php", "w");
 
 fwrite($fout, $modified);
 fclose($fout);

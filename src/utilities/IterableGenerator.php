@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace FPHP\utilities;
+namespace src\utilities;
 
 use FPHP\FPHP;
 use IteratorAggregate;
