@@ -210,48 +210,63 @@ final class FPHP
         throw new Exception("Unable to find a suitable empty value for the type of 'v'");
     }
 
-    public static function filterT(callable $func, callable $step)
+    public static function filterT(callable $predicate, callable $step) : callable
     {
-        return fn($acc, $v, $k) => ($func($v, $k) ? $step($acc, $v, $k) : $acc);
+        return fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
     }
 
-    public static function filter(callable $func, $coll)
+    public static function filterK(callable $predicate, mixed $target) : mixed
     {
-        if(is_object($coll) && method_exists($coll, "filter"))
+        if (is_array($target))
         {
-            $out = $coll->filter($func);
+            $out = array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH );
         }
-        else if(self::isSequentialArray($coll))
+        else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
-            $out = array_values(array_filter($coll, $func));
-        }
-        else if (is_array($coll))
-        {
-            $out = array_filter($coll, $func, ARRAY_FILTER_USE_BOTH );
-        }
-        else if(is_object($coll) || self::isTraversable($coll) || self::isGenerator($coll))
-        {
-            // already dealt with the case of col being a sequential array.
-            // if it's an iterable (traversable / generator) we can't tell whether it is
-            // associative or not. Err on the side of keeping the keys as they
-            // can be stripped out later with values().
+            // transduce but passing assoc as step function, so that key is preserved
             $out = self::transduce(
-                fn($step) => self::filterT($func, $step),
+                fn($step) => self::filterT($predicate, $step),
                 fn($acc, $v, $k) => self::assoc($acc, $v, $k),
-                self::emptied($coll),
-                $coll
+                self::emptied($target),
+                $target
             );
         }
         else
         {
             throw new InvalidArgumentException(
-                "'coll' must be one of array, traversable, object, or object implementing filter"
+                "'target' must be one of array, traversable, object, or generator"
             );
         }
         return $out;
     }
 
-    public static function find(callable $predicate, iterable $iterable)
+    public static function filter(callable $predicate, mixed $target) : mixed
+    {
+        if(is_array($target))
+        {
+            $out = array_values(array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH));
+        }
+        else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
+        {
+            $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
+            // use the transduce filter, but ignore key
+            $out = self::transduce(
+                fn($step) => self::filterT($predicate, $step),
+                fn($acc, $v) => self::append($acc, $v),
+                $notTravOrGen ? [] : self::emptied($target),
+                $target
+            );
+        }
+        else
+        {
+            throw new InvalidArgumentException(
+                "'target' must be one of array, traversable, object, or generator"
+            );
+        }
+        return $out;
+    }
+
+    public static function find(callable $predicate, iterable $iterable) : mixed
     {
         if(is_object($iterable) && method_exists($iterable, "find"))
         {
@@ -260,6 +275,18 @@ final class FPHP
         else
         {
             return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($v) : null, null, $iterable);
+        }
+    }
+
+    public static function findIndex(callable $predicate, iterable $iterable) : int
+    {
+        if(is_object($iterable) && method_exists($iterable, "findIndex"))
+        {
+            return $iterable->findIndex($predicate);
+        }
+        else
+        {
+            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($k) : -1, -1, $iterable);
         }
     }
 
@@ -334,37 +361,37 @@ final class FPHP
         }
     }
 
-    public static function groupBy(callable $fnGroup, iterable $target)
+    public static function groupBy(callable $fnGroup, iterable $input) : array
     {
         return self::groupReduceBy(
             $fnGroup,
             fn($acc, $v) => self::append($acc, $v),
             [],
-            $target
+            $input
         );
     }
 
-    public static function groupMapBy(callable $fnGroup, callable $fnMap, iterable $target)
+    public static function groupMapBy(callable $fnGroup, callable $fnMap, iterable $input) : array
     {
         return self::groupReduceBy(
             $fnGroup,
             fn($acc, $v, $k) => self::append($acc, $fnMap($v, $k)),
             [],
-            $target
+            $input
         );
     }
 
-    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, $initial, iterable $target)
+    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, mixed $initial, iterable $input) : array
     {
         $out = array();
-        foreach($target as $k => $v)
+        foreach($input as $k => $v)
         {
             $g = $fnGroup($v, $k);
             if($g === null)
             {
                 continue;
             }
-            if(!self::hasProp($g, $out))
+            if(!array_key_exists($g, $out))
             {
                 $out[$g] = self::emptied($initial);
             }
@@ -408,6 +435,26 @@ final class FPHP
             throw new InvalidArgumentException("unrecognised iterable");
         }
         return $out;
+    }
+
+    public static function indexOf($needle, $target)
+    {
+        if(is_object($target) && method_exists($target, "indexOf"))
+        {
+            return $target->indexOf();
+        }
+        elseif(is_array($target))
+        {
+            return array_search($needle, $target, true) ?: -1;
+        }
+        elseif(is_iterable($target))
+        {
+            return self::reduce(fn($acc, $v, $k) => $v === $needle ? new Reduced($k) : -1, -1, $target);
+        }
+        else
+        {
+            throw new InvalidArgumentException("'target' must have method 'indexOf' or be an iterable.");
+        }
     }
 
     public static function inTo($initial, callable $transducer, $collection)
@@ -762,14 +809,9 @@ final class FPHP
         return $out;
     }
 
-    public static function pick(iterable $properties, $target) {
-        return self::filter(fn($v, $k) => self::includes($k, $properties), $target);
-    }
-
-    public static function pickAll(iterable $props, $target)
+    public static function pick(iterable $properties, $target)
     {
-        // TODO - what about items that are missing?
-        return self::filter(fn($v, $k) => self::includes($k, $props), $target);
+        return self::filterK(fn($v, $k) => self::includes($k, $properties), $target);
     }
 
     public static function pluck(string $propName, iterable $iterable)
@@ -1084,6 +1126,33 @@ final class FPHP
             return true;
         }
         return false;
+    }
+
+    public static function includes($v, $target)
+    {
+        if(is_object($target) && method_exists($target, "includes"))
+        {
+            $out = $target->includes($v);
+        }
+        else if(is_iterable($target))
+        {
+            $out = self::reduce(fn($acc, $v2) => $v === $v2 ? new Reduced(true) : false, false, $target);
+        }
+        else
+        {
+            throw new InvalidArgumentException("'target' must have method 'includes' or be iterable.");
+        }
+        return $out;
+    }
+
+    public static function includesAll(iterable $vals, iterable $list)
+    {
+        return self::all(fn($v) => self::includes($v, $list), $vals);
+    }
+
+    public static function includesAny(iterable $vals, iterable $list)
+    {
+        return self::any(fn($v) => self::includes($v, $list), $vals);
     }
 
     public static function curry(Callable $func)
@@ -1519,72 +1588,6 @@ final class FPHP
             return preg_match($regex, $str) === 1;
         });
         return $test(...$args);
-    }
-
-    public static function includes(...$args)
-    {
-        $includes = self::curry(function($v, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "includes"))
-            {
-                $out = $iterable->includes($v);
-            }
-            else
-            {
-                $out = false;
-                foreach($iterable as $itV)
-                {
-                    if($itV === $v)
-                    {
-                        $out = true;
-                        break;
-                    }
-                }
-            }
-            return $out;
-        });
-        return $includes(...$args);
-    }
-
-    public static function includesAll(...$args)
-    {
-        $includesAll = self::curry(function(iterable $vals, iterable $list) {
-            return self::all(self::includes(self::__(), $list), $vals);
-        });
-        return $includesAll(...$args);
-    }
-
-    public static function includesAny(...$args)
-    {
-        $includesAll = self::curry(function(iterable $vals, iterable $list) {
-            return self::any(self::includes(self::__(), $list), $vals);
-        });
-        return $includesAll(...$args);
-    }
-
-    public static function indexOf(...$args)
-    {
-        $indexOf = self::curry(function($needle, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "indexOf"))
-            {
-                return $iterable->length();
-            }
-            elseif(is_array($iterable))
-            {
-                return array_search($needle, $iterable, true) ?: -1;
-            }
-            else
-            {
-                foreach($iterable as $k => $v)
-                {
-                    if($v === $needle)
-                    {
-                        return $k;
-                    }
-                }
-                return -1;
-            }
-        });
-        return $indexOf(...$args);
     }
 
     public static function joinUp(...$args)

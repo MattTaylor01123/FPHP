@@ -8,80 +8,6 @@ namespace src;
 
 trait Reducing
 {
-    public static function includes(...$args)
-    {
-        $includes = self::curry(function($v, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "includes"))
-            {
-                $out = $iterable->includes($v);
-            }
-            else
-            {
-                $out = false;
-                foreach($iterable as $itV)
-                {
-                    if($itV === $v)
-                    {
-                        $out = true;
-                        break;
-                    }
-                }
-            }
-            return $out;
-        });
-        return $includes(...$args);
-    }
-
-    /**
-     * Checks if all given values are within the given list.
-     *
-     * @param iterable $vals        the values to search for
-     * @param iterable $list        the list to search within
-     *
-     * @return bool True if all values in list, false otherwise
-     */
-    public static function includesAll(...$args)
-    {
-        $includesAll = self::curry(function(iterable $vals, iterable $list) {
-            return self::all(self::includes(self::__(), $list), $vals);
-        });
-        return $includesAll(...$args);
-    }
-
-    public static function includesAny(...$args)
-    {
-        $includesAll = self::curry(function(iterable $vals, iterable $list) {
-            return self::any(self::includes(self::__(), $list), $vals);
-        });
-        return $includesAll(...$args);
-    }
-
-    public static function indexOf(...$args)
-    {
-        $indexOf = self::curry(function($needle, iterable $iterable) {
-            if(is_object($iterable) && method_exists($iterable, "indexOf"))
-            {
-                return $iterable->length();
-            }
-            elseif(is_array($iterable))
-            {
-                return array_search($needle, $iterable, true) ?: -1;
-            }
-            else
-            {
-                foreach($iterable as $k => $v)
-                {
-                    if($v === $needle)
-                    {
-                        return $k;
-                    }
-                }
-                return -1;
-            }
-        });
-        return $indexOf(...$args);
-    }
-
     public static function joinUp(...$args)
     {
         $join = self::curry(function($glue, iterable $iterable) {
@@ -137,7 +63,7 @@ trait Reducing
                 foreach($iterable as $k => $v)
                 {
                     $out = $func($out, $v, $k);
-                    if($out instanceof collection\Reduced)
+                    if($out instanceof Reduced)
                     {
                         return $out->v;
                     }

@@ -21,7 +21,7 @@ final class PickTest extends TestCase
         $e1 = new stdClass();
         $e1->f = 2;
         $e1->g = 4;
-        $this->assertEquals($o1, $e1);
+        $this->assertEquals($e1, $o1);
     }
 
     public function testPickArray()

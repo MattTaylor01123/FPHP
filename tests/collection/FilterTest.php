@@ -20,21 +20,27 @@ final class FilterTest extends TestCase
         $fnEven = fn ($v) => $v % 2 === 0;
         $res = F::filter($fnEven, $this->getIndexedArray());
         $this->assertSame($res, [2,4]);
+        $resK = F::filterK($fnEven, $this->getIndexedArray());
+        $this->assertSame($resK, ["1" => 2, "3" => 4]);
     }
 
     function testFilterAssoc()
     {
         $fnEven = fn ($v) => $v % 2 === 0;
-        $res2 = F::filter($fnEven, $this->getAssocArray());
-        $this->assertSame($res2, ["b" => 2, "d" => 4]);
+        $res = F::filter($fnEven, $this->getAssocArray());
+        $this->assertSame($res, [2, 4]);
+        $resK = F::filterK($fnEven, $this->getAssocArray());
+        $this->assertSame($resK, ["b" => 2, "d" => 4]);
     }
 
     function testFilterObj()
     {
         $fnEven = fn ($v) => $v % 2 === 0;
         $obj = (object)$this->getAssocArray();
-        $res3 = F::filter($fnEven, $obj);
-        $this->assertEquals($res3, (object)["b" => 2, "d" => 4]);
+        $res = F::filter($fnEven, $obj);
+        $this->assertEquals($res, [2, 4]);
+        $resK = F::filterK($fnEven, $obj);
+        $this->assertEquals($resK, (object)["b" => 2, "d" => 4]);
     }
 
     function testFilterItIdx()
@@ -75,7 +81,7 @@ final class FilterTest extends TestCase
             $count = $count + 1;
             return $v > 25;
         };
-        $res = F::filter($fnEven, $this->getItAssoc());
+        $res = F::filterK($fnEven, $this->getItAssoc());
 
         $this->assertTrue($res instanceof Traversable);
 
@@ -97,13 +103,5 @@ final class FilterTest extends TestCase
         // of generator reuse
         $this->assertSame(["k" => 30, "l" => 40], iterator_to_array($res, true));
         $this->assertEquals(8, $count);
-    }
-
-    function testFilterOverride()
-    {
-        $fnEven = fn ($v) => $v > 25;
-        $collection = $this->buildCollectionMock("filter", $fnEven, ["hello", "world"]);
-        $out2 = F::filter($fnEven, $collection);
-        $this->assertSame($out2, ["hello", "world"]);
     }
 }

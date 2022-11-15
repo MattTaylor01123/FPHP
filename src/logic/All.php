@@ -6,7 +6,7 @@
 
 namespace src\logic;
 
-use FPHP\collection\Reduced;
+use src\collection\Reduced;
 
 trait All
 {

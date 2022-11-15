@@ -10,42 +10,96 @@ use InvalidArgumentException;
 
 trait Filter
 {
-    public static function filterT(callable $func, callable $step)
+    /**
+     * filter transducer - returns a step function which only passes through
+     * passed-in values that satisfy the predicate function.
+     *
+     * Keys in the input values will be retained or ignored, depending on the
+     * step function provided.
+     *
+     * @param callable $predicate       test applied to each value passed in
+     * @param callable $step            passed every input value that satisfies
+     *                                  the predicate
+     *
+     * @return callable new step function that applies the filter when called
+     */
+    public static function filterT(callable $predicate, callable $step) : callable
     {
-        return fn($acc, $v, $k) => ($func($v, $k) ? $step($acc, $v, $k) : $acc);
+        return fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
     }
 
-    public static function filter(callable $func, $coll)
+    /**
+     * Keeps only those values in the target that match the given predicate
+     * function. This filter function retains keys in the target collection.
+     *
+     * @param callable $predicate       test applied to each value in $target
+     * @param mixed $target             collection to filter
+     *
+     * @return mixed a new collection containing only those values in target
+     * that satisfy the given predicate function.
+     *
+     * @throws InvalidArgumentException if target is not an array, object,
+     * traversable, or generator.
+     */
+    public static function filterK(callable $predicate, mixed $target) : mixed
     {
-        if(is_object($coll) && method_exists($coll, "filter"))
+        if (is_array($target))
         {
-            $out = $coll->filter($func);
+            $out = array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH );
         }
-        else if(self::isSequentialArray($coll))
+        else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
-            $out = array_values(array_filter($coll, $func));
-        }
-        else if (is_array($coll))
-        {
-            $out = array_filter($coll, $func, ARRAY_FILTER_USE_BOTH );
-        }
-        else if(is_object($coll) || self::isTraversable($coll) || self::isGenerator($coll))
-        {
-            // already dealt with the case of col being a sequential array.
-            // if it's an iterable (traversable / generator) we can't tell whether it is
-            // associative or not. Err on the side of keeping the keys as they
-            // can be stripped out later with values().
+            // transduce but passing assoc as step function, so that key is preserved
             $out = self::transduce(
-                fn($step) => self::filterT($func, $step),
+                fn($step) => self::filterT($predicate, $step),
                 fn($acc, $v, $k) => self::assoc($acc, $v, $k),
-                self::emptied($coll),
-                $coll
+                self::emptied($target),
+                $target
             );
         }
         else
         {
             throw new InvalidArgumentException(
-                "'coll' must be one of array, traversable, object, or object implementing filter"
+                "'target' must be one of array, traversable, object, or generator"
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Keeps only those values in the target that match the given predicate
+     * function. This filter function ignores keys in the target collection.
+     *
+     * @param callable $predicate       test applied to each value in $target
+     * @param mixed $target             collection to filter
+     *
+     * @return mixed a new collection containing only those values in target
+     * that satisfy the given predicate function.
+     *
+     * @throws InvalidArgumentException if target is not an array, object,
+     * traversable, or generator.
+     */
+    public static function filter(callable $predicate, mixed $target) : mixed
+    {
+        if(is_array($target))
+        {
+            $out = array_values(array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH));
+        }
+        else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
+        {
+            $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
+            // use the transduce filter, but ignore key
+            $out = self::transduce(
+                fn($step) => self::filterT($predicate, $step),
+                fn($acc, $v) => self::append($acc, $v),
+                $notTravOrGen ? [] : self::emptied($target),
+                $target
+            );
+        }
+        else
+        {
+            throw new InvalidArgumentException(
+                "'target' must be one of array, traversable, object, or generator"
             );
         }
         return $out;
