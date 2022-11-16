@@ -457,14 +457,14 @@ final class FPHP
         }
     }
 
-    public static function inTo($initial, callable $transducer, $collection)
+    public static function inTo(mixed $initial, callable $transducer, mixed $target) : mixed
     {
-        return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $collection);
+        return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $target);
     }
 
-    public static function inToAssoc($initial, callable $transducer, $collection)
+    public static function intoK(mixed $initial, callable $transducer, mixed $target) : mixed
     {
-        return self::transduce($transducer, fn($acc, $v, $k) => self::assoc($acc, $v, $k), $initial, $collection);
+        return self::transduce($transducer, fn($acc, $v, $k) => self::assoc($acc, $v, $k), $initial, $target);
     }
 
     public static function iterableToArray(iterable $it)

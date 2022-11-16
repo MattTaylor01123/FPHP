@@ -23,10 +23,10 @@ final class InToTest extends TestCase
             fn($step) => F::filterT(fn($v) => $v % 2, $step)
         );
 
-        $out1 = F::inToAssoc(new stdClass(), $fn, $this->getAssocArray());
+        $out1 = F::inToK([], $fn, $this->getAssocArray());
         $out2 = F::inTo([], $fn, $this->getAssocArray());
         
-        $this->assertEquals((object)["a" => 2, "c" => 4, "e" => 6], $out1);
+        $this->assertEquals(["a" => 2, "c" => 4, "e" => 6], $out1);
         $this->assertEquals([2, 4, 6], $out2);
     }
 
@@ -35,7 +35,7 @@ final class InToTest extends TestCase
         $v = new TestType();
         $v->a = 1;
         $v->b = "h";
-        $o = F::inToAssoc(new TestType(), fn($step) => F::adjustT("a", fn($v) => $v+1, $step), $v);
+        $o = F::inToK(new TestType(), fn($step) => F::adjustT("a", fn($v) => $v+1, $step), $v);
 
         $exp = new TestType();
         $exp->a = 2;
