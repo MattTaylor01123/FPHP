@@ -19,5 +19,5 @@ use Traversable;
 
 final class FPHP
 {
-    // code here
+// code here
 }

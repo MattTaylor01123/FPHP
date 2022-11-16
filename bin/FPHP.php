@@ -19,7 +19,7 @@ use Traversable;
 
 final class FPHP
 {
-        public static function adjustT($idx, callable $transform, callable $step)
+    public static function adjustT($idx, callable $transform, callable $step)
     {
         return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
