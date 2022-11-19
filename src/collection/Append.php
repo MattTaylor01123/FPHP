@@ -10,7 +10,20 @@ use InvalidArgumentException;
 
 trait Append 
 {
-    public static function append($acc, $val)
+    /**
+     * Creates a new un-keyed collection which contains all the values from the
+     * input collection and then the passed in value appended as the last value
+     * in the new collection.
+     *
+     * @param iterable $acc    input collection
+     * @param mixed $val       value to append to end of new collection
+     *
+     * @return array|Traversable new collection
+     *
+     * @throws InvalidArgumentException if input collection is not an array or a
+     * traversable.
+     */
+    public static function append(iterable $acc, mixed $val) : iterable
     {
         if(is_array($acc))
         {
