@@ -10,24 +10,34 @@ use InvalidArgumentException;
 
 trait Assoc
 {
-    /*
-     * appends a value to an indexed data structure (assoc array, traversable,
-     * object).
+    /**
+     * Returns a new keyed collection containing all the values in the input
+     * collection plus the value passed in as the final value at the end of the
+     * collection, keyed with the key value passed in
+     *
+     * @param array|iterable|object $acc    input collection
+     * @param mixed $val                    value to append at end of new collection
+     * @param mixed $key                    key to use when appending value to end of new collection
+     *
+     * @return array|iterable|object    new collection
+     *
+     * @throws InvalidArgumentException if input collection is not of type array, iterable, or
+     * object.
      */
-    public static function assoc($acc, $val, $propName)
+    public static function assoc(mixed $acc, mixed $val, mixed $key)
     {
         if(is_array($acc))
         {
             $out = $acc;
-            $out[$propName] = $val;
+            $out[$key] = $val;
         }
         else if(self::isTraversable($acc) || self::isGenerator($acc))
         {
             $returnedVal = false;
-            $fn = function() use($propName, $val, $acc, &$returnedVal) {
+            $fn = function() use($key, $val, $acc, &$returnedVal) {
                 foreach($acc as $k => $v)
                 {
-                    if($k === $propName)
+                    if($k === $key)
                     {
                         $returnedVal = true;
                         yield $k => $val;
@@ -40,7 +50,7 @@ trait Assoc
                 if(!$returnedVal)
                 {
                     $returnedVal = true;
-                    yield $propName => $val;
+                    yield $key => $val;
                 }
             };
             $out = self::generatorToIterable($fn);
@@ -48,7 +58,7 @@ trait Assoc
         else if(is_object($acc))
         {
             $out = clone $acc;
-            $out->$propName = $val;
+            $out->$key = $val;
         }
         else
         {
