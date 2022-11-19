@@ -61,7 +61,6 @@ function convertToFQClassNames(string $base, iterable $paths)
     foreach($paths as $path)
     {
         $nsName = str_replace([$base, "/", ".php", "\src"], ["", "\\", "", "src"], $path);
-        error_log($nsName);
         yield $nsName;
     }
 }
@@ -81,6 +80,11 @@ function getMethodCode(iterable $refMethods)
 {
     foreach($refMethods as $refMethod)
     {
+        $comment = $refMethod->getDocComment();
+        if($comment)
+        {
+            yield "    $comment";
+        }
         $filename = $refMethod->getFileName();
         $start_line = $refMethod->getStartLine() - 1; // it's actually - 1, otherwise you wont get the function() block
         $end_line = $refMethod->getEndLine();
