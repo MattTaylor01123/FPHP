@@ -8,7 +8,7 @@ namespace src\collection;
 
 trait Find
 {
-    public static function find(callable $predicate, iterable $iterable) : mixed
+    public static function find(callable $predicate, iterable $iterable)
     {
         if(is_object($iterable) && method_exists($iterable, "find"))
         {

@@ -61,7 +61,7 @@ trait Group
      *
      * @return array
      */
-    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, mixed $initial, iterable $input) : array
+    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, $initial, iterable $input) : array
     {
         $out = array();
         foreach($input as $k => $v)

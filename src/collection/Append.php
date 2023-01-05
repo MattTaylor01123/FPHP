@@ -18,12 +18,12 @@ trait Append
      * @param iterable $acc    input collection
      * @param mixed $val       value to append to end of new collection
      *
-     * @return array|Traversable new collection
+     * @return iterable new collection
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function append(iterable $acc, mixed $val) : iterable
+    public static function append(iterable $acc, $val) : iterable
     {
         if(is_array($acc))
         {

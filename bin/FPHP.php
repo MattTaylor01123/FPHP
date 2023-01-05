@@ -32,12 +32,12 @@ final class FPHP
      *
      * @return callable transducer
      */
-    public static function adjustT(mixed $idx, callable $transform, callable $step) : callable
+    public static function adjustT($idx, callable $transform, callable $step) : callable
     {
         return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
 
-    public static function adjust(mixed $idx, callable $transform, mixed $collection) : mixed
+    public static function adjust($idx, callable $transform, $collection)
     {
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),
@@ -58,12 +58,12 @@ final class FPHP
      * @param iterable $acc    input collection
      * @param mixed $val       value to append to end of new collection
      *
-     * @return array|Traversable new collection
+     * @return iterable new collection
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function append(iterable $acc, mixed $val) : iterable
+    public static function append(iterable $acc, $val) : iterable
     {
         if(is_array($acc))
         {
@@ -99,7 +99,7 @@ final class FPHP
      * @throws InvalidArgumentException if input collection is not of type array, iterable, or
      * object.
      */
-    public static function assoc(mixed $acc, mixed $val, mixed $key)
+    public static function assoc($acc, $val, $key)
     {
         if(is_array($acc))
         {
@@ -286,7 +286,7 @@ final class FPHP
      * @throws InvalidArgumentException if target is not an array, object,
      * traversable, or generator.
      */
-    public static function filterK(callable $predicate, mixed $target) : mixed
+    public static function filterK(callable $predicate, $target)
     {
         if (is_array($target))
         {
@@ -324,7 +324,7 @@ final class FPHP
      * @throws InvalidArgumentException if target is not an array, object,
      * traversable, or generator.
      */
-    public static function filter(callable $predicate, mixed $target) : mixed
+    public static function filter(callable $predicate, $target)
     {
         if(is_array($target))
         {
@@ -350,7 +350,7 @@ final class FPHP
         return $out;
     }
 
-    public static function find(callable $predicate, iterable $iterable) : mixed
+    public static function find(callable $predicate, iterable $iterable)
     {
         if(is_object($iterable) && method_exists($iterable, "find"))
         {
@@ -498,7 +498,7 @@ final class FPHP
      *
      * @return array
      */
-    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, mixed $initial, iterable $input) : array
+    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, $initial, iterable $input) : array
     {
         $out = array();
         foreach($input as $k => $v)
@@ -585,7 +585,7 @@ final class FPHP
      * @return mixed contains the values in target transformed by the transducer. Type is
      * the same as or compatible with the type of initial.
      */
-    public static function inTo(mixed $initial, callable $transducer, mixed $target) : mixed
+    public static function inTo($initial, callable $transducer, $target)
     {
         return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $target);
     }
@@ -601,7 +601,7 @@ final class FPHP
      * @return mixed contains the values in target transformed by the transducer. Type is
      * the same as or compatible with the type of initial.
      */
-    public static function intoK(mixed $initial, callable $transducer, mixed $target) : mixed
+    public static function intoK($initial, callable $transducer, $target)
     {
         return self::transduce($transducer, fn($acc, $v, $k) => self::assoc($acc, $v, $k), $initial, $target);
     }

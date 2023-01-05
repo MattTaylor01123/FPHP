@@ -21,7 +21,7 @@ trait Adjust
      *
      * @return callable transducer
      */
-    public static function adjustT(mixed $idx, callable $transform, callable $step) : callable
+    public static function adjustT($idx, callable $transform, callable $step) : callable
     {
         return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
@@ -37,7 +37,7 @@ trait Adjust
      *
      * @return mixed a new collection
      */
-    public static function adjust(mixed $idx, callable $transform, mixed $collection) : mixed
+    public static function adjust($idx, callable $transform, $collection)
     {
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),

@@ -41,7 +41,7 @@ trait Filter
      * @throws InvalidArgumentException if target is not an array, object,
      * traversable, or generator.
      */
-    public static function filterK(callable $predicate, mixed $target) : mixed
+    public static function filterK(callable $predicate, $target)
     {
         if (is_array($target))
         {
@@ -79,7 +79,7 @@ trait Filter
      * @throws InvalidArgumentException if target is not an array, object,
      * traversable, or generator.
      */
-    public static function filter(callable $predicate, mixed $target) : mixed
+    public static function filter(callable $predicate, $target)
     {
         if(is_array($target))
         {

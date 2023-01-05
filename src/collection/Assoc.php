@@ -24,7 +24,7 @@ trait Assoc
      * @throws InvalidArgumentException if input collection is not of type array, iterable, or
      * object.
      */
-    public static function assoc(mixed $acc, mixed $val, mixed $key)
+    public static function assoc($acc, $val, $key)
     {
         if(is_array($acc))
         {
