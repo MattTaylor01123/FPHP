@@ -18,7 +18,7 @@ trait Flatten
         }
         else
         {
-            $fnFlatMap = F::pipe(
+            $fnFlatMap = self::pipe(
                 fn($coll) => self::map($fn, $coll),
                 fn($coll) => self::flatten($coll)
             );
