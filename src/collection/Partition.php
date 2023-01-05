@@ -60,7 +60,7 @@ trait Partition
     public static function partitionBy(callable $fnGroup, iterable $target)
     {
         return self::transduce(
-            self::partitionByT($fnGroup),
+            fn($step) => self::partitionByT($fnGroup, $step),
             fn($acc, $v, $k) => self::assoc($acc, $v, $k),
             self::emptied($target),
             $target
