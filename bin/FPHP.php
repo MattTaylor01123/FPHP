@@ -51,6 +51,43 @@ final class FPHP
     }
 
     /**
+     * Creates a new keyed collection which contains all the values from the input
+     * collection and then the passed in key => value pair appended to the end.
+     *
+     * Regardless of acc's type, the returned value will always be a lazy
+     * Traversable. Otherwise, for arrays, if the key already existed in the array
+     * then the new value would overwrite the old value rather than being appended
+     * to the end.
+     *
+     * I.e. keys are not guaranteed to be unique in the returned Traversable.
+     *
+     * @param iterable $acc     input collection
+     * @param mixed $val        value to append to end of collection
+     * @param mixed $key        key to associate with value
+     *
+     * @return Traversable new collection
+     *
+     * @throws InvalidArgumentException if input collection is not an array or a
+     * traversable.
+     */
+    public static function appendK(iterable $acc, $val, $key) : Traversable
+    {
+        if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
+        {
+            $fn = function() use($val, $key, $acc) {
+                yield from $acc;
+                yield $key => $val;
+            };
+            $out = self::generatorToIterable($fn);
+        }
+        else
+        {
+            throw new InvalidArgumentException("'acc' must be of type array or traversable");
+        }
+        return $out;
+    }
+
+    /**
      * Creates a new un-keyed collection which contains all the values from the
      * input collection and then the passed in value appended as the last value
      * in the new collection.
@@ -143,45 +180,76 @@ final class FPHP
     }
 
     /**
-     * Join, one after the other, strings, sequential arrays, and traversables
-     * and generators.
+     * Joins all the input collections together to form a new output collection.
+     *
+     * If all input collections are arrays, then the output collection is an array
+     * which contains all the values in the input arrays. Keys are ignored.
+     *
+     * If input collections are a mix of arrays and traversables then the output
+     * is a lazy traversable which contains all the values in the input collections.
+     *
+     * @param mixed[] $collections  input collections
+     *
+     * @return mixed    output collection
+     *
+     * @throws InvalidArgumentException if any collection is not an array, or
+     * traversable.
      */
-    public static function concat($v1, $v2)
+    public static function concat(...$collections)
     {
-        $v1t = gettype($v1);
-        $v2t = gettype($v2);
-        $v1type = $v1t === "object" ? get_class($v1) : $v1t;
-        $v2type = $v2t === "object" ? get_class($v2) : $v2t;
+        $counts = array_reduce($collections, fn($acc, $c) => [
+            "array" => is_array($c) ? ++$acc["array"] : $acc["array"],
+            "traversable" => $c instanceof \Traversable ? ++$acc["traversable"] : $acc["traversable"],
+            "all" => ++$acc["all"]
+        ], ["array" => 0, "traversable" => 0, "all" => 0]);
 
-        if($v1type !== $v2type)
+        if($counts["array"] + $counts["traversable"] < $counts["all"])
         {
-            throw new InvalidArgumentException("v1 and v2 must be of the same type");
+            throw new InvalidArgumentException("All collectiosn must be array or traversable");
         }
 
-        if(is_object($v1) && method_exists($v1, "concat"))
+        if($counts["array"] === $counts["all"])
         {
-            $out = $v1->concat($v2);
-        }
-        else if(is_string($v1) && is_string($v2))
-        {
-            $out = $v1.$v2;
-        }
-        else if(is_array($v1) && is_array($v2))
-        {
-            $out = array_merge(array_values($v1), array_values($v2));
-        }
-        else if($v1 instanceof Traversable && $v2 instanceof Traversable)
-        {
-            $fn = function() use($v1, $v2) {
-                yield from $v1;
-                yield from $v2;
-            };
-            $out = self::generatorToIterable($fn);
+            $out = array();
+            foreach($collections as $coll)
+            {
+                foreach($coll as $v)
+                {
+                    $out[] = $v;
+                }
+            }
         }
         else
         {
-            throw new InvalidArgumentException("v1 and v2 of unhandled type");
+            $fn = function() use($collections) {
+                foreach($collections as $coll)
+                {
+                    yield from $coll;
+                }
+            };
+            $out = self::generatorToIterable($fn);
         }
+
+        return $out;
+    }
+
+    public static function concatK(...$collections) : \Traversable
+    {
+        $countNotOK = array_reduce($collections, fn($acc, $c) =>
+            is_array($c) || $c instanceof \Traversable ? $acc : ++$acc, 0);
+
+        if($countNotOK > 0)
+        {
+            throw new InvalidArgumentException("All collections must be arrays or Traversables");
+        }
+
+        $fn = function() use($collections) {
+            foreach($collections as $coll)
+            {
+                yield from $coll;
+            }
+        };
+        $out = self::generatorToIterable($fn);
         return $out;
     }
 
@@ -1058,6 +1126,160 @@ final class FPHP
     public static function reject(callable $func, iterable $target)
     {
         return self::filter(self::complement($func), $target);
+    }
+
+    /**
+     * Transducer for the skip functions.
+     *
+     * Creates a new step function which when called skips over the first $count
+     * values, only passing every value after that to the passed in step function.
+     *
+     * @param int $count        Number of items to skip
+     * @param callable $step    Step function
+     * 
+     * @return callable
+     */
+    public static function skipT(int $count, callable $step) : callable
+    {
+        $skipped = 0;
+        return function($acc, $v, $k) use($count, $step, &$skipped)
+        {
+            if($skipped < $count)
+            {
+                $skipped++;
+                return $acc;
+            }
+            else
+            {
+                return $step($acc, $v, $k);
+            }
+        };
+    }
+
+    /**
+     * Transducer for skip-while functions
+     *
+     * Given a predicate and a step function, creates a new step function
+     * that when called skips any leading values up until the first leading
+     * value that matches the given predicate.
+     *
+     * @param callable $pred        predicate function
+     * @param callable $step        step function
+     *
+     * @return callable
+     */
+    public static function skipWhileT(callable $pred, callable $step) : callable
+    {
+        $skipping = true;
+        return function($acc, $v, $k) use($pred, $step, &$skipping)
+        {
+            $skipping = $skipping && $pred($v, $k);
+            if(!$skipping)
+            {
+                return $step($acc, $v, $k);
+            }
+            else
+            {
+                return $acc;
+            }
+        };
+    }
+
+    /**
+     * Creates and returns a collection of the same type as the input but with the
+     * first $count items removed.
+     *
+     * @param int $count            Number of items to skip.
+     * @param iterable $collection  Collection whose starting items will be skipped.
+     *
+     * @return iterable new collection with leading $count items removed.
+     */
+    public static function skip(int $count, iterable $collection) : iterable
+    {
+        if(is_array($collection))
+        {
+            $out = array_values(array_slice($collection, $count));
+        }
+        else
+        {
+            $out = self::transduce(
+                fn($step) => self::skipT($count, $step),
+                fn($acc, $v) => self::append($acc, $v),
+                self::emptied($collection),
+                $collection
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Creates and returns a collection of the same type as the input but with the
+     * first $count items removed.
+     *
+     * @param int $count            Number of items to skip.
+     * @param iterable $collection  Collection whose starting items will be skipped.
+     *
+     * @return iterable new collection with leading $count items removed. Retains
+     * keys from input collection.
+     */
+    public static function skipK(int $count, iterable $collection) : iterable
+    {
+        if(is_array($collection))
+        {
+            $out = array_slice($collection, $count);
+        }
+        else
+        {
+            $out = self::transduce(
+                fn($step) => self::skipT($count, $step),
+                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::emptied($collection),
+                $collection
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Returns a new collection that omits all leading items in the input collection
+     * up until the first item to satisfy the given predicate.
+     *
+     * @param callable $pred            Test items in the input collection
+     * @param iterable $collection      Input collection
+     *
+     * @return iterable new collection with leading items that fail the predicate
+     * removed.
+     */
+    public static function skipWhile(callable $pred, iterable $collection) : iterable
+    {
+        $out = self::transduce(
+            fn($step) => self::skipWhileT($pred, $step),
+            fn($acc, $v) => self::append($acc, $v),
+            self::emptied($collection),
+            $collection
+        );
+        return $out;
+    }
+
+    /**
+     * Returns a new collection that omits all leading items in the input collection
+     * up until the first item to satisfy the given predicate.
+     *
+     * @param callable $pred            Test items in the input collection
+     * @param iterable $collection      Input collection
+     *
+     * @return iterable new collection with leading items that fail the predicate
+     * removed. Retains keys from input collection.
+     */
+    public static function skipWhileK(callable $pred, iterable $collection) : iterable
+    {
+        $out = self::transduce(
+            fn($step) => self::skipWhileT($pred, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
+        return $out;
     }
 
     public static function takeT(int $count, callable $step)
