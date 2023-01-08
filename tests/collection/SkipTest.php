@@ -7,6 +7,7 @@
 namespace tests\collection;
 
 use FPHP\FPHP as F;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use src\utilities\IterableGenerator;
 
@@ -20,6 +21,14 @@ final class SkipTest extends TestCase
         $this->assertEquals(["c" => 3, "d" => 4], F::skipK(2, ["a" => 1, "b" => 2, "c" => 3, "d" => 4]));
         $this->assertEqualsIter($this->makeIterable([3,4,5]), F::skip(2, $this->makeIterable([1,2,3,4,5])));
         $this->assertEqualsIterK($this->makeIterable(["c" => 3, "d" => 4]), F::skipK(2, $this->makeIterable(["a" => 1, "b" => 2, "c" => 3, "d" => 4])));
+    }
+
+    public function testSkipExceptions()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        F::skip(-1, [1,2,3]);
+        F::skipK(-1, [1,2,3]);
+        F::skip(-1, $this->makeIterable([1,2,3]));
     }
 
     public function testSkipWhile()

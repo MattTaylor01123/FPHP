@@ -6,6 +6,8 @@
 
 namespace src\collection;
 
+use InvalidArgumentException;
+
 trait Skip
 {
     /**
@@ -21,6 +23,10 @@ trait Skip
      */
     public static function skipT(int $count, callable $step) : callable
     {
+        if($count < 0)
+        {
+            throw new InvalidArgumentException("'count' cannot be negative");
+        }
         $skipped = 0;
         return function($acc, $v, $k) use($count, $step, &$skipped)
         {
@@ -76,6 +82,10 @@ trait Skip
      */
     public static function skip(int $count, iterable $collection) : iterable
     {
+        if($count < 0)
+        {
+            throw new InvalidArgumentException("'count' cannot be negative");
+        }
         if(is_array($collection))
         {
             $out = array_values(array_slice($collection, $count));
@@ -104,6 +114,10 @@ trait Skip
      */
     public static function skipK(int $count, iterable $collection) : iterable
     {
+        if($count < 0)
+        {
+            throw new InvalidArgumentException("'count' cannot be negative");
+        }
         if(is_array($collection))
         {
             $out = array_slice($collection, $count);
