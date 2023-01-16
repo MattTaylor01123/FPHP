@@ -208,7 +208,11 @@ final class FPHP
             throw new InvalidArgumentException("All collectiosn must be array or traversable");
         }
 
-        if($counts["array"] === $counts["all"])
+        if($counts["all"] === 0)
+        {
+            $out = array();
+        }
+        else if($counts["array"] === $counts["all"])
         {
             $out = array();
             foreach($collections as $coll)
@@ -224,7 +228,11 @@ final class FPHP
             $fn = function() use($collections) {
                 foreach($collections as $coll)
                 {
-                    yield from $coll;
+                    // don't use yield from as it preserves keys
+                    foreach($coll as $val)
+                    {
+                        yield $val;
+                    }
                 }
             };
             $out = self::generatorToIterable($fn);
@@ -233,17 +241,33 @@ final class FPHP
         return $out;
     }
 
+    /**
+     * Joins all the input collections together to form a new output collection.
+     *
+     * In order to preserve all keys, the returned collection is a Traversable.
+     *
+     * @param mixed[] $collections  input collections
+     *
+     * @return Traversable  output collection
+     *
+     * @throws InvalidArgumentException if any collection is not an array, or
+     * traversable.
+     */
     public static function concatK(...$collections) : \Traversable
     {
-        $countNotOK = array_reduce($collections, fn($acc, $c) =>
-            is_array($c) || $c instanceof \Traversable ? $acc : ++$acc, 0);
+        $counts = array_reduce($collections, fn($acc, $c) => [
+            "array" => is_array($c) ? ++$acc["array"] : $acc["array"],
+            "traversable" => $c instanceof \Traversable ? ++$acc["traversable"] : $acc["traversable"],
+            "all" => ++$acc["all"]
+        ], ["array" => 0, "traversable" => 0, "all" => 0]);
 
-        if($countNotOK > 0)
+        if($counts["array"] + $counts["traversable"] < $counts["all"])
         {
-            throw new InvalidArgumentException("All collections must be arrays or Traversables");
+            throw new InvalidArgumentException("All collectiosn must be array or traversable");
         }
 
         $fn = function() use($collections) {
+            yield from [];
             foreach($collections as $coll)
             {
                 yield from $coll;

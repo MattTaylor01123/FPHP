@@ -7,50 +7,107 @@
 namespace src\collection;
 
 use InvalidArgumentException;
-use Traversable;
 
 trait Concat
 {
+    // string concatenation already has its own custom operator in PHP. No desire
+    // to blur two fundamentally different behaviours at present.
+
     /**
-     * Join, one after the other, strings, sequential arrays, and traversables
-     * and generators.
+     * Joins all the input collections together to form a new output collection.
+     *
+     * If all input collections are arrays, then the output collection is an array
+     * which contains all the values in the input arrays. Keys are ignored.
+     *
+     * If input collections are a mix of arrays and traversables then the output
+     * is a lazy traversable which contains all the values in the input collections.
+     *
+     * @param mixed[] $collections  input collections
+     *
+     * @return mixed    output collection
+     *
+     * @throws InvalidArgumentException if any collection is not an array, or
+     * traversable.
      */
-    public static function concat($v1, $v2)
+    public static function concat(...$collections)
     {
-        $v1t = gettype($v1);
-        $v2t = gettype($v2);
-        $v1type = $v1t === "object" ? get_class($v1) : $v1t;
-        $v2type = $v2t === "object" ? get_class($v2) : $v2t;
+        $counts = array_reduce($collections, fn($acc, $c) => [
+            "array" => is_array($c) ? ++$acc["array"] : $acc["array"],
+            "traversable" => $c instanceof \Traversable ? ++$acc["traversable"] : $acc["traversable"],
+            "all" => ++$acc["all"]
+        ], ["array" => 0, "traversable" => 0, "all" => 0]);
 
-        if($v1type !== $v2type)
+        if($counts["array"] + $counts["traversable"] < $counts["all"])
         {
-            throw new InvalidArgumentException("v1 and v2 must be of the same type");
+            throw new InvalidArgumentException("All collectiosn must be array or traversable");
         }
 
-        if(is_object($v1) && method_exists($v1, "concat"))
+        if($counts["all"] === 0)
         {
-            $out = $v1->concat($v2);
+            $out = array();
         }
-        else if(is_string($v1) && is_string($v2))
+        else if($counts["array"] === $counts["all"])
         {
-            $out = $v1.$v2;
-        }
-        else if(is_array($v1) && is_array($v2))
-        {
-            $out = array_merge(array_values($v1), array_values($v2));
-        }
-        else if($v1 instanceof Traversable && $v2 instanceof Traversable)
-        {
-            $fn = function() use($v1, $v2) {
-                yield from $v1;
-                yield from $v2;
-            };
-            $out = self::generatorToIterable($fn);
+            $out = array();
+            foreach($collections as $coll)
+            {
+                foreach($coll as $v)
+                {
+                    $out[] = $v;
+                }
+            }
         }
         else
         {
-            throw new InvalidArgumentException("v1 and v2 of unhandled type");
+            $fn = function() use($collections) {
+                foreach($collections as $coll)
+                {
+                    // don't use yield from as it preserves keys
+                    foreach($coll as $val)
+                    {
+                        yield $val;
+                    }
+                }
+            };
+            $out = self::generatorToIterable($fn);
         }
+
+        return $out;
+    }
+
+    /**
+     * Joins all the input collections together to form a new output collection.
+     *
+     * In order to preserve all keys, the returned collection is a Traversable.
+     *
+     * @param mixed[] $collections  input collections
+     *
+     * @return Traversable  output collection
+     *
+     * @throws InvalidArgumentException if any collection is not an array, or
+     * traversable.
+     */
+    public static function concatK(...$collections) : \Traversable
+    {
+        $counts = array_reduce($collections, fn($acc, $c) => [
+            "array" => is_array($c) ? ++$acc["array"] : $acc["array"],
+            "traversable" => $c instanceof \Traversable ? ++$acc["traversable"] : $acc["traversable"],
+            "all" => ++$acc["all"]
+        ], ["array" => 0, "traversable" => 0, "all" => 0]);
+
+        if($counts["array"] + $counts["traversable"] < $counts["all"])
+        {
+            throw new InvalidArgumentException("All collectiosn must be array or traversable");
+        }
+
+        $fn = function() use($collections) {
+            yield from [];
+            foreach($collections as $coll)
+            {
+                yield from $coll;
+            }
+        };
+        $out = self::generatorToIterable($fn);
         return $out;
     }
 }
