@@ -104,13 +104,17 @@ final class FPHP
     {
         if(is_array($acc))
         {
-            $out = $acc;
+            $out = array_values($acc);
             $out[] = $val;
         }
         else if(self::isTraversable($acc) || self::isGenerator($acc))
         {
             $fn = function() use($val, $acc) {
-                yield from $acc;
+                // don't yield from as not preserving keys
+                foreach($acc as $v)
+                {
+                    yield $v;
+                }
                 yield $val;
             };
             $out = self::generatorToIterable($fn);
