@@ -6,6 +6,7 @@
 
 namespace src\utilities;
 
+use ArgumentCountError;
 use FPHP\FPHP;
 use IteratorAggregate;
 use JsonSerializable;
@@ -25,14 +26,12 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
     }
     public function getIterator(): Traversable
     {
-        $set = false;
         $step = $this->step;
 
-        $stepWrapper = function(...$args) use($step, &$set) {
+        $stepWrapper = function(...$args) use($step) {
             $acc = new IterableGenerator(function() {
                 yield from [];
             });
-            $set = true;
             return $step($acc, ...array_slice($args, 1));
         };
 
@@ -41,9 +40,9 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
         });
         $transducer = $this->transducer;
         $reducer = $transducer($stepWrapper);
+        $curr = null;
         foreach($this->traversable as $k => $v)
         {
-            $set = false;
             $curr = $reducer($initial, $v, $k);
             if($curr instanceof Reduced)
             {
@@ -53,6 +52,16 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             else
             {
                 yield from $curr;
+            }
+        }
+        if(!($curr instanceof Reduced))
+        {
+            try
+            {
+                yield from $reducer($initial);
+            }
+            catch (ArgumentCountError $ex)
+            {
             }
         }
     }

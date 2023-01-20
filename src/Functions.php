@@ -265,4 +265,28 @@ trait Functions
         }
         return $out;
     }
+
+    public static function multiArityFunction(callable ...$fns)
+    {
+        $arityMap = array();
+        foreach($fns as $fn)
+        {
+            $refFn = new \ReflectionFunction($fn);
+            $arity = $refFn->getNumberOfParameters();
+            $arityMap[$arity] = $fn;
+        }
+
+        return function(...$args) use($arityMap)
+        {
+            $argCount = count($args);
+            if(array_key_exists($argCount, $arityMap))
+            {
+                return ($arityMap[$argCount])(...$args);
+            }
+            else
+            {
+                throw new Exception("Invalid number of arguments for multi arity function");
+            }
+        };
+    }
 }

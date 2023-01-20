@@ -10,6 +10,7 @@ use ArrayIterator;
 use Closure;
 use Exception;
 use InvalidArgumentException;
+use ArgumentCountError;
 use ReflectionFunction;
 use src\collection\Reduced;
 use src\utilities\IterableGenerator;

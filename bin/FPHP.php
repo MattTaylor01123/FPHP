@@ -10,6 +10,7 @@ use ArrayIterator;
 use Closure;
 use Exception;
 use InvalidArgumentException;
+use ArgumentCountError;
 use ReflectionFunction;
 use src\collection\Reduced;
 use src\utilities\IterableGenerator;
@@ -975,44 +976,38 @@ final class FPHP
         $started = false;
         $grp = null;
         $cache = null;
-        return function (...$args) use($fnGroup, $step, &$grp, &$cache, &$started, $fnReduce, $initial) {
-            $acc = $args[0];
-            $v = $args[1] ?? null;
-            $k = $args[2] ?? null;
-            $argCount = count($args);
-            switch($argCount)
-            {
-                case 1:
-                    $out = $started ? $step($acc, $cache, $grp) : $acc;
-                    break;
-                    
-                case 3:
-                    $currGrp = $fnGroup($v, $k);
-                    if(!$started)
-                    {
-                        $started = true;
-                        $grp = $currGrp;
-                        $cache = $fnReduce(self::emptied($initial), $v, $k);
-                        $out = $acc;
-                    }
-                    else if($currGrp !== $grp)
-                    {
-                        $out = $step($acc, $cache, $grp);
-                        $cache = $fnReduce(self::emptied($initial), $v, $k);
-                        $grp = $currGrp;
-                    }
-                    else
-                    {
-                        $cache = $fnReduce($cache, $v, $k);
-                        $out = $acc;
-                    }
-                    break;
 
-                default:
-                    throw new Exception("Transducer called with wrong number of arguments");
+        // multi-arity transducer...
+        return self::multiArityfunction(
+            // arity-1 flushes out any value in the cache (called at the end to
+            // get the data left in cache after the last item has been processed)
+            function($acc) use(&$started, &$cache, &$grp, $step) {
+                return $started ? $step($acc, $cache, $grp) : $acc;
+            },
+            // arity-3 is normal transducer behaviour
+            function($acc, $v, $k) use($fnGroup, $step, &$grp, &$cache, &$started, $fnReduce, $initial) {
+                $currGrp = $fnGroup($v, $k);
+                if(!$started)
+                {
+                    $started = true;
+                    $grp = $currGrp;
+                    $cache = $fnReduce(self::emptied($initial), $v, $k);
+                    $out = $acc;
+                }
+                else if($currGrp !== $grp)
+                {
+                    $out = $step($acc, $cache, $grp);
+                    $cache = $fnReduce(self::emptied($initial), $v, $k);
+                    $grp = $currGrp;
+                }
+                else
+                {
+                    $cache = $fnReduce($cache, $v, $k);
+                    $out = $acc;
+                }
+                return $out;
             }
-            return $out;
-        };
+        );
     }
 
     /**
@@ -1031,13 +1026,12 @@ final class FPHP
      */
     public static function partitionBy(callable $fnGroup, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionByT($fnGroup, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionByT($fnGroup, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 
     /**
@@ -1060,13 +1054,12 @@ final class FPHP
      */
     public static function partitionMapBy(callable $fnGroup, callable $fnMap, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionMapByT($fnGroup, $fnMap, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionMapByT($fnGroup, $fnMap, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 
     /**
@@ -1094,13 +1087,12 @@ final class FPHP
      */
     public static function partitionReduceBy(callable $fnGroup, callable $fnReducer, $initial, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 
     public static function path(iterable $path, $target)
@@ -1539,7 +1531,28 @@ final class FPHP
         }
         else
         {
-            return self::reduce($transducer($step), $initial, $collection);
+            // do our own reduction here as we need to know whether we exited
+            // early or not, so that we know whether or not to try to flush
+            // the transducer
+            $out = $initial;
+            $reducer = $transducer($step);
+            foreach($collection as $k => $v)
+            {
+                $out = $reducer($out, $v, $k);
+                if($out instanceof Reduced)
+                {
+                    return $out->v;
+                }
+            }
+
+            try
+            {
+                $out = $reducer($out);
+            }
+            catch (ArgumentCountError $ex)
+            {
+            }
+            return $out;
         }
     }
 
@@ -1961,6 +1974,30 @@ final class FPHP
             throw new Exception("Not possible to determine a step function for type " . gettype($target));
         }
         return $out;
+    }
+
+    public static function multiArityFunction(callable ...$fns)
+    {
+        $arityMap = array();
+        foreach($fns as $fn)
+        {
+            $refFn = new \ReflectionFunction($fn);
+            $arity = $refFn->getNumberOfParameters();
+            $arityMap[$arity] = $fn;
+        }
+
+        return function(...$args) use($arityMap)
+        {
+            $argCount = count($args);
+            if(array_key_exists($argCount, $arityMap))
+            {
+                return ($arityMap[$argCount])(...$args);
+            }
+            else
+            {
+                throw new Exception("Invalid number of arguments for multi arity function");
+            }
+        };
     }
 
     public static function memoize(callable $fn)

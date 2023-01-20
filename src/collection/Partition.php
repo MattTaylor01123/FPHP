@@ -48,44 +48,38 @@ trait Partition
         $started = false;
         $grp = null;
         $cache = null;
-        return function (...$args) use($fnGroup, $step, &$grp, &$cache, &$started, $fnReduce, $initial) {
-            $acc = $args[0];
-            $v = $args[1] ?? null;
-            $k = $args[2] ?? null;
-            $argCount = count($args);
-            switch($argCount)
-            {
-                case 1:
-                    $out = $started ? $step($acc, $cache, $grp) : $acc;
-                    break;
-                    
-                case 3:
-                    $currGrp = $fnGroup($v, $k);
-                    if(!$started)
-                    {
-                        $started = true;
-                        $grp = $currGrp;
-                        $cache = $fnReduce(self::emptied($initial), $v, $k);
-                        $out = $acc;
-                    }
-                    else if($currGrp !== $grp)
-                    {
-                        $out = $step($acc, $cache, $grp);
-                        $cache = $fnReduce(self::emptied($initial), $v, $k);
-                        $grp = $currGrp;
-                    }
-                    else
-                    {
-                        $cache = $fnReduce($cache, $v, $k);
-                        $out = $acc;
-                    }
-                    break;
 
-                default:
-                    throw new Exception("Transducer called with wrong number of arguments");
+        // multi-arity transducer...
+        return self::multiArityfunction(
+            // arity-1 flushes out any value in the cache (called at the end to
+            // get the data left in cache after the last item has been processed)
+            function($acc) use(&$started, &$cache, &$grp, $step) {
+                return $started ? $step($acc, $cache, $grp) : $acc;
+            },
+            // arity-3 is normal transducer behaviour
+            function($acc, $v, $k) use($fnGroup, $step, &$grp, &$cache, &$started, $fnReduce, $initial) {
+                $currGrp = $fnGroup($v, $k);
+                if(!$started)
+                {
+                    $started = true;
+                    $grp = $currGrp;
+                    $cache = $fnReduce(self::emptied($initial), $v, $k);
+                    $out = $acc;
+                }
+                else if($currGrp !== $grp)
+                {
+                    $out = $step($acc, $cache, $grp);
+                    $cache = $fnReduce(self::emptied($initial), $v, $k);
+                    $grp = $currGrp;
+                }
+                else
+                {
+                    $cache = $fnReduce($cache, $v, $k);
+                    $out = $acc;
+                }
+                return $out;
             }
-            return $out;
-        };
+        );
     }
 
     /**
@@ -104,13 +98,12 @@ trait Partition
      */
     public static function partitionBy(callable $fnGroup, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionByT($fnGroup, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionByT($fnGroup, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 
     /**
@@ -133,13 +126,12 @@ trait Partition
      */
     public static function partitionMapBy(callable $fnGroup, callable $fnMap, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionMapByT($fnGroup, $fnMap, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionMapByT($fnGroup, $fnMap, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 
     /**
@@ -167,12 +159,11 @@ trait Partition
      */
     public static function partitionReduceBy(callable $fnGroup, callable $fnReducer, $initial, iterable $collection)
     {
-        // partition requires a stateful transducer which needs to be flushed
-        // at the end, therefore can't use normal transduce function
-        $init = self::emptied($collection);
-        $step = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
-        $transducer = self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step);
-        $out = self::reduce($transducer, $init, $collection);
-        return $transducer($out);
+        return self::transduce(
+            fn($step) => self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($collection),
+            $collection
+        );
     }
 }
