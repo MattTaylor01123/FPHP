@@ -368,11 +368,16 @@ final class FPHP
      * Also works for associative arrays.
      *
      * @param array $spec               The transformations to perform.
-     * @param array|object $target      The base object to transform.
-     * @return array|object             Same type as $target.
+     * @param array|object $target      The base object to transform - threadable.
+     * @return array|object|callable    Same type as $target, or a callable if
+     *                                  $target was null.
      */
-    public static function evolve(array $spec, $target)
+    public static function evolve(array $spec, $target = null)
     {
+        if($target === null)
+        {
+            return fn($target) => self::evolve($spec, $target);
+        }
         if(!is_array($target) && !is_object($target))
         {
             throw new InvalidArgumentException("'target' must be associative array or object");

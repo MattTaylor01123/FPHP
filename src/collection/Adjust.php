@@ -33,7 +33,7 @@ trait Adjust
      *
      * @param string|int $idx       index of value in input collection to tramsform
      * @param callable $transform   transformation function to apply to value
-     * @param mixed $collection     input collection - can be threaded.
+     * @param mixed $collection     input collection - threadable.
      *
      * @return mixed a new collection, or a callable if $collection was null
      */
