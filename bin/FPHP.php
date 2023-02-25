@@ -38,8 +38,12 @@ final class FPHP
         return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
 
-    public static function adjust($idx, callable $transform, $collection)
+    public static function adjust($idx, callable $transform, $collection = null)
     {
+        if($collection === null)
+        {
+            return fn($collection) => self::adjust($idx, $transform, $collection);
+        }
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),
             // always use "assoc" for step function as we can't tell if a traversable is

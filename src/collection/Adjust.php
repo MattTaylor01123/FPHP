@@ -33,12 +33,16 @@ trait Adjust
      *
      * @param string|int $idx       index of value in input collection to tramsform
      * @param callable $transform   transformation function to apply to value
-     * @param mixed $collection     input collection
+     * @param mixed $collection     input collection - can be threaded.
      *
-     * @return mixed a new collection
+     * @return mixed a new collection, or a callable if $collection was null
      */
-    public static function adjust($idx, callable $transform, $collection)
+    public static function adjust($idx, callable $transform, $collection = null)
     {
+        if($collection === null)
+        {
+            return fn($collection) => self::adjust($idx, $transform, $collection);
+        }
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),
             // always use "assoc" for step function as we can't tell if a traversable is
