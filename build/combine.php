@@ -9,6 +9,12 @@ error_log($rootPath);
 
 require_once $rootPath . "/vendor/autoload.php";
 
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle) {
+        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+    }
+}
+
 // get file list
 $folders = [
     $rootPath . "/src/collection",
