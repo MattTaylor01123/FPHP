@@ -8,35 +8,36 @@ namespace tests\collection;
 
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
-use tests\TestUtils;
+use src\utilities\IterableGenerator;
 use Traversable;
 
 final class FilterTest extends TestCase
 {
-    use TestUtils;
-
     function testFilterIdx()
     {
         $fnEven = fn ($v) => $v % 2 === 0;
-        $res = F::filter($fnEven, $this->getIndexedArray());
+        $res = F::filter($fnEven, [1,2,3,4,5]);
         $this->assertSame($res, [2,4]);
-        $resK = F::filterK($fnEven, $this->getIndexedArray());
+        $resK = F::filterK($fnEven, [1,2,3,4,5]);
         $this->assertSame($resK, ["1" => 2, "3" => 4]);
     }
 
     function testFilterAssoc()
     {
         $fnEven = fn ($v) => $v % 2 === 0;
-        $res = F::filter($fnEven, $this->getAssocArray());
+        $res = F::filter($fnEven, [
+            "a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5]);
         $this->assertSame($res, [2, 4]);
-        $resK = F::filterK($fnEven, $this->getAssocArray());
+        $resK = F::filterK($fnEven, [
+            "a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5]);
         $this->assertSame($resK, ["b" => 2, "d" => 4]);
     }
 
     function testFilterObj()
     {
         $fnEven = fn ($v) => $v % 2 === 0;
-        $obj = (object)$this->getAssocArray();
+        $obj = (object)[
+            "a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5];
         $res = F::filter($fnEven, $obj);
         $this->assertEquals($res, [2, 4]);
         $resK = F::filterK($fnEven, $obj);
@@ -50,7 +51,8 @@ final class FilterTest extends TestCase
             $count = $count + 1;
             return $v > 25;
         };
-        $res = F::filter($fnEven, $this->getItIdx());
+        $res = F::filter($fnEven, new IterableGenerator(fn() => yield from [
+            10, 20, 30, 40]));
         
         $this->assertTrue($res instanceof Traversable);
 
@@ -81,7 +83,8 @@ final class FilterTest extends TestCase
             $count = $count + 1;
             return $v > 25;
         };
-        $res = F::filterK($fnEven, $this->getItAssoc());
+        $res = F::filterK($fnEven, new IterableGenerator(fn() => yield from [
+            "i" => 10, "j" => 20, "k" => 30, "l" => 40]));
 
         $this->assertTrue($res instanceof Traversable);
 
@@ -103,5 +106,18 @@ final class FilterTest extends TestCase
         // of generator reuse
         $this->assertSame(["k" => 30, "l" => 40], iterator_to_array($res, true));
         $this->assertEquals(8, $count);
+    }
+    
+    public function testFilterThread()
+    {
+        $fn = F::filter(fn($v) => $v % 2 === 0);
+        $this->assertTrue(is_callable($fn));
+        $out = $fn([1,2,3,4,5]);
+        $this->assertEquals([2,4], $out);
+        
+        $fn2 = F::filterK(fn($v, $k) => $k === "m");
+        $this->assertTrue(is_callable($fn2));
+        $out2 = $fn2(["l" => 1, "m" => 2, "n" => 3]);
+        $this->assertEquals(["m" => 2], $out2);
     }
 }

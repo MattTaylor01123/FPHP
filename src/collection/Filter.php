@@ -33,17 +33,21 @@ trait Filter
      * function. This filter function retains keys in the target collection.
      *
      * @param callable $predicate       test applied to each value in $target
-     * @param mixed $target             collection to filter
+     * @param mixed $target             optional, collection to filter, threadable
      *
      * @return mixed a new collection containing only those values in target
-     * that satisfy the given predicate function.
+     * that satisfy the given predicate function. If $target was null then callable.
      *
      * @throws InvalidArgumentException if target is not an array, object,
      * traversable, or generator.
      */
-    public static function filterK(callable $predicate, $target)
+    public static function filterK(callable $predicate, $target = null)
     {
-        if (is_array($target))
+        if($target === null)
+        {
+            return fn($target) => self::filterK($predicate, $target);
+        }
+        if(is_array($target))
         {
             $out = array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH );
         }
@@ -71,16 +75,20 @@ trait Filter
      * function. This filter function ignores keys in the target collection.
      *
      * @param callable $predicate       test applied to each value in $target
-     * @param mixed $target             collection to filter
+     * @param mixed $target             optional, collection to filter, threadable
      *
      * @return mixed a new collection containing only those values in target
      * that satisfy the given predicate function.
      *
      * @throws InvalidArgumentException if target is not an array, object,
-     * traversable, or generator.
+     * traversable, or generator. If $target was null then callable.
      */
-    public static function filter(callable $predicate, $target)
+    public static function filter(callable $predicate, $target = null)
     {
+        if($target === null)
+        {
+            return fn($target) => self::filter($predicate, $target);
+        }
         if(is_array($target))
         {
             $out = array_values(array_filter($target, $predicate, ARRAY_FILTER_USE_BOTH));
