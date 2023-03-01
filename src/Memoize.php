@@ -12,7 +12,7 @@ trait Memoize
     {
         return function(...$args) use($fn) {
             static $prev = array();
-            $v = self::find(fn($v) => self::propEq(0, $args, $v), $prev);
+            $v = self::findFirst(fn($v) => self::propEq(0, $args, $v), $prev);
             if(!$v)
             {
                 $out = $fn(...$args);

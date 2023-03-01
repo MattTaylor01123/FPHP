@@ -13,34 +13,6 @@ final class ReducingTest extends TestCase
 {
     use TestUtils;
 
-    function testFindIdx()
-    {
-        $arr = $this->getIndexedArray();
-        $v = F::find(fn($a) => $a === 2, $arr);
-        $this->assertSame($v, 2);
-    }
-
-    function testFindAssoc()
-    {
-        $arr = $this->getAssocArray();
-        $out = F::find(fn($v, $k) => $k === "c", $arr);
-        $this->assertSame($out, 3);
-    }
-
-    function testFindItIdx()
-    {
-        $it = $this->getItIdx();
-        $out = F::find(fn($v) => $v === 20, $it);
-        $this->assertSame($out, 20);
-    }
-
-    function testFindItAssoc()
-    {
-        $it = $this->getItAssoc();
-        $out = F::find(fn($v, $k) => $k === "l", $it);
-        $this->assertSame($out, 40);
-    }
-
     function testIncludes()
     {
         $arr = [1,2,3,4,5];
