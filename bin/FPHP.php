@@ -677,16 +677,22 @@ final class FPHP
      * - values: array containing all the values in the input which have the same group
      *
      * @param callable $fnGroup     given input value, derive group
-     * @param iterable $input      input
-     * @return array
+     * @param iterable $coll        optional source collection - threadable
+     * 
+     * @return array|callable grouped collection, or callable if $coll is omitted.
      */
-    public static function groupBy(callable $fnGroup, iterable $input) : array
+    public static function groupBy(callable $fnGroup, ?iterable $coll = null)
     {
+        if($coll === null)
+        {
+            return fn(iterable $coll) => self::groupBy($fnGroup, $coll);
+        }
+        
         return self::groupReduceBy(
             $fnGroup,
             fn($acc, $v) => self::append($acc, $v),
             [],
-            $input
+            $coll
         );
     }
 
@@ -698,16 +704,22 @@ final class FPHP
      *
      * @param callable $fnGroup     given input value, derive group
      * @param callable $fnMap       given input value, map to output value
-     * @param iterable $input      input
-     * @return array
+     * @param iterable $coll        optional source collection - threadable
+     * 
+     * @return array|callable grouped collection, or callable if $coll is omitted.
      */
-    public static function groupMapBy(callable $fnGroup, callable $fnMap, iterable $input) : array
+    public static function groupMapBy(callable $fnGroup, callable $fnMap, ?iterable $coll = null)
     {
+        if($coll === null)
+        {
+            return fn(iterable $coll) => self::groupMapBy($fnGroup, $fnMap, $coll);
+        }
+        
         return self::groupReduceBy(
             $fnGroup,
             fn($acc, $v, $k) => self::append($acc, $fnMap($v, $k)),
             [],
-            $input
+            $coll
         );
     }
 
@@ -720,14 +732,19 @@ final class FPHP
      * @param callable $fnGroup     given input value, derive group
      * @param callable $fnReduce    given accumulator and input value, derive new accumulated value
      * @param mixed $initial        starting value for each reduction
-     * @param iterable $input      input
+     * @param iterable $coll        optional source collection - threadable
      *
-     * @return array
+     * @return array|callable grouped collection, or callable if $coll is omitted.
      */
-    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, $initial, iterable $input) : array
+    public static function groupReduceBy(callable $fnGroup, callable $fnReduce, $initial, ?iterable $coll = null)
     {
+        if($coll === null)
+        {
+            return fn(iterable $coll) => self::groupReduceBy($fnGroup, $fnReduce, $initial, $coll);
+        }
+        
         $out = array();
-        foreach($input as $k => $v)
+        foreach($coll as $k => $v)
         {
             $g = $fnGroup($v, $k);
             if($g === null)
