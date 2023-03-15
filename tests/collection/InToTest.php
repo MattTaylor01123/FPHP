@@ -20,7 +20,7 @@ final class InToTest extends TestCase
     {
         $fn = F::pipe(
             F::mapT(fn($v) => $v + 1),
-            fn($step) => F::filterT(fn($v) => $v % 2, $step)
+            F::filterT(fn($v) => $v % 2)
         );
 
         $out1 = F::inToK([], $fn, $this->getAssocArray());

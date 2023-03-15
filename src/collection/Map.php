@@ -10,6 +10,13 @@ use InvalidArgumentException;
 
 trait Map
 {
+    /**
+     * map transducer
+     * 
+     * @param callable $func    transform function
+     * 
+     * @return callable transducer
+     */
     public static function mapT(callable $func) : callable
     {
         return fn($step) => fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);

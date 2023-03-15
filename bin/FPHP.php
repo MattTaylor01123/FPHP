@@ -396,21 +396,15 @@ final class FPHP
     }
 
     /**
-     * filter transducer - returns a step function which only passes through
-     * passed-in values that satisfy the predicate function.
-     *
-     * Keys in the input values will be retained or ignored, depending on the
-     * step function provided.
+     * filter transducer
      *
      * @param callable $predicate       test applied to each value passed in
-     * @param callable $step            passed every input value that satisfies
-     *                                  the predicate
      *
-     * @return callable new step function that applies the filter when called
+     * @return callable transducer
      */
-    public static function filterT(callable $predicate, callable $step) : callable
+    public static function filterT(callable $predicate) : callable
     {
-        return fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
+        return fn(callable $step) => fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
     }
 
     /**
@@ -440,7 +434,7 @@ final class FPHP
         {
             // transduce but passing assoc as step function, so that key is preserved
             $out = self::transduce(
-                fn($step) => self::filterT($predicate, $step),
+                self::filterT($predicate),
                 fn($acc, $v, $k) => self::assoc($acc, $v, $k),
                 self::emptied($target),
                 $target
@@ -483,7 +477,7 @@ final class FPHP
             $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
             // use the transduce filter, but ignore key
             $out = self::transduce(
-                fn($step) => self::filterT($predicate, $step),
+                self::filterT($predicate),
                 fn($acc, $v) => self::append($acc, $v),
                 $notTravOrGen ? [] : self::emptied($target),
                 $target
@@ -901,6 +895,13 @@ final class FPHP
         return $out;
     }
 
+    /**
+     * map transducer
+     * 
+     * @param callable $func    transform function
+     * 
+     * @return callable transducer
+     */
     public static function mapT(callable $func) : callable
     {
         return fn($step) => fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
@@ -932,13 +933,13 @@ final class FPHP
         return $out;
     }
 
-    public static function matchT($criteria, $step)
+    public static function matchT(iterable $criteria) : callable
     {
         return self::filterT(function($v) use($criteria) {
             return self::all(function($func, $field) use($v) {
                 return $func(self::prop($field, $v));
             }, $criteria);
-        }, $step);
+        });
     }
 
     public static function match(iterable $criteria, iterable $target)
@@ -950,7 +951,7 @@ final class FPHP
         else if(is_array($target) || is_object($target) || self::isTraversable($target) || self::isGenerator($target))
         {
             $out = self::transduce(
-                fn($step) => self::matchT($criteria, $step),
+                self::matchT($criteria),
                 self::defaultStep($target),
                 self::emptied($target),
                 $target

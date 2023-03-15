@@ -11,21 +11,15 @@ use InvalidArgumentException;
 trait Filter
 {
     /**
-     * filter transducer - returns a step function which only passes through
-     * passed-in values that satisfy the predicate function.
-     *
-     * Keys in the input values will be retained or ignored, depending on the
-     * step function provided.
+     * filter transducer
      *
      * @param callable $predicate       test applied to each value passed in
-     * @param callable $step            passed every input value that satisfies
-     *                                  the predicate
      *
-     * @return callable new step function that applies the filter when called
+     * @return callable transducer
      */
-    public static function filterT(callable $predicate, callable $step) : callable
+    public static function filterT(callable $predicate) : callable
     {
-        return fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
+        return fn(callable $step) => fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
     }
 
     /**
@@ -55,7 +49,7 @@ trait Filter
         {
             // transduce but passing assoc as step function, so that key is preserved
             $out = self::transduce(
-                fn($step) => self::filterT($predicate, $step),
+                self::filterT($predicate),
                 fn($acc, $v, $k) => self::assoc($acc, $v, $k),
                 self::emptied($target),
                 $target
@@ -98,7 +92,7 @@ trait Filter
             $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
             // use the transduce filter, but ignore key
             $out = self::transduce(
-                fn($step) => self::filterT($predicate, $step),
+                self::filterT($predicate),
                 fn($acc, $v) => self::append($acc, $v),
                 $notTravOrGen ? [] : self::emptied($target),
                 $target
