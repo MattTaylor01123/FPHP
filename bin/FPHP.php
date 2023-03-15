@@ -901,9 +901,9 @@ final class FPHP
         return $out;
     }
 
-    public static function mapT(callable $func, callable $step)
+    public static function mapT(callable $func) : callable
     {
-        return fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
+        return fn($step) => fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
     }
 
     public static function map(callable $func, $coll)
@@ -919,7 +919,7 @@ final class FPHP
         else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
         {
             $out = self::transduce(
-                fn($step) => self::mapT($func, $step),
+                self::mapT($func),
                 fn($acc, $v, $k) => self::assoc($acc, $v, $k),
                 self::emptied($coll),
                 $coll

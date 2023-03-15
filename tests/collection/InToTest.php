@@ -19,7 +19,7 @@ final class InToTest extends TestCase
     function testInTo()
     {
         $fn = F::pipe(
-            fn($step) => F::mapT(fn($v) => $v + 1, $step),
+            F::mapT(fn($v) => $v + 1),
             fn($step) => F::filterT(fn($v) => $v % 2, $step)
         );
 

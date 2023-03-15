@@ -29,7 +29,7 @@ final class TransformedTraversableTest extends TestCase
     public function testJson($in, $exp)
     {
         $act = new TransformedTraversable(
-            fn($step) => F::mapT(fn($v) => $v * 2, $step),
+            F::mapT(fn($v) => $v * 2),
             fn($acc, $v, $k) => F::assoc($acc, $v, $k),
             $in
         );
