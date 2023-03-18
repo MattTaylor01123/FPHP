@@ -12,6 +12,17 @@ use Traversable;
 
 trait Transduce
 {
+    /**
+     * Creates a new collection from an existing collection by applying a
+     * transducer to the existing collection.
+     * 
+     * @param callable $transducer  transducer function
+     * @param callable $step        step function
+     * @param mixed $initial        output initial value
+     * @param mixed $collection     input to transduce
+     * 
+     * @return mixed transduced collection
+     */
     public static function transduce(callable $transducer, callable $step, $initial, $collection)
     {
         if($initial instanceof Traversable)
