@@ -1669,13 +1669,29 @@ final class FPHP
         }
     }
 
-    public static function valuesT(callable $step)
+    /**
+     * values transducer
+     * 
+     * @param callable $step
+     * 
+     * @return callable transducer
+     */
+    public static function valuesT(callable $step) : callable
     {
         return function($acc, $v) use($step) {
             return $step($acc, $v);
         };
     }
 
+    /**
+     * Extracts the values from a collection or the properties from an object
+     * 
+     * @param iterable|object $target       the collection or object
+     * 
+     * @return mixed    the values or properties
+     * 
+     * @throws InvalidArgumentException if $target is not an iterable or an object
+     */
     public static function values($target)
     {
         $transduceInto = fn($initial, $target) => self::transduce(
