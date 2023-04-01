@@ -11,40 +11,41 @@ use InvalidArgumentException;
 trait Merge
 {
     /**
-     * Merge two associative arrays or objects together.
+     * Merge multiple maps (objects or associative arrays) together.
+     * 
+     * Merging is performed from left to right. A new map is returned (the
+     * inputs are not modified). The return type is the same type as the
+     * first map.
+     * 
+     * If no maps are provided then an empty stdClass is returned.
+     * 
+     * @param array|object[] ...$maps   the maps to merge.
      *
-     * Does not support generators / traversables as the result would just be a
-     * concatenation.
+     * @return object|array The new map resulting from the merge.
      */
-    public static function merge($v1, $v2)
+    public static function merge(...$maps)
     {
-        $v1t = gettype($v1);
-        $v2t = gettype($v2);
-        $v1type = $v1t === "object" ? get_class($v1) : $v1t;
-        $v2type = $v2t === "object" ? get_class($v2) : $v2t;
-
-        if($v1type !== $v2type)
+        if(!self::all(fn($map) => is_array($map) || is_object($map), $maps))
         {
-            throw new InvalidArgumentException("v1 and v2 must be of the same type");
+            throw new InvalidArgumentException("Every map must be an array or an object");
         }
-
-        if(is_object($v1) && method_exists($v1, "merge"))
+        
+        $noMaps = count($maps);
+        if($noMaps === 0)
         {
-            $out = $v1->merge($v2);
+            $out = new \stdClass();
         }
-        else if(is_array($v1))
+        else if(is_object($maps[0]) && method_exists($maps[0], "merge"))
         {
-            $out = array_merge($v1, $v2);
-        }
-        else if(is_object($v1))
-        {
-            $out = self::reduce(function($acc, $v) {
-                return self::reduce(fn($acc, $v, $k) => self::assoc($acc, $v, $k), $acc, $v);
-            }, self::emptied($v1), [$v1, $v2]);
+            $first = $maps[0];
+            $rest = array_values(array_filter($maps, fn($k) => $k > 0, ARRAY_FILTER_USE_KEY ));
+            $out = $first->merge(...$rest);
         }
         else
         {
-            throw new InvalidArgumentException("v1 and v2 of unhandled type");
+            $initial = self::emptied($maps[0]);
+            $out = self::reduce(fn($acc, $map) =>
+                self::reduce(fn($acc, $v, $k) => self::assoc($acc, $v, $k), $acc, $map), $initial, $maps);
         }
         return $out;
     }
