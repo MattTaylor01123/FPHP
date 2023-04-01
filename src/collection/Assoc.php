@@ -26,6 +26,10 @@ trait Assoc
      */
     public static function assoc($acc, $val, $key)
     {
+        if(is_object($acc) && method_exists($acc, "assoc"))
+        {
+            return $acc->assoc($val, $key);
+        }
         if(is_array($acc))
         {
             $out = $acc;

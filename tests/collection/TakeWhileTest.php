@@ -8,6 +8,7 @@ namespace tests\collection;
 
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
+use src\utilities\IterableGenerator;
 use tests\TestUtils;
 
 final class TakeWhileTest extends TestCase
@@ -16,23 +17,23 @@ final class TakeWhileTest extends TestCase
     
     public function testTakeWhile()
     {
-        $pred = function($v, $k)
-        {
-            return $v <= 3;
-        };
+        $pred = fn($v) => $v <= 3;       
+        $res = F::takeWhile($pred, [1,2,3,4,5]);
+        $this->assertEquals([1, 2, 3], $res);
         
-        $res = F::takeWhile($pred, $this->getIndexedArray());
-        
-        $this->assertSame([1, 2, 3], $res);
+        $pred3 = fn($v, $k) => in_array($k, ["a", "b"]);
+        $res3 = F::takeWhile($pred3, ["a" => 1, "b" => 2, "c" => 3, "d" => 4]);
+        $this->assertEquals(["a" => 1, "b" => 2], $res3);
         
         $count = 0;
-        $pred2 = function($v, $k) use(&$count)
+        $pred2 = function($v) use(&$count)
         {
             $count++;
             return $v <= 30;
         };
         
-        $res2 = F::takeWhile($pred2, $this->getItIdx());
+        $v2 = F::generatorToIterable(fn() => yield from [10, 20, 30, 40]);       
+        $res2 = F::takeWhile($pred2, $v2);
         
         $i = 0;
         $exp = [10, 20, 30];
@@ -45,6 +46,14 @@ final class TakeWhileTest extends TestCase
         }
         
         $this->assertEquals($exp, iterator_to_array($res2, false));
+    }
+    
+    public function testTakeWhileT()
+    {
+        $v1 = [1,2,3,4,5];
+        $pred = fn($v) => $v <= 3;
+        $out = F::into([], F::takeWhileT($pred), $v1);
+        $this->assertEquals([1,2,3], $out);
     }
 
     public function testLazyness()

@@ -8,39 +8,51 @@ namespace src\collection;
 
 trait TakeWhile 
 {
-    public static function takeWhileT(callable $pred, callable $step)
+    /**
+     * takeWhile transducer
+     * 
+     * @param callable $pred    predicate
+     * 
+     * @return callable transducer
+     */
+    public static function takeWhileT(callable $pred) : callable
     {
-        $fin = false;
-        return function($acc, $v, $k) use(&$fin, $pred, $step) {
-            $fin = $fin || !$pred($v, $k);
-            if(!$fin)
-            {
-                return $step($acc, $v, $k);
-            }
-            else
-            {
-                return new Reduced($acc);
-            }
+        return function($step) use($pred) {
+            $fin = false;
+            return function($acc, $v, $k) use(&$fin, $pred, $step) {
+                $fin = $fin || !$pred($v, $k);
+                if(!$fin)
+                {
+                    return $step($acc, $v, $k);
+                }
+                else
+                {
+                    return new Reduced($acc);
+                }
+            };
         };
     }
     
-    public static function takeWhile(callable $pred, $target)
+    /**
+     * Create a collection containing all the values from the start of the
+     * input collection up to the first value that does not satisfy the given
+     * predicate.
+     * 
+     * @param callable $pred    predicate
+     * @param iterable $coll    collection to read values from
+     * 
+     * @return iterable new collection
+     */
+    public static function takeWhile(callable $pred, iterable $coll) : iterable
     {
-        if(is_object($target) && method_exists($target, "takeWhile"))
-        {
-            return $target->takeWhile($pred);
-        }
-        else
-        {
-            // always use "assoc" for step function as we can't tell if a traversable is
-            // associative or not without iterating it, and we can't do that in case it
-            // is infinite. Take preserves keys anyway, so using assoc is fine.
-            return self::transduce(
-                fn($step) => self::takeWhileT($pred, $step),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
-                self::emptied($target),
-                $target
-            );
-        }
+        // always use "assoc" for step function as we can't tell if a traversable is
+        // associative or not without iterating it, and we can't do that in case it
+        // is infinite. Take preserves keys anyway, so using assoc is fine.
+        return self::transduce(
+            self::takeWhileT($pred),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($coll),
+            $coll
+        );
     }
 }

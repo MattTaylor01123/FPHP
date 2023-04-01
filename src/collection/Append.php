@@ -22,18 +22,22 @@ trait Append
      *
      * I.e. keys are not guaranteed to be unique in the returned Traversable.
      *
-     * @param iterable $acc     input collection
-     * @param mixed $val        value to append to end of collection
-     * @param mixed $key        key to associate with value
+     * @param iterable|object $acc  input collection or object with appendK method
+     * @param mixed $val            value to append to end of collection
+     * @param mixed $key            key to associate with value
      *
-     * @return Traversable new collection
+     * @return Traversable|object new collection or return value from $acc->appendK
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function appendK(iterable $acc, $val, $key) : Traversable
+    public static function appendK($acc, $val, $key)
     {
-        if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
+        if(is_object($acc) && method_exists($acc, "appendK"))
+        {
+            return $acc->append($val, $key);
+        }
+        else if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
         {
             $fn = function() use($val, $key, $acc) {
                 yield from $acc;
@@ -53,17 +57,21 @@ trait Append
      * input collection and then the passed in value appended as the last value
      * in the new collection.
      *
-     * @param iterable $acc    input collection
-     * @param mixed $val       value to append to end of new collection
+     * @param iterable|object $acc  input collection or object with "append" method
+     * @param mixed $val            value to append to end of new collection
      *
-     * @return iterable new collection
+     * @return iterable|object new collection or return value of $acc->append
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function append(iterable $acc, $val) : iterable
+    public static function append($acc, $val)
     {
-        if(is_array($acc))
+        if(is_object($acc) && method_exists($acc, "append"))
+        {
+            return $acc->append($val);
+        }
+        else if(is_array($acc))
         {
             $out = array_values($acc);
             $out[] = $val;
@@ -72,11 +80,13 @@ trait Append
         {
             $fn = function() use($val, $acc) {
                 // don't yield from as not preserving keys
+                $i = 0;
                 foreach($acc as $v)
                 {
-                    yield $v;
+                    yield $i => $v;
+                    $i++;
                 }
-                yield $val;
+                yield $i => $val;
             };
             $out = self::generatorToIterable($fn);
         }

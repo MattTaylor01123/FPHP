@@ -66,18 +66,22 @@ final class FPHP
      *
      * I.e. keys are not guaranteed to be unique in the returned Traversable.
      *
-     * @param iterable $acc     input collection
-     * @param mixed $val        value to append to end of collection
-     * @param mixed $key        key to associate with value
+     * @param iterable|object $acc  input collection or object with appendK method
+     * @param mixed $val            value to append to end of collection
+     * @param mixed $key            key to associate with value
      *
-     * @return Traversable new collection
+     * @return Traversable|object new collection or return value from $acc->appendK
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function appendK(iterable $acc, $val, $key) : Traversable
+    public static function appendK($acc, $val, $key)
     {
-        if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
+        if(is_object($acc) && method_exists($acc, "appendK"))
+        {
+            return $acc->append($val, $key);
+        }
+        else if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
         {
             $fn = function() use($val, $key, $acc) {
                 yield from $acc;
@@ -97,17 +101,21 @@ final class FPHP
      * input collection and then the passed in value appended as the last value
      * in the new collection.
      *
-     * @param iterable $acc    input collection
-     * @param mixed $val       value to append to end of new collection
+     * @param iterable|object $acc  input collection or object with "append" method
+     * @param mixed $val            value to append to end of new collection
      *
-     * @return iterable new collection
+     * @return iterable|object new collection or return value of $acc->append
      *
      * @throws InvalidArgumentException if input collection is not an array or a
      * traversable.
      */
-    public static function append(iterable $acc, $val) : iterable
+    public static function append($acc, $val)
     {
-        if(is_array($acc))
+        if(is_object($acc) && method_exists($acc, "append"))
+        {
+            return $acc->append($val);
+        }
+        else if(is_array($acc))
         {
             $out = array_values($acc);
             $out[] = $val;
@@ -116,11 +124,13 @@ final class FPHP
         {
             $fn = function() use($val, $acc) {
                 // don't yield from as not preserving keys
+                $i = 0;
                 foreach($acc as $v)
                 {
-                    yield $v;
+                    yield $i => $v;
+                    $i++;
                 }
-                yield $val;
+                yield $i => $val;
             };
             $out = self::generatorToIterable($fn);
         }
@@ -147,6 +157,10 @@ final class FPHP
      */
     public static function assoc($acc, $val, $key)
     {
+        if(is_object($acc) && method_exists($acc, "assoc"))
+        {
+            return $acc->assoc($val, $key);
+        }
         if(is_array($acc))
         {
             $out = $acc;
@@ -1600,40 +1614,52 @@ final class FPHP
         }
     }
 
-    public static function takeWhileT(callable $pred, callable $step)
+    /**
+     * takeWhile transducer
+     * 
+     * @param callable $pred    predicate
+     * 
+     * @return callable transducer
+     */
+    public static function takeWhileT(callable $pred) : callable
     {
-        $fin = false;
-        return function($acc, $v, $k) use(&$fin, $pred, $step) {
-            $fin = $fin || !$pred($v, $k);
-            if(!$fin)
-            {
-                return $step($acc, $v, $k);
-            }
-            else
-            {
-                return new Reduced($acc);
-            }
+        return function($step) use($pred) {
+            $fin = false;
+            return function($acc, $v, $k) use(&$fin, $pred, $step) {
+                $fin = $fin || !$pred($v, $k);
+                if(!$fin)
+                {
+                    return $step($acc, $v, $k);
+                }
+                else
+                {
+                    return new Reduced($acc);
+                }
+            };
         };
     }
 
-    public static function takeWhile(callable $pred, $target)
+    /**
+     * Create a collection containing all the values from the start of the
+     * input collection up to the first value that does not satisfy the given
+     * predicate.
+     * 
+     * @param callable $pred    predicate
+     * @param iterable $coll    collection to read values from
+     * 
+     * @return iterable new collection
+     */
+    public static function takeWhile(callable $pred, iterable $coll) : iterable
     {
-        if(is_object($target) && method_exists($target, "takeWhile"))
-        {
-            return $target->takeWhile($pred);
-        }
-        else
-        {
-            // always use "assoc" for step function as we can't tell if a traversable is
-            // associative or not without iterating it, and we can't do that in case it
-            // is infinite. Take preserves keys anyway, so using assoc is fine.
-            return self::transduce(
-                fn($step) => self::takeWhileT($pred, $step),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
-                self::emptied($target),
-                $target
-            );
-        }
+        // always use "assoc" for step function as we can't tell if a traversable is
+        // associative or not without iterating it, and we can't do that in case it
+        // is infinite. Take preserves keys anyway, so using assoc is fine.
+        return self::transduce(
+            self::takeWhileT($pred),
+            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::emptied($coll),
+            $coll
+        );
     }
 
     /**

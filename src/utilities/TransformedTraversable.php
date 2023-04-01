@@ -11,6 +11,7 @@ use FPHP\FPHP;
 use IteratorAggregate;
 use JsonSerializable;
 use src\collection\Reduced;
+use stdClass;
 use Traversable;
 
 final class TransformedTraversable implements IteratorAggregate, JsonSerializable
@@ -25,40 +26,79 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
         $this->traversable = $traversable;
     }
     public function getIterator(): Traversable
-    {
-        $step = $this->step;
-
-        $stepWrapper = function(...$args) use($step) {
-            $acc = new IterableGenerator(function() {
-                yield from [];
-            });
-            return $step($acc, ...array_slice($args, 1));
+    {        
+        $current = new class() 
+        {
+            public $vals = [];
+            private $i = 0;
+            public $set = false;
+            
+            public function append($v)
+            {
+                $this->vals[$this->i] = $v;
+                $this->i++;
+                $this->set = true;
+                return $this;
+            }
+            
+            public function appendK($v, $k)
+            {
+                $this->vals[$k] = $v;
+                $this->set = true;
+                return $this;
+            }
+            
+            // as prepend cannot be supported without making the traversable
+            // eager
+            
+            // to be removed, callers should be using appendK instead
+            public function assoc($v, $k)
+            {
+                $this->vals[$k] = $v;
+                $this->set = true;
+                return $this;
+            }            
         };
 
-        $initial = new IterableGenerator(function() {
-            yield from [];
-        });
-        $transducer = $this->transducer;
-        $reducer = $transducer($stepWrapper);
-        $curr = null;
+        $reducer = ($this->transducer)($this->step);
         foreach($this->traversable as $k => $v)
         {
-            $curr = $reducer($initial, $v, $k);
-            if($curr instanceof Reduced)
+            $current = $reducer($current, $v, $k);
+            if($current instanceof Reduced)
             {
-                yield from $curr->v;
+                if($current->v->set)
+                {
+                    foreach($current->v->vals as $k => $v)
+                    {
+                        yield $k => $v;
+                    }
+                    $current->v->set = false;
+                    $current->v->vals = [];
+                }
                 break;
             }
-            else
+            else if($current->set)
             {
-                yield from $curr;
+                foreach($current->vals as $k => $v)
+                {
+                    yield $k => $v;
+                }
+                $current->set = false;
+                $current->vals = [];
             }
         }
-        if(!($curr instanceof Reduced))
+        if(!($current instanceof Reduced))
         {
             try
             {
-                yield from $reducer($initial);
+                $current = $reducer($current);
+                if($current->set)
+                {
+                    foreach($current->vals as $k => $v)
+                    {
+                        yield $k => $v;
+                    }
+                }
             }
             catch (ArgumentCountError $ex)
             {

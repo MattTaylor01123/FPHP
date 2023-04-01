@@ -29,14 +29,14 @@ final class AppendTest extends TestCase
 
     public function testAppendItIdx()
     {
-        $o = F::append($this->toGen([10, 20, 30, 40]), 50);
+        $o = F::append(F::generatorToIterable(fn() => yield from [10, 20, 30, 40]), 50);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([10, 20, 30, 40, 50], iterator_to_array($o, true));
     }
 
     public function testAppendItAssoc()
     {
-        $o = F::append($this->toGen(["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50);
+        $o = F::append(F::generatorToIterable(fn() => yield from ["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([10, 20, 30, 40, 50], iterator_to_array($o, true));
     }
