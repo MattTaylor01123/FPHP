@@ -39,12 +39,17 @@ trait TakeWhile
      * predicate.
      * 
      * @param callable $pred    predicate
-     * @param iterable $coll    collection to read values from
+     * @param iterable $coll    collection to read values from, threadable
      * 
-     * @return iterable new collection
+     * @return iterable|callable new collection with only the taken values, or
+     * a callable if $coll was null.
      */
-    public static function takeWhile(callable $pred, iterable $coll) : iterable
+    public static function takeWhile(callable $pred, ?iterable $coll = null)
     {
+        if($coll === null)
+        {
+            return fn(iterable $coll) => self::takeWhile($pred, $coll);
+        }
         // always use "assoc" for step function as we can't tell if a traversable is
         // associative or not without iterating it, and we can't do that in case it
         // is infinite. Take preserves keys anyway, so using assoc is fine.

@@ -93,4 +93,12 @@ final class TakeWhileTest extends TestCase
         $this->assertEquals(2, $count2);
         $this->assertEquals([20], $vals);
     }
+    
+    public function testTakeWhileThreadable()
+    {
+        $fn = F::takeWhile(fn($v) => $v > 3);
+        $this->assertTrue(is_callable($fn));
+        $out = $fn([5,4,3,2,1]);
+        $this->assertEquals([5,4], $out);
+    }
 }
