@@ -979,10 +979,17 @@ final class FPHP
     }
 
     /**
-     * Merge two associative arrays or objects together.
+     * Merge multiple maps (objects or associative arrays) together.
+     * 
+     * Merging is performed from left to right. A new map is returned (the
+     * inputs are not modified). The return type is the same type as the
+     * first map.
+     * 
+     * If no maps are provided then an empty stdClass is returned.
+     * 
+     * @param array|object[] ...$maps   the maps to merge.
      *
-     * Does not support generators / traversables as the result would just be a
-     * concatenation.
+     * @return object|array The new map resulting from the merge.
      */
     public static function merge(...$maps)
     {
