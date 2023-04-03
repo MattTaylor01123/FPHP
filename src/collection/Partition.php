@@ -100,7 +100,7 @@ trait Partition
     {
         return self::transduce(
             fn($step) => self::partitionByT($fnGroup, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -128,7 +128,7 @@ trait Partition
     {
         return self::transduce(
             fn($step) => self::partitionMapByT($fnGroup, $fnMap, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -161,7 +161,7 @@ trait Partition
     {
         return self::transduce(
             fn($step) => self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );

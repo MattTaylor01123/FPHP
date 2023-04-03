@@ -38,7 +38,7 @@ final class FPHP
         return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
 
-    public static function adjust($idx, callable $transform, $collection = null)
+    public static function adjust($idx, callable $transform, ?iterable $collection = null)
     {
         if($collection === null)
         {
@@ -46,10 +46,8 @@ final class FPHP
         }
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),
-            // always use "assoc" for step function as we can't tell if a traversable is
-            // associative or not without iterating it, and we can't do that in case it
-            // is infinite. Adjust preserves keys anyway, so using assoc is fine.
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            // preserve keys (array itself isn't mutated, only elements)
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -79,7 +77,7 @@ final class FPHP
     {
         if(is_object($acc) && method_exists($acc, "appendK"))
         {
-            return $acc->append($val, $key);
+            return $acc->appendK($val, $key);
         }
         else if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
         {
@@ -300,6 +298,48 @@ final class FPHP
         return $out;
     }
 
+    /**
+     * Returns an appropriate (non key preserving) step function for the input
+     * 
+     * @param object|array $target      input to return appropriate step 
+     *                                  function for
+     * 
+     * @return callable     step function
+     * 
+     * @throws Exception if a suitable step function could not be found.
+     */
+    public static function defaultStep($target)
+    {
+        return fn($acc, $v) => self::append($acc, $v);
+    }
+
+    /**
+     * Returns an appropriate key preserving step function for the input
+     * 
+     * @param object|array $target      input to return appropriate step 
+     *                                  function for
+     * 
+     * @return callable     step function
+     * 
+     * @throws Exception if a suitable step function could not be found.
+     */
+    public static function defaultStepK($target)
+    {
+        if(is_object($target) && $target instanceof Traversable)
+        {
+            $out = fn($acc, $v, $k) => self::appendK($acc, $v, $k);
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            $out = fn($acc, $v, $k) => self::assoc($acc, $v, $k);
+        }
+        else
+        {
+            throw new Exception("Not possible to determine a step function for type " . gettype($target));
+        }
+        return $out;
+    }
+
     public static function dissoc($acc, $propName)
     {
         if(is_array($acc))
@@ -446,10 +486,10 @@ final class FPHP
         }
         else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
-            // transduce but passing assoc as step function, so that key is preserved
+            // preserve keys
             $out = self::transduce(
                 self::filterT($predicate),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($target),
                 self::emptied($target),
                 $target
             );
@@ -492,7 +532,7 @@ final class FPHP
             // use the transduce filter, but ignore key
             $out = self::transduce(
                 self::filterT($predicate),
-                fn($acc, $v) => self::append($acc, $v),
+                self::defaultStep($target),
                 $notTravOrGen ? [] : self::emptied($target),
                 $target
             );
@@ -928,14 +968,12 @@ final class FPHP
             $out = $coll->map($func);
         }
         // array_map callback doesn't support keys
-        // always use "assoc" for step function as we can't tell if a traversable is
-        // associative or not without iterating it, and we can't do that in case it
-        // is infinite. Map preserves keys anyway, so using assoc is fine.
         else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
         {
+            // map preserves keys, so use K step
             $out = self::transduce(
                 self::mapT($func),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($coll),
                 self::emptied($coll),
                 $coll
             );
@@ -1156,7 +1194,7 @@ final class FPHP
     {
         return self::transduce(
             fn($step) => self::partitionByT($fnGroup, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -1184,7 +1222,7 @@ final class FPHP
     {
         return self::transduce(
             fn($step) => self::partitionMapByT($fnGroup, $fnMap, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -1217,7 +1255,7 @@ final class FPHP
     {
         return self::transduce(
             fn($step) => self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -1493,7 +1531,7 @@ final class FPHP
         {
             $out = self::transduce(
                 fn($step) => self::skipT($count, $step),
-                fn($acc, $v) => self::append($acc, $v),
+                self::defaultStep($collection),
                 self::emptied($collection),
                 $collection
             );
@@ -1525,7 +1563,7 @@ final class FPHP
         {
             $out = self::transduce(
                 fn($step) => self::skipT($count, $step),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($collection),
                 self::emptied($collection),
                 $collection
             );
@@ -1547,7 +1585,7 @@ final class FPHP
     {
         $out = self::transduce(
             fn($step) => self::skipWhileT($pred, $step),
-            fn($acc, $v) => self::append($acc, $v),
+            self::defaultStep($collection),
             self::emptied($collection),
             $collection
         );
@@ -1568,7 +1606,7 @@ final class FPHP
     {
         $out = self::transduce(
             fn($step) => self::skipWhileT($pred, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );
@@ -1603,12 +1641,10 @@ final class FPHP
         }
         else
         {
-            // always use "assoc" for step function as we can't tell if a traversable is
-            // associative or not without iterating it, and we can't do that in case it
-            // is infinite. Take preserves keys anyway, so using assoc is fine.
+            // step preserves keys, so use K step
             return self::transduce(
                 fn($step) => self::takeT($count, $step),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($target),
                 self::emptied($target),
                 $target
             );
@@ -1657,12 +1693,10 @@ final class FPHP
         {
             return fn(iterable $coll) => self::takeWhile($pred, $coll);
         }
-        // always use "assoc" for step function as we can't tell if a traversable is
-        // associative or not without iterating it, and we can't do that in case it
-        // is infinite. Take preserves keys anyway, so using assoc is fine.
+        // takeWhile preserves keys so use K step
         return self::transduce(
             self::takeWhileT($pred),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($coll),
             self::emptied($coll),
             $coll
         );
@@ -2129,23 +2163,6 @@ final class FPHP
     public static function generatorToIterable($generator)
     {
         return new IterableGenerator($generator);
-    }
-
-    public static function defaultStep($target)
-    {
-        if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
-        {
-            $out = fn($acc, $v) => self::append($acc, $v);
-        }
-        else if(is_array($target) || is_object($target))
-        {
-            $out = self::assoc();
-        }
-        else
-        {
-            throw new Exception("Not possible to determine a step function for type " . gettype($target));
-        }
-        return $out;
     }
 
     public static function multiArityFunction(callable ...$fns)

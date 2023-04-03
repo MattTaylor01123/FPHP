@@ -47,10 +47,10 @@ trait Filter
         }
         else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
-            // transduce but passing assoc as step function, so that key is preserved
+            // preserve keys
             $out = self::transduce(
                 self::filterT($predicate),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($target),
                 self::emptied($target),
                 $target
             );
@@ -93,7 +93,7 @@ trait Filter
             // use the transduce filter, but ignore key
             $out = self::transduce(
                 self::filterT($predicate),
-                fn($acc, $v) => self::append($acc, $v),
+                self::defaultStep($target),
                 $notTravOrGen ? [] : self::emptied($target),
                 $target
             );

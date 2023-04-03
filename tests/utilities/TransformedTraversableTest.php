@@ -30,7 +30,7 @@ final class TransformedTraversableTest extends TestCase
     {
         $act = new TransformedTraversable(
             F::mapT(fn($v) => $v * 2),
-            fn($acc, $v, $k) => F::assoc($acc, $v, $k),
+            fn($acc, $v, $k) => F::appendK($acc, $v, $k),
             $in
         );
         $this->assertEquals($exp, json_encode($act));

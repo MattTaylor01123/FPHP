@@ -50,12 +50,10 @@ trait TakeWhile
         {
             return fn(iterable $coll) => self::takeWhile($pred, $coll);
         }
-        // always use "assoc" for step function as we can't tell if a traversable is
-        // associative or not without iterating it, and we can't do that in case it
-        // is infinite. Take preserves keys anyway, so using assoc is fine.
+        // takeWhile preserves keys so use K step
         return self::transduce(
             self::takeWhileT($pred),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($coll),
             self::emptied($coll),
             $coll
         );

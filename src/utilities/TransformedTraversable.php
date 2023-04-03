@@ -51,13 +51,8 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             // as prepend cannot be supported without making the traversable
             // eager
             
-            // to be removed, callers should be using appendK instead
-            public function assoc($v, $k)
-            {
-                $this->vals[$k] = $v;
-                $this->set = true;
-                return $this;
-            }            
+            // do not support assoc as that can update existing keys, which
+            // again forces us to be eager.
         };
 
         $reducer = ($this->transducer)($this->step);

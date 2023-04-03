@@ -35,7 +35,7 @@ trait Append
     {
         if(is_object($acc) && method_exists($acc, "appendK"))
         {
-            return $acc->append($val, $key);
+            return $acc->appendK($val, $key);
         }
         else if(is_array($acc) || self::isTraversable($acc) || self::isGenerator($acc))
         {

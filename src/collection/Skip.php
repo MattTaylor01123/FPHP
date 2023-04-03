@@ -94,7 +94,7 @@ trait Skip
         {
             $out = self::transduce(
                 fn($step) => self::skipT($count, $step),
-                fn($acc, $v) => self::append($acc, $v),
+                self::defaultStep($collection),
                 self::emptied($collection),
                 $collection
             );
@@ -126,7 +126,7 @@ trait Skip
         {
             $out = self::transduce(
                 fn($step) => self::skipT($count, $step),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                self::defaultStepK($collection),
                 self::emptied($collection),
                 $collection
             );
@@ -148,7 +148,7 @@ trait Skip
     {
         $out = self::transduce(
             fn($step) => self::skipWhileT($pred, $step),
-            fn($acc, $v) => self::append($acc, $v),
+            self::defaultStep($collection),
             self::emptied($collection),
             $collection
         );
@@ -169,7 +169,7 @@ trait Skip
     {
         $out = self::transduce(
             fn($step) => self::skipWhileT($pred, $step),
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );

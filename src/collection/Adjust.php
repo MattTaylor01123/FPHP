@@ -28,16 +28,16 @@ trait Adjust
 
     /*
      * Produces a new collection which contains all the values from the input collection,
-     * excep that the value at the given index has been transformed by the given transformation
+     * except that the value at the given index has been transformed by the given transformation
      * function.
      *
      * @param string|int $idx       index of value in input collection to tramsform
      * @param callable $transform   transformation function to apply to value
-     * @param mixed $collection     input collection - threadable.
+     * @param iterable $collection  input collection - threadable.
      *
-     * @return mixed a new collection, or a callable if $collection was null
+     * @return iterable|callable a new collection, or a callable if $collection was null
      */
-    public static function adjust($idx, callable $transform, $collection = null)
+    public static function adjust($idx, callable $transform, ?iterable $collection = null)
     {
         if($collection === null)
         {
@@ -45,10 +45,8 @@ trait Adjust
         }
         return self::transduce(
             fn($step) => self::adjustT($idx, $transform, $step),
-            // always use "assoc" for step function as we can't tell if a traversable is
-            // associative or not without iterating it, and we can't do that in case it
-            // is infinite. Adjust preserves keys anyway, so using assoc is fine.
-            fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+            // preserve keys (array itself isn't mutated, only elements)
+            self::defaultStepK($collection),
             self::emptied($collection),
             $collection
         );

@@ -249,23 +249,6 @@ trait Functions
         return new IterableGenerator($generator);
     }
 
-    public static function defaultStep($target)
-    {
-        if(self::isSequentialArray($target) || self::isGenerator($target) || self::isTraversable($target))
-        {
-            $out = fn($acc, $v) => self::append($acc, $v);
-        }
-        else if(is_array($target) || is_object($target))
-        {
-            $out = self::assoc();
-        }
-        else
-        {
-            throw new Exception("Not possible to determine a step function for type " . gettype($target));
-        }
-        return $out;
-    }
-
     public static function multiArityFunction(callable ...$fns)
     {
         $arityMap = array();

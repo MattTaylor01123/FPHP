@@ -37,19 +37,6 @@ final class AdjustTest extends TestCase
         $this->assertEquals(["a" => 1, "b" => 2, "c" => 2, "d" => 4, "e" => 5], $o2);
     }
 
-    public function testAdjustStdClass()
-    {
-        $v3 = (object)[
-            "f" => 2,
-            "g" => 4,
-            "h" => 6
-        ];
-        $o3 = F::adjust("g", fn($v) => $v+1, $v3);
-        $this->assertTrue($o3 instanceof stdClass);
-        $this->assertEquals((object)["f" => 2, "g" => 4, "h" => 6], $v3);
-        $this->assertEquals((object)["f" => 2, "g" => 5, "h" => 6], $o3);
-    }
-
     public function testAdjustItIndexed()
     {
         $count = 0;
@@ -132,19 +119,6 @@ final class AdjustTest extends TestCase
         // of generator reuse
         $this->assertEquals(["i" => 10, "j" => 20, "k" => 31, "l" => 40], iterator_to_array($o4));
         $this->assertEquals(2, $count);
-    }
-
-    public function testAdjustCusType()
-    {
-        $v = new TestType();
-        $v->a = 1;
-        $v->b = "h";
-        $o = F::adjust("a", fn($x)=>$x+1, $v);
-        $this->assertTrue($o instanceof TestType);
-        $exp = new TestType();
-        $exp->a = 2;
-        $exp->b = "h";
-        $this->assertEquals($exp, $o);
     }
     
     public function testThreading()
