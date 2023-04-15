@@ -9,7 +9,7 @@ namespace tests\logic;
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 
-final class RelationalTest extends TestCase
+final class EqualTest extends TestCase
 {    
     public function testEq()
     {

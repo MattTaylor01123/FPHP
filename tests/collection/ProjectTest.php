@@ -10,7 +10,7 @@ use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 use tests\TestUtils;
 
-final class AdditionalTest extends TestCase
+final class ProjectTest extends TestCase
 {
     use TestUtils;
 
