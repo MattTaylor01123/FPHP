@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace src\collection;
+namespace src\map;
 
 use InvalidArgumentException;
 
