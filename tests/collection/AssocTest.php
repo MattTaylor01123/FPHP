@@ -10,13 +10,9 @@ use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use tests\TestType;
-use tests\TestUtils;
-use Traversable;
 
 final class AssocTest extends TestCase
 {
-    use TestUtils;
-
     public function testAssocObj()
     {
         $obj = new stdClass();
@@ -37,14 +33,6 @@ final class AssocTest extends TestCase
 
         $this->assertTrue(is_array($arr2));
         $this->assertEquals(["a" => 1, "b" => 2], $arr2);
-    }
-
-    public function testAssocIt()
-    {
-        $out = F::assoc($this->getItAssoc(), 50, "k");
-
-        $this->assertTrue($out instanceof Traversable);
-        $this->assertEquals(["i" => 10, "j" => 20, "k" => 50, "l" => 40], iterator_to_array($out, true));
     }
 
     public function testAssocCusType()

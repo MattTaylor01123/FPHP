@@ -140,62 +140,37 @@ final class FPHP
     }
 
     /**
-     * Returns a new keyed collection containing all the values in the input
-     * collection plus the value passed in as the final value at the end of the
-     * collection, keyed with the key value passed in
+     * Returns a new map containing all the key->value pairs in the input
+     * map plus the key->value pair defined by the other parameters.
      *
-     * @param array|iterable|object $acc    input collection
-     * @param mixed $val                    value to append at end of new collection
-     * @param mixed $key                    key to use when appending value to end of new collection
+     * @param array|object $map     input map
+     * @param mixed $val            value to add to map
+     * @param mixed $key            key to use when adding value to map
      *
-     * @return array|iterable|object    new collection
+     * @return array|object    new map (type matches $map input)
      *
-     * @throws InvalidArgumentException if input collection is not of type array, iterable, or
+     * @throws InvalidArgumentException if input map is not of type array or
      * object.
      */
-    public static function assoc($acc, $val, $key)
+    public static function assoc($map, $val, $key)
     {
-        if(is_object($acc) && method_exists($acc, "assoc"))
+        if(is_object($map) && method_exists($map, "assoc"))
         {
-            return $acc->assoc($val, $key);
+            return $map->assoc($val, $key);
         }
-        if(is_array($acc))
+        if(is_array($map))
         {
-            $out = $acc;
+            $out = $map;
             $out[$key] = $val;
         }
-        else if(self::isTraversable($acc) || self::isGenerator($acc))
+        else if(is_object($map))
         {
-            $returnedVal = false;
-            $fn = function() use($key, $val, $acc, &$returnedVal) {
-                foreach($acc as $k => $v)
-                {
-                    if($k === $key)
-                    {
-                        $returnedVal = true;
-                        yield $k => $val;
-                    }
-                    else
-                    {
-                        yield $k => $v;
-                    }
-                }
-                if(!$returnedVal)
-                {
-                    $returnedVal = true;
-                    yield $key => $val;
-                }
-            };
-            $out = self::generatorToIterable($fn);
-        }
-        else if(is_object($acc))
-        {
-            $out = clone $acc;
+            $out = clone $map;
             $out->$key = $val;
         }
         else
         {
-            throw new InvalidArgumentException("'acc' must be of type array, traversable, or object");
+            throw new InvalidArgumentException("'map' must be of type array or object");
         }
         return $out;
     }
