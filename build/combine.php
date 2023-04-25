@@ -18,6 +18,7 @@ if (!function_exists('str_contains')) {
 // get file list
 $folders = [
     $rootPath . "/src/collection",
+    $rootPath . "/src/map",
     $rootPath . "/src/logic",
     $rootPath . "/src/Functions.php",
     $rootPath . "/src/Memoize.php",

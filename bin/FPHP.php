@@ -315,38 +315,6 @@ final class FPHP
         return $out;
     }
 
-    public static function dissoc($acc, $propName)
-    {
-        if(is_array($acc))
-        {
-            $out = $acc;
-            unset($out[$propName]);
-        }
-        else if(self::isTraversable($acc) || self::isGenerator($acc))
-        {
-            $fn = function() use($propName, $acc) {
-                foreach($acc as $k => $v)
-                {
-                    if($k !== $propName)
-                    {
-                        yield $k => $v;
-                    }
-                }
-            };
-            $out = self::generatorToIterable($fn);
-        }
-        else if(is_object($acc))
-        {
-            $out = clone $acc;
-            unset($out->$propName);
-        }
-        else
-        {
-            throw new InvalidArgumentException("'acc' must be of type array, traversable, or object");
-        }
-        return $out;
-    }
-
     public static function emptied($v)
     {
         if(is_array($v))
@@ -1930,6 +1898,36 @@ final class FPHP
         else
         {
             throw new InvalidArgumentException("'target' must be iterable or object");
+        }
+        return $out;
+    }
+
+    /**
+     * Removes a key->value pair from a map.
+     * 
+     * @param object|array $map     input map
+     * @param mixed $propName       key to remove from map
+     * 
+     * @return object|array     new map containing everything key from the
+     * source map except the key to be removed.
+     * 
+     * @throws InvalidArgumentException if map is not an array or an object
+     */
+    public static function dissoc($map, $propName)
+    {
+        if(is_array($map))
+        {
+            $out = $map;
+            unset($out[$propName]);
+        }
+        else if(is_object($map))
+        {
+            $out = clone $map;
+            unset($out->$propName);
+        }
+        else
+        {
+            throw new InvalidArgumentException("'map' must be of type array or object");
         }
         return $out;
     }
