@@ -39,4 +39,15 @@ final class ProjectTest extends TestCase
             (object)["name" => "Sheila", "family" => "Smith"],
         ]);
     }
+    
+    public function testThreadable()
+    {
+        $fn = F::project(["name"]);
+        $out = $fn([
+            ["name" => "Matt", "family" => "Smith"],
+            ["name" => "Sheila", "family" => "Smith"]
+        ]);
+        
+        $this->assertEquals([["name" => "Matt"],["name" => "Sheila"]], $out);
+    }
 }
