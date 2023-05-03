@@ -52,4 +52,11 @@ final class HasPropTest extends TestCase
         $this->assertTrue(F::hasProp("a", $v));
         $this->assertFalse(F::hasProp("c", $v));
     }
+    
+    public function testThreadable()
+    {
+        $fn = F::hasProp("v");
+        $this->assertTrue($fn(["v" => 3]));
+        $this->assertFalse($fn(["w" => 6]));
+    }
 }
