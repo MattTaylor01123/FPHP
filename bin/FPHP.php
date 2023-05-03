@@ -12,7 +12,7 @@ use Exception;
 use InvalidArgumentException;
 use ArgumentCountError;
 use ReflectionFunction;
-use src\collection\Reduced;
+use src\sequence\Reduced;
 use src\utilities\IterableGenerator;
 use src\utilities\TransformedTraversable;
 use stdClass;
@@ -1324,6 +1324,11 @@ final class FPHP
             }
         }
         return $out;
+    }
+
+    public function __construct($v)
+    {
+        $this->v = $v;
     }
 
     public static function reject(callable $func, iterable $target)

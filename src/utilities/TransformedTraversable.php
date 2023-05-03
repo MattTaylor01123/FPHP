@@ -10,8 +10,7 @@ use ArgumentCountError;
 use FPHP\FPHP;
 use IteratorAggregate;
 use JsonSerializable;
-use src\collection\Reduced;
-use stdClass;
+use src\sequence\Reduced;
 use Traversable;
 
 final class TransformedTraversable implements IteratorAggregate, JsonSerializable
