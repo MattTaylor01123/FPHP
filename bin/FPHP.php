@@ -715,12 +715,6 @@ final class FPHP
         return $out;
     }
 
-    public static function hasProp(string $propName, $target)
-    {
-        return ((is_object($target) && property_exists($target, $propName)) ||
-                (is_array($target) && key_exists($propName, $target)));
-    }
-
     public static function hasProps(array $propNames, $target)
     {
         return self::all(fn($p) => self::hasProp($p, $target), $propNames);
@@ -1753,6 +1747,21 @@ final class FPHP
             throw new InvalidArgumentException("'map' must be of type array or object");
         }
         return $out;
+    }
+
+    /**
+     * Checks if a map contains the given property
+     * 
+     * @param string $propName      property to check for
+     * @param type $map             map to check in
+     * 
+     * @return bool true if the map contains a mapping for the property, false
+     * otherwise
+     */
+    public static function hasProp(string $propName, $map) : bool
+    {
+        return ((is_object($map) && property_exists($map, $propName)) ||
+                (is_array($map) && key_exists($propName, $map)));
     }
 
     /**
