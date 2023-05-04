@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace tests\sequence;
+namespace tests\map;
 
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
