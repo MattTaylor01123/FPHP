@@ -676,11 +676,6 @@ final class FPHP
         return $out;
     }
 
-    public static function hasProps(array $propNames, $target)
-    {
-        return self::all(fn($p) => self::hasProp($p, $target), $propNames);
-    }
-
     public static function indexByT(callable $func, callable $step) {
         return fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
     }
@@ -1765,6 +1760,25 @@ final class FPHP
         
         return ((is_object($map) && property_exists($map, $propName)) ||
                 (is_array($map) && key_exists($propName, $map)));
+    }
+
+    /**
+     * Returns true if the given map has all of the given properties, false
+     * otherwise.
+     * 
+     * @param array $propNames      properties to check for
+     * @param array|object $map     map to check in for properties, threadable
+     * 
+     * @return bool|callable    True if all properties are present in map,
+     * false otherwise. Callable if $map is null.
+     */
+    public static function hasProps(array $propNames, $map = null)
+    {
+        if($map === null)
+        {
+            return fn($map) => self::hasProps($propNames, $map);
+        }
+        return self::all(fn($p) => self::hasProp($p, $map), $propNames);
     }
 
     /**
