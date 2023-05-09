@@ -728,14 +728,14 @@ final class FPHP
      *
      * @param mixed $initial            start value for accumulation
      * @param callable $transducer      transducer
-     * @param mixed $target             values to transform
+     * @param iterable $sequence        values to transform
      *
      * @return mixed contains the values in target transformed by the transducer. Type is
      * the same as or compatible with the type of initial.
      */
-    public static function inTo($initial, callable $transducer, $target)
+    public static function inTo($initial, callable $transducer, iterable $sequence)
     {
-        return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $target);
+        return self::transduce($transducer, fn($acc, $v) => self::append($acc, $v), $initial, $sequence);
     }
 
     /**
@@ -744,14 +744,14 @@ final class FPHP
      *
      * @param mixed $initial            start value for accumulation
      * @param callable $transducer      transducer
-     * @param mixed $target             values to transform
+     * @param iterable $sequence        values to transform
      *
      * @return mixed contains the values in target transformed by the transducer. Type is
      * the same as or compatible with the type of initial.
      */
-    public static function intoK($initial, callable $transducer, $target)
+    public static function intoK($initial, callable $transducer, iterable $sequence)
     {
-        return self::transduce($transducer, fn($acc, $v, $k) => self::assoc($acc, $v, $k), $initial, $target);
+        return self::transduce($transducer, fn($acc, $v, $k) => self::appendK($acc, $v, $k), $initial, $sequence);
     }
 
     public static function iterableToArray(iterable $it)
