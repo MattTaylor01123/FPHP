@@ -10,32 +10,58 @@ use FPHP\utilities\IterableGenerator;
 
 trait Flatten
 {
-    public static function flatMap(callable $fn, iterable $target)
+    /**
+     * Applies a map transformation to every element in the sequence, and then
+     * flattens the sequence one level.
+     * 
+     * @param callable $transform       transformation function
+     * @param iterable|null $sequence   the sequence to map & flatten. Threadable
+     * 
+     * @return mixed     the mapped & flattened sequence. If $sequence is null
+     * then a callable is returned.
+     */
+    public static function flatMap(callable $transform, ?iterable $sequence = null)
     {
-        if(is_object($target) && method_exists($target, "flatMap"))
+        if($sequence === null)
         {
-            return $target->flatMap($fn);
+            return fn($sequence) => self::flatMap($transform, $sequence);
+        }
+        if(is_object($sequence) && method_exists($sequence, "flatMap"))
+        {
+            return $sequence->flatMap($transform);
         }
         else
         {
-            $fnFlatMap = self::pipe(
-                fn($coll) => self::map($fn, $coll),
+            $transformFlatMap = self::pipe(
+                fn($coll) => self::map($transform, $coll),
                 fn($coll) => self::flatten($coll)
             );
-            return $fnFlatMap($target);
+            return $transformFlatMap($sequence);
         }
     }
 
-    public static function flatten(iterable $target)
+    /**
+     * Flattens a sequence by one level
+     * 
+     * @param iterable|null $sequence       sequence to flatten. Threadable
+     * 
+     * @return mixed the flattened sequence. If $sequence is null then a
+     * callable is returned.
+     */
+    public static function flatten(?iterable $sequence = null)
     {
-        if(is_object($target) && method_exists($target, "flatten"))
+        if($sequence === null)
         {
-            return $target->flatten();
+            return fn($sequence) => self::flatten($sequence);
+        }
+        if(is_object($sequence) && method_exists($sequence, "flatten"))
+        {
+            return $sequence->flatten();
         }
         else
         {
-            $generator = function() use($target) {
-                foreach($target as $v)
+            $generator = function() use($sequence) {
+                foreach($sequence as $v)
                 {
                     if(is_iterable($v))
                     {
@@ -48,7 +74,7 @@ trait Flatten
                 }
             };
             $iterable = new IterableGenerator($generator);
-            if(is_array($target))
+            if(is_array($sequence))
             {
                 return iterator_to_array($iterable, false);
             }
