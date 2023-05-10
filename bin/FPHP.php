@@ -539,6 +539,31 @@ final class FPHP
     }
 
     /**
+     * flatten transducer
+     * 
+     * @return callable transducer
+     */
+    public static function flattenT() : callable
+    {
+        return fn($step) => fn($acc, $v) => 
+            self::reduce($step, $acc, is_iterable($v) ? $v : [$v]);
+    }
+
+    /**
+     * flatMap transducer
+     * 
+     * @param callable $transform       map transformation function
+     * 
+     * @return callable transducer
+     */
+    public static function flatMapT(callable $transform) : callable
+    {
+        return self::pipe(
+            self::flattenT(),
+            self::mapT($transform));
+    }
+
+    /**
      * Applies a map transformation to every element in the sequence, and then
      * flattens the sequence one level.
      * 
@@ -560,11 +585,12 @@ final class FPHP
         }
         else
         {
-            $transformFlatMap = self::pipe(
-                fn($coll) => self::map($transform, $coll),
-                fn($coll) => self::flatten($coll)
+            return self::transduce(
+                self::flatMapT($transform), 
+                fn($acc, $v) => self::append($acc, $v), 
+                self::emptied($sequence), 
+                $sequence
             );
-            return $transformFlatMap($sequence);
         }
     }
 
@@ -588,28 +614,12 @@ final class FPHP
         }
         else
         {
-            $generator = function() use($sequence) {
-                foreach($sequence as $v)
-                {
-                    if(is_iterable($v))
-                    {
-                        yield from $v;
-                    }
-                    else
-                    {
-                        yield $v;
-                    }
-                }
-            };
-            $iterable = new IterableGenerator($generator);
-            if(is_array($sequence))
-            {
-                return iterator_to_array($iterable, false);
-            }
-            else
-            {
-                return $iterable;
-            }
+            return self::transduce(
+                self::flattenT(), 
+                fn($acc, $v) => self::append($acc, $v), 
+                self::emptied($sequence), 
+                $sequence
+            );
         }
     }
 
