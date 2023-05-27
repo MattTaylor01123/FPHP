@@ -17,7 +17,14 @@ final class IndexByTest extends TestCase
 
     function testIndexByIdx()
     {
-        $v = $this->getPersonsDataIdx();
+        $v = [
+            (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
+            (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
+            (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Cecilia", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
+        ];
+        
         $out1 = F::indexBy(fn($x) => F::prop("gender", $x), $v);
         $this->assertIsArray($out1);
         $this->assertCount(2, $out1);
@@ -35,7 +42,13 @@ final class IndexByTest extends TestCase
             return F::prop("gender", $v);
         };
 
-        $v = $this->getPersonsDataIt();
+        $v = new \src\utilities\IterableGenerator(fn() => yield from [
+            (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
+            (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
+            (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Cecilia", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
+        ]);
         $out1 = F::indexBy($fn, $v);
 
         $this->assertTrue($out1 instanceof Traversable);
@@ -44,7 +57,14 @@ final class IndexByTest extends TestCase
         $this->assertEquals(0, $count);
 
         $i = 0;
-        $v2 = $this->getPersonsDataIdx();
+        $v2 = [
+            (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
+            (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
+            (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Cecilia", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
+        ];
+        
         foreach($out1 as $k => $val)
         {
             $this->assertEquals($v2[$i], $val);
@@ -64,9 +84,15 @@ final class IndexByTest extends TestCase
 
     function testIndexByTransducer()
     {
-        $v = $this->getPersonsDataIdx();
+        $v = [
+            (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
+            (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
+            (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Cecilia", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
+        ];
         $out1 = F::transduce(
-            fn($step) => F::indexByT(fn($x) => F::prop("gender", $x), $step),
+            F::indexByT(fn($x) => F::prop("gender", $x)),
             fn($acc, $v, $k) => F::assoc($acc, $v, $k),
             [],
             $v
@@ -77,5 +103,25 @@ final class IndexByTest extends TestCase
         $this->assertArrayHasKey("F", $out1);
         $this->assertSame($v[2], $out1["M"]);
         $this->assertSame($v[4], $out1["F"]);
+    }
+    
+    function testThreadable()
+    {
+        $v = [
+            (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
+            (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
+            (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Cecilia", "family" => "Jones"],
+            (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
+        ];
+        $fn = F::indexBy(fn($x) => F::prop("gender", $x));
+        $this->assertTrue(is_callable($fn));
+        $out = $fn($v);
+        $this->assertIsArray($out);
+        $this->assertCount(2, $out);
+        $this->assertArrayHasKey("M", $out);
+        $this->assertArrayHasKey("F", $out);
+        $this->assertSame($v[2], $out["M"]);
+        $this->assertSame($v[4], $out["F"]);
     }
 }
