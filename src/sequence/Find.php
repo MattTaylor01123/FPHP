@@ -11,25 +11,25 @@ trait Find
     /**
      * Find the first entry in a sequence that satisfies the predicate
      * 
-     * @param callable $predicate       used to determine match (passed $v, $k)
-     * @param object|iterable $target   thing to search for match in
+     * @param callable $predicate           used to determine match (passed $v, $k)
+     * @param object|iterable $sequence     thing to search for match in
      * 
      * @return variant the first value that satisfies the predicate, or null if 
      * no match can be found
      */
-    public static function findFirst(callable $predicate, $target = null)
+    public static function findFirst(callable $predicate, $sequence = null)
     {
-        if($target === null)
+        if($sequence === null)
         {
-            return fn($target) => self::findFirst($predicate, $target);
+            return fn($sequence) => self::findFirst($predicate, $sequence);
         }
-        if(is_object($target) && method_exists($target, "findFirst"))
+        if(is_object($sequence) && method_exists($sequence, "findFirst"))
         {
-            return $target->findFirst($predicate);
+            return $sequence->findFirst($predicate);
         }
         else
         {
-            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($v) : $acc, null, $target);
+            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($v) : $acc, null, $sequence);
         }
     }
 
@@ -37,50 +37,50 @@ trait Find
      * Find the index of the first entry in a sequence that satisfies the 
      * predicate
      * 
-     * @param callable $predicate       used to determine match (passed $v, $k)
-     * @param object|iterable $target   thing to search for match in
+     * @param callable $predicate           used to determine match (passed $v, $k)
+     * @param object|iterable $sequence     thing to search for match in
      * 
      * @return int|string index of the first value that satisfies the predicate, or -1 
      * if no match can be found
      */
-    public static function findFirstK(callable $predicate, $target = null)
+    public static function findFirstIndex(callable $predicate, $sequence = null)
     {
-        if($target === null)
+        if($sequence === null)
         {
-            return fn($target) => self::findFirstK($predicate, $target);
+            return fn($sequence) => self::findFirstIndex($predicate, $sequence);
         }
-        if(is_object($target) && method_exists($target, "findFirstK"))
+        if(is_object($sequence) && method_exists($sequence, "findFirstIndex"))
         {
-            return $target->findFirstK($predicate);
+            return $sequence->findFirstIndex($predicate);
         }
         else
         {
-            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($k) : $acc, -1, $target);
+            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? new Reduced($k) : $acc, -1, $sequence);
         }
     }
     
     /**
      * Find the last entry in a sequence that satisfies the predicate
      * 
-     * @param callable $predicate       used to determine match (passed $v, $k)
-     * @param object|iterable $target   thing to search for match in
+     * @param callable $predicate           used to determine match (passed $v, $k)
+     * @param object|iterable $sequence     thing to search for match in
      * 
      * @return variant the last value that satisfies the predicate, or null if 
      * no match can be found
      */
-    public static function findLast(callable $predicate, $target = null)
+    public static function findLast(callable $predicate, $sequence = null)
     {
-        if($target === null)
+        if($sequence === null)
         {
-            return fn($target) => self::findLast($predicate, $target);
+            return fn($sequence) => self::findLast($predicate, $sequence);
         }
-        if(is_object($target) && method_exists($target, "findLast"))
+        if(is_object($sequence) && method_exists($sequence, "findLast"))
         {
-            return $target->findLast($predicate);
+            return $sequence->findLast($predicate);
         }
         else
         {
-            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? $v : $acc, null, $target);
+            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? $v : $acc, null, $sequence);
         }
     }
     
@@ -88,25 +88,25 @@ trait Find
      * Find the index of the last entry in a sequence that satisfies the 
      * predicate
      * 
-     * @param callable $predicate       used to determine match (passed $v, $k)
-     * @param object|iterable $target   thing to search for match in
+     * @param callable $predicate           used to determine match (passed $v, $k)
+     * @param object|iterable $sequence     thing to search for match in
      * 
      * @return int|string index of the last value that satisfies the predicate, or -1 
      * if no match can be found
      */
-    public static function findLastK(callable $predicate, $target = null)
+    public static function findLastIndex(callable $predicate, $sequence = null)
     {
-        if($target === null)
+        if($sequence === null)
         {
-            return fn($target) => self::findLastK($predicate, $target);
+            return fn($sequence) => self::findLastIndex($predicate, $sequence);
         }
-        if(is_object($target) && method_exists($target, "findLastK"))
+        if(is_object($sequence) && method_exists($sequence, "findLastIndex"))
         {
-            return $target->findLastK($predicate);
+            return $sequence->findLastIndex($predicate);
         }
         else
         {
-            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? $k : $acc, null, $target);
+            return self::reduce(fn($acc, $v, $k) => $predicate($v, $k) ? $k : $acc, -1, $sequence);
         }
     }
 }

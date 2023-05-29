@@ -16,19 +16,27 @@ class FindTest extends TestCase
         $in = [1,2,3,4,5];
         $out = F::findFirst(fn($v) => $v > 3, $in);
         $this->assertEquals(4, $out);
+        
         $in2 = ["a" => 1, "aa" => 2, "ab" => 3, "abc" => 4];
         $out2 = F::findFirst(fn($v, $k) => strlen($k) >= 2, $in2);
         $this->assertEquals(2, $out2);
+        
+        $out3 = F::findFirst(fn($v, $k) => $k === "abcd", $in2);
+        $this->assertEquals(null, $out3);
     }
     
-    public function testFindFirstK()
+    public function testFindFirstIndex()
     {
         $in = [1,2,3,4,5];
-        $out = F::findFirstK(fn($v) => $v > 3, $in);
+        $out = F::findFirstIndex(fn($v) => $v > 3, $in);
         $this->assertEquals(3, $out);
+        
         $in2 = ["a" => 1, "aa" => 2, "ab" => 3, "abc" => 4];
-        $out2 = F::findFirstK(fn($v, $k) => strlen($k) >= 2, $in2);
+        $out2 = F::findFirstIndex(fn($v, $k) => strlen($k) >= 2, $in2);
         $this->assertEquals("aa", $out2);
+        
+        $out3 = F::findFirstIndex(fn($v, $k) => $k === "abcd", $in2);
+        $this->assertEquals(-1, $out3);
     }
     
     public function testFindLast()
@@ -36,18 +44,26 @@ class FindTest extends TestCase
         $in = [1,2,3,4,5];
         $out = F::findLast(fn($v) => $v > 3, $in);
         $this->assertEquals(5, $out);
+        
         $in2 = ["a" => 1, "aa" => 2, "ab" => 3, "abc" => 4];
         $out2 = F::findLast(fn($v, $k) => strlen($k) >= 2, $in2);
         $this->assertEquals(4, $out2);
+        
+        $out3 = F::findLast(fn($v, $k) => $k === "abcd", $in2);
+        $this->assertEquals(null, $out3);
     }
     
-    public function testFindLastK()
+    public function testFindLastIndex()
     {
         $in = [1,2,3,4,5];
-        $out = F::findLastK(fn($v) => $v > 3, $in);
+        $out = F::findLastIndex(fn($v) => $v > 3, $in);
         $this->assertEquals(4, $out);
+        
         $in2 = ["a" => 1, "aa" => 2, "ab" => 3, "abc" => 4];
-        $out2 = F::findLastK(fn($v, $k) => strlen($k) >= 2, $in2);
+        $out2 = F::findLastIndex(fn($v, $k) => strlen($k) >= 2, $in2);
         $this->assertEquals("abc", $out2);
+        
+        $out3 = F::findLastIndex(fn($v, $k) => $k === "abcd", $in2);
+        $this->assertEquals(-1, $out3);
     }
 }
