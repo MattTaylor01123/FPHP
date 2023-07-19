@@ -22,11 +22,6 @@ trait Path
         }, $target, $path);
     }
 
-    public static function assocPath(iterable $path, $val, $target)
-    {
-        return self::ssocPath($path, $val, $target, fn($acc, $v, $k) => self::assoc($acc, $v, $k));
-    }
-
     public static function dissocPath(iterable $path, $val, $target)
     {
         return self::ssocPath($path, $val, $target, fn($acc, $p) => self::dissoc($acc, $p));
