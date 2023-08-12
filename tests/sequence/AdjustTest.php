@@ -9,8 +9,6 @@ namespace tests\sequence;
 use FPHP\FPHP as F;
 use IteratorAggregate;
 use PHPUnit\Framework\TestCase;
-use stdClass;
-use tests\TestType;
 use Traversable;
 
 final class AdjustTest extends TestCase
