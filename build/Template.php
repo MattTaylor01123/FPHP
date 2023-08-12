@@ -15,6 +15,7 @@ use ReflectionFunction;
 use src\sequence\Reduced;
 use src\utilities\IterableGenerator;
 use src\utilities\TransformedTraversable;
+use src\utilities\TransformedTraversable2;
 use stdClass;
 use Traversable;
 

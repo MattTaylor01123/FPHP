@@ -25,7 +25,7 @@ trait InnerJoin
             fn($acc3, $v, $k) => $acc3,
             // arity-5 - do the inner join
             fn($acc5, $vl, $vr, $kl, $kr) =>
-                $fnPred($vl, $vr, $kl, $kr) ? $step2($acc5, $fnCombinator($vl, $vr)) : $acc5
+                $fnPred($vl, $vr, $kl, $kr) ? $step2($acc5, $fnCombinator($vl, $vr), $kl) : $acc5
         );
     }
     

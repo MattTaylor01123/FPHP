@@ -39,7 +39,7 @@ trait LeftJoin
                 if($fnPred($vl, $vr, $kl, $kr))
                 {
                     $returnedOuter = true;
-                    return $step2($acc5, $fnCombinator($vl, $vr));
+                    return $step2($acc5, $fnCombinator($vl, $vr), $kl);
                 }
                 else
                 {

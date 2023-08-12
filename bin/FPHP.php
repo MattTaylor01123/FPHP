@@ -15,6 +15,7 @@ use ReflectionFunction;
 use src\sequence\Reduced;
 use src\utilities\IterableGenerator;
 use src\utilities\TransformedTraversable;
+use src\utilities\TransformedTraversable2;
 use stdClass;
 use Traversable;
 
@@ -795,7 +796,7 @@ final class FPHP
             fn($acc3, $v, $k) => $acc3,
             // arity-5 - do the inner join
             fn($acc5, $vl, $vr, $kl, $kr) =>
-                $fnPred($vl, $vr, $kl, $kr) ? $step2($acc5, $fnCombinator($vl, $vr)) : $acc5
+                $fnPred($vl, $vr, $kl, $kr) ? $step2($acc5, $fnCombinator($vl, $vr), $kl) : $acc5
         );
     }
 
@@ -942,7 +943,7 @@ final class FPHP
                 if($fnPred($vl, $vr, $kl, $kr))
                 {
                     $returnedOuter = true;
-                    return $step2($acc5, $fnCombinator($vl, $vr));
+                    return $step2($acc5, $fnCombinator($vl, $vr), $kl);
                 }
                 else
                 {
@@ -1946,10 +1947,10 @@ final class FPHP
 
     public static function transduce2(callable $transducer, callable $step, $initial, $sequence1, $sequence2)
     {
-//        if($initial instanceof Traversable)
-//        {
-//            return new TransformedTraversable($transducer, $step, $collection);
-//        }
+        if($sequence1 instanceof Traversable)
+        {
+            return new TransformedTraversable2($transducer, $step, $sequence1, $sequence2);
+        }
 
         // do our own reduction here as we need to know whether we exited
         // early or not, so that we know whether or not to try to flush

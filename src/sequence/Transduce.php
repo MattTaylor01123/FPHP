@@ -59,10 +59,10 @@ trait Transduce
     
     public static function transduce2(callable $transducer, callable $step, $initial, $sequence1, $sequence2)
     {
-//        if($initial instanceof Traversable)
-//        {
-//            return new TransformedTraversable($transducer, $step, $collection);
-//        }
+        if($sequence1 instanceof Traversable)
+        {
+            return new TransformedTraversable2($transducer, $step, $sequence1, $sequence2);
+        }
 
         // do our own reduction here as we need to know whether we exited
         // early or not, so that we know whether or not to try to flush
