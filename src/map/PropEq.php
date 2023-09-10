@@ -4,7 +4,7 @@
  * (c) Matthew Taylor
  */
 
-namespace src\sequence;
+namespace src\map;
 
 trait PropEq 
 {
