@@ -29,7 +29,7 @@ trait Keys
      * @throws InvalidArgumentException if target is not an iterable or object
      * with a 'keys' method.
      */
-    public static function keys(?iterable $sequence)
+    public static function keys($sequence = null)
     {
         if(!$sequence)
         {

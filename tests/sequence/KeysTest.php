@@ -51,4 +51,13 @@ final class KeysTest extends TestCase
         $this->assertTrue($out instanceof Traversable);
         $this->assertSame(iterator_to_array($out, false), ["i","j","k","l"]);
     }
+    
+    function testThreadable()
+    {
+        $v = ["a","b","c","d","e"];
+        $fn = F::keys();
+        $this->assertTrue(is_callable($fn));
+        $out1 = $fn($v);
+        $this->assertSame($out1, [0, 1, 2, 3, 4]);
+    }
 }
