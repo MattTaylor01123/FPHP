@@ -13,35 +13,52 @@ trait Map
     /**
      * map transducer
      * 
-     * @param callable $func    transform function
+     * @param callable $transform    transform function
      * 
      * @return callable transducer
      */
-    public static function mapT(callable $func) : callable
+    public static function mapT(callable $transform) : callable
     {
-        return fn($step) => fn($acc, $v, $k) => $step($acc, $func($v, $k), $k);
+        return fn($step) => fn($acc, $v, $k) => $step($acc, $transform($v, $k), $k);
     }
 
-    public static function map(callable $func, $coll)
+    /**
+     * Uses a transformation function to map each value in a sequence onto a new value
+     * in a new sequence.
+     * 
+     * @param callable $transform           transformation function
+     * @param iterable|null $sequence       sequence
+     * 
+     * @return iterable|callable    a new sequence containing the transformed values,
+     * unless sequence is null, in which case a callable is returned.
+     * 
+     * @throws InvalidArgumentException if sequence is not an array, traversable,
+     * generator, functor.
+     */
+    public static function map(callable $transform, $sequence = null)
     {
-        if(is_object($coll) && method_exists($coll, "map"))
+        if(!$sequence)
         {
-            $out = $coll->map($func);
+            return fn(iterable $sequence) => self::map($transform, $sequence);
+        }
+        else if(is_object($sequence) && method_exists($sequence, "map"))
+        {
+            $out = $sequence->map($transform);
         }
         // array_map callback doesn't support keys
-        else if( is_object($coll) || is_array($coll) || self::isTraversable($coll) || self::isGenerator($coll))
+        else if(is_array($sequence) || ($sequence instanceof \Traversable) || self::isGenerator($sequence))
         {
             // map preserves keys, so use K step
             $out = self::transduce(
-                self::mapT($func),
-                self::defaultStepK($coll),
-                self::emptied($coll),
-                $coll
+                self::mapT($transform),
+                self::defaultStepK($sequence),
+                self::emptied($sequence),
+                $sequence
             );
         }
         else
         {
-            throw new InvalidArgumentException("target must be one of array, stdClass, generator, functor.");
+            throw new InvalidArgumentException("'sequence' must be one of array, traversable, generator, functor.");
         }
         return $out;
     }

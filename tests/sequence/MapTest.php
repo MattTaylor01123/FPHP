@@ -29,12 +29,6 @@ final class MapTest extends TestCase
         $this->assertSame(["a" => "a1", "b" => "b2", "c" => "c3", "d" => "d4", "e" => "e5"], $o1);
     }
 
-    function testMapObj()
-    {
-        $o1 = F::map(fn ($x) => $x * 2, (object)["f" => 2, "g" => 4, "h" => 6]);
-        $this->assertEquals((object)["f" => 4, "g" => 8, "h" => 12], (object)$o1);
-    }
-
     function testMapItIdx()
     {
         $count = 0;
@@ -109,5 +103,13 @@ final class MapTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         F::map(fn($v) => $v * 2, "hello");
+    }
+    
+    function testThreadable()
+    {
+        $fn = F::map(fn ($v, $k) => $k.$v);
+        $this->assertTrue(is_callable($fn));
+        $o1 = $fn(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5]);
+        $this->assertSame(["a" => "a1", "b" => "b2", "c" => "c3", "d" => "d4", "e" => "e5"], $o1);       
     }
 }
