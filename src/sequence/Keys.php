@@ -8,38 +8,53 @@ namespace src\sequence;
 
 trait Keys
 {
-    public static function keysT(callable $step)
+    /**
+     * Keys transducer
+     * 
+     * @return callable transducer function
+     */
+    public static function keysT() : callable
     {
-        return fn($acc, $v, $k) => $step($acc, $k, 0);
+        return fn($step) => fn($acc, $v, $k) => $step($acc, $k);
     }
 
-    public static function keys($target)
+    /**
+     * Get the keys of a sequence
+     *
+     * @param mixed $sequence             optional, sequence, threadable
+     *
+     * @return iterable|callable a new sequence containing the keys.  If
+     * $sequence was null then callable.
+     *
+     * @throws InvalidArgumentException if target is not an iterable or object
+     * with a 'keys' method.
+     */
+    public static function keys(?iterable $sequence)
     {
-        $transduceInto = fn($initial) => self::transduce(
-            fn($step) => self::keysT($step),
-            fn($acc, $v) => self::append($acc, $v),
-            $initial,
-            $target
-        );
-        if(is_object($target) && method_exists($target, "keys"))
+        if(!$sequence)
         {
-            $out = $target->keys();
+            $out = fn(iterable $sequence) => self::keys($sequence);
         }
-        else if(is_array($target))
+        else if(is_object($sequence) && method_exists($sequence, "keys"))
         {
-            $out = array_keys($target);
+            $out = $sequence->keys();
         }
-        else if(is_iterable($target))
+        else if(is_array($sequence))
         {
-            $out = $transduceInto(self::emptied($target));
+            $out = array_keys($sequence);
         }
-        else if(is_object($target))
+        else if(is_iterable($sequence))
         {
-            $out = $transduceInto(self::emptied([]));
+            $out = self::transduce(
+                self::keysT(),
+                fn($acc, $v) => self::append($acc, $v),
+                self::emptied($sequence),
+                $sequence
+            );
         }
         else
         {
-            throw new InvalidArgumentException("'target' must be iterable or object");
+            throw new InvalidArgumentException("'sequence' must be iterable or object that has a 'keys' method.");
         }
         return $out;
     }

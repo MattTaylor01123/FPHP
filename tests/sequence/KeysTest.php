@@ -15,18 +15,18 @@ final class KeysTest extends TestCase
 {
     use TestUtils;
 
+    function testKeysIndexed()
+    {
+        $v = ["a","b","c","d","e"];
+        $out1 = F::keys($v);
+        $this->assertSame($out1, [0, 1, 2, 3, 4]);
+    }
+    
     function testKeysAssoc()
     {
-        $v = $this->getAssocArray();
+        $v = ["a" => 1,"b" => 2,"c" => 3,"d" => 4,"e" => 5];
         $out1 = F::keys($v);
         $this->assertSame($out1, ["a", "b", "c", "d", "e"]);
-    }
-
-    function testKeysObj()
-    {
-        $v = $this->getObj();
-        $out1 = F::keys($v);
-        $this->assertSame($out1, ["f", "g", "h"]);
     }
 
     function testKeysOverride()
@@ -38,7 +38,7 @@ final class KeysTest extends TestCase
 
     function testKeysItIdx()
     {
-        $v = $this->getItIdx();
+        $v = F::generatorToIterable(fn() => yield from [10, 20, 30, 40]);
         $out = F::keys($v);
         $this->assertTrue($out instanceof Traversable);
         $this->assertEquals(iterator_to_array($out, false), [0,1,2,3]);
@@ -46,7 +46,7 @@ final class KeysTest extends TestCase
 
     function testKeysItAssoc()
     {
-        $v = $this->getItAssoc();
+        $v = F::generatorToIterable(fn() => yield from ["i" => 10, "j" => 20, "k" => 30, "l" => 40]);
         $out = F::keys($v);
         $this->assertTrue($out instanceof Traversable);
         $this->assertSame(iterator_to_array($out, false), ["i","j","k","l"]);

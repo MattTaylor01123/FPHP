@@ -30,30 +30,6 @@ trait Predicates
         return $isBool(...$args);
     }
 
-    public static function isEmpty(...$args)
-    {
-        $isEmpty = self::curry(function($v) {
-            if(self::isString($v))
-            {
-                return strlen($v) === 0;
-            }
-            if(is_iterable($v))
-            {
-                return self::length($v) === 0;
-            }
-            if(is_object($v))
-            {
-                return self::length(self::keys($v)) === 0;
-            }
-            if($v === null)
-            {
-                return false;
-            }
-            return false;
-        });
-        return $isEmpty(...$args);
-    }
-    
     public static function isFloat(...$args)
     {
         $isFloat = self::curry(function($v) {

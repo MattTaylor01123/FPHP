@@ -27,18 +27,6 @@ final class PredicatesTest extends TestCase
         $this->assertTrue(F::isBool(true));
     }
 
-    public function testIsEmpty()
-    {
-        $this->assertTrue(F::isEmpty([]));
-        $this->assertFalse(F::isEmpty([1]));
-        $this->assertFalse(F::isEmpty(["a" => 1]));
-        $this->assertTrue(F::isEmpty((object)[]));
-        $this->assertFalse(F::isEmpty((object)["a" => 1]));
-        $this->assertFalse(F::isEmpty(null));
-        $this->assertTrue(F::isEmpty(""));
-        $this->assertFalse(F::isEmpty("a"));
-    }
-
     public function testIsFloat()
     {
         $this->assertTrue(F::isFloat(1.03));

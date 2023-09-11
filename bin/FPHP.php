@@ -876,38 +876,53 @@ final class FPHP
         return $out;
     }
 
-    public static function keysT(callable $step)
+    /**
+     * Keys transducer
+     * 
+     * @return callable transducer function
+     */
+    public static function keysT() : callable
     {
-        return fn($acc, $v, $k) => $step($acc, $k, 0);
+        return fn($step) => fn($acc, $v, $k) => $step($acc, $k);
     }
 
-    public static function keys($target)
+    /**
+     * Get the keys of a sequence
+     *
+     * @param mixed $sequence             optional, sequence, threadable
+     *
+     * @return iterable|callable a new sequence containing the keys.  If
+     * $sequence was null then callable.
+     *
+     * @throws InvalidArgumentException if target is not an iterable or object
+     * with a 'keys' method.
+     */
+    public static function keys(?iterable $sequence)
     {
-        $transduceInto = fn($initial) => self::transduce(
-            fn($step) => self::keysT($step),
-            fn($acc, $v) => self::append($acc, $v),
-            $initial,
-            $target
-        );
-        if(is_object($target) && method_exists($target, "keys"))
+        if(!$sequence)
         {
-            $out = $target->keys();
+            $out = fn(iterable $sequence) => self::keys($sequence);
         }
-        else if(is_array($target))
+        else if(is_object($sequence) && method_exists($sequence, "keys"))
         {
-            $out = array_keys($target);
+            $out = $sequence->keys();
         }
-        else if(is_iterable($target))
+        else if(is_array($sequence))
         {
-            $out = $transduceInto(self::emptied($target));
+            $out = array_keys($sequence);
         }
-        else if(is_object($target))
+        else if(is_iterable($sequence))
         {
-            $out = $transduceInto(self::emptied([]));
+            $out = self::transduce(
+                self::keysT(),
+                fn($acc, $v) => self::append($acc, $v),
+                self::emptied($sequence),
+                $sequence
+            );
         }
         else
         {
-            throw new InvalidArgumentException("'target' must be iterable or object");
+            throw new InvalidArgumentException("'sequence' must be iterable or object that has a 'keys' method.");
         }
         return $out;
     }
@@ -1386,66 +1401,6 @@ final class FPHP
         else
         {
             $out = self::map(fn($v) => self::pick($properties, $v), $coll);
-        }
-        return $out;
-    }
-
-    public static function prop(string $propName, $target)
-    {
-        if(is_array($target))
-        {
-            $out = $target[$propName] ?? null;
-        }
-        else if(is_object($target) && method_exists($target, "prop"))
-        {
-            $out = $target->prop($propName);
-        }
-        else if(is_object($target) && method_exists($target, "get"))
-        {
-            $out = $target->get($propName);
-        }
-        else if($target instanceof \Traversable)
-        {
-            $out = null;
-            foreach($target as $k => $v)
-            {
-                if($k === $propName)
-                {
-                    $out = $v;
-                    break;
-                }
-            }
-        }
-        else if(is_object($target))
-        {
-            $out = $target->$propName ?? null;
-        }
-        else
-        {
-            throw new InvalidArgumentException("Invalid type for 'target'");
-        }
-        return $out;
-    }
-
-    public static function propEq(string $propName, $val, $target)
-    {
-        return self::hasProp($propName, $target) &&
-               self::eq(self::prop($propName, $target), $val);
-    }
-
-    public static function props(array $properties, $target)
-    {
-        $out = array();
-        foreach($properties as $prop)
-        {
-            if(self::hasProp($prop, $target))
-            {
-                $out[] = self::prop($prop, $target);
-            }
-            else
-            {
-                $out[] = null;
-            }
         }
         return $out;
     }
@@ -2408,6 +2363,66 @@ final class FPHP
         return $out;
     }
 
+    public static function prop(string $propName, $target)
+    {
+        if(is_array($target))
+        {
+            $out = $target[$propName] ?? null;
+        }
+        else if(is_object($target) && method_exists($target, "prop"))
+        {
+            $out = $target->prop($propName);
+        }
+        else if(is_object($target) && method_exists($target, "get"))
+        {
+            $out = $target->get($propName);
+        }
+        else if($target instanceof \Traversable)
+        {
+            $out = null;
+            foreach($target as $k => $v)
+            {
+                if($k === $propName)
+                {
+                    $out = $v;
+                    break;
+                }
+            }
+        }
+        else if(is_object($target))
+        {
+            $out = $target->$propName ?? null;
+        }
+        else
+        {
+            throw new InvalidArgumentException("Invalid type for 'target'");
+        }
+        return $out;
+    }
+
+    public static function propEq(string $propName, $val, $target)
+    {
+        return self::hasProp($propName, $target) &&
+               self::eq(self::prop($propName, $target), $val);
+    }
+
+    public static function props(array $properties, $target)
+    {
+        $out = array();
+        foreach($properties as $prop)
+        {
+            if(self::hasProp($prop, $target))
+            {
+                $out[] = self::prop($prop, $target);
+            }
+            else
+            {
+                $out[] = null;
+            }
+        }
+        return $out;
+    }
+
     public static function all(callable $fnPred, iterable $iterable) : bool
     {
         if(is_object($iterable) && method_exists($iterable, "all"))
@@ -2829,30 +2844,6 @@ final class FPHP
             return is_bool($v);
         });
         return $isBool(...$args);
-    }
-
-    public static function isEmpty(...$args)
-    {
-        $isEmpty = self::curry(function($v) {
-            if(self::isString($v))
-            {
-                return strlen($v) === 0;
-            }
-            if(is_iterable($v))
-            {
-                return self::length($v) === 0;
-            }
-            if(is_object($v))
-            {
-                return self::length(self::keys($v)) === 0;
-            }
-            if($v === null)
-            {
-                return false;
-            }
-            return false;
-        });
-        return $isEmpty(...$args);
     }
 
     public static function isFloat(...$args)
