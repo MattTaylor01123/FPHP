@@ -46,6 +46,15 @@ final class NthTest extends TestCase
         $this->assertEquals("a", F::nth(-5, $this->toGen($in1)));
         $this->assertEquals(null, F::nth(-6, $this->toGen($in1)));
     }
+    
+    public function testThreadable()
+    {
+        $in1 = ["a", "b", "c", "d", "e"];
+        $fn = F::nth(2);
+        
+        $this->assertTrue(is_callable($fn));
+        $this->assertEquals("c", $fn($in1));
+    }
 
     private function toGen($arr)
     {

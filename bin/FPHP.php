@@ -1085,25 +1085,31 @@ final class FPHP
     }
 
     /**
-     * Returns the nth element of a collection.
+     * Returns the nth element of a sequence.
      *
      * if $n is positive then the $nth value is returned.
      * if $n is negative then the length + $nth value is returned.
      * if $n >= length or length + $n < 0 then null is returned
      *
      * @param int $n                index of element in collection to return
-     * @param iterable $target      collection to look in
+     * @param iterable $seq         optional, sequence, threadable
      *
-     * @return mixed    the element at the nth position
+     * @return mixed    the element at the nth position. If
+     * $seq was null then callable.
      */
-    public static function nth(int $n, iterable $target)
+    public static function nth(int $n, ?iterable $seq = null)
     {
-        $isArr = is_array($target);
+        if($seq === null)
+        {
+            return fn(iterable $seq) => self::nth($n, $seq);
+        }
+        
+        $isArr = is_array($seq);
         if($n >= 0 && !$isArr)
         {
             $acc = 0;
             $out = null;
-            foreach($target as $v)
+            foreach($seq as $v)
             {
                 if($acc === $n)
                 {
@@ -1115,7 +1121,7 @@ final class FPHP
         }
         else
         {
-            $vals = $isArr ? $target : iterator_to_array($target, false);
+            $vals = $isArr ? $seq : iterator_to_array($seq, false);
             $len = count($vals);
             if($len === 0 || $n >= $len || $len + $n < 0)
             {
