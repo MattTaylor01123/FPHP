@@ -22,9 +22,4 @@ trait All
                 (!$fnPred($v, $k) ? new Reduced(false) : true), true, $iterable);
         }
     }
-
-    public static function allPass(callable ...$args)
-    {
-        return fn($v) => self::all(fn($fn) => $fn($v), $args);
-    }
 }
