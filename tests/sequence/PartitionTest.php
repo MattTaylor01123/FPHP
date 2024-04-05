@@ -24,6 +24,15 @@ final class PartitionTest extends TestCase
         $this->assertTrue(is_array($out));
         $this->assertEquals([[1,2],[3,4,5],[6,7,8],[9,10]], $out);
     }
+    
+    public function testPartitionByThreadable()
+    {
+        $fn = F::partitionBy(fn($v, $k) => intval($v / 3));
+        $this->assertTrue(is_callable($fn));
+        $out = $fn([1,2,3,4,5,6,7,8,9,10]);
+        $this->assertTrue(is_array($out));
+        $this->assertEquals([[1,2],[3,4,5],[6,7,8],[9,10]], $out);
+    }
 
     public function testPartitionByEmptyIterable()
     {
@@ -68,6 +77,15 @@ final class PartitionTest extends TestCase
     public function testPartitionMapByArray()
     {
         $out = F::partitionMapBy(fn($v, $k) => intval($k / 3), fn($v, $k) => $v * 100, [1,2,3,4,5,6,7,8,9,10]);
+        $this->assertTrue(is_array($out));
+        $this->assertEquals([[100,200,300],[400,500,600],[700,800,900],[1000]], $out);
+    }
+    
+    public function testPartitionMapByThreadable()
+    {
+        $fn = F::partitionMapBy(fn($v, $k) => intval($k / 3), fn($v, $k) => $v * 100);
+        $this->assertTrue(is_callable($fn));
+        $out = $fn([1,2,3,4,5,6,7,8,9,10]);
         $this->assertTrue(is_array($out));
         $this->assertEquals([[100,200,300],[400,500,600],[700,800,900],[1000]], $out);
     }
@@ -119,6 +137,14 @@ final class PartitionTest extends TestCase
         $this->assertEquals([6,15,24,10], $out);
     }
 
+    public function testPartitionReduceByThreadable()
+    {
+        $fn = F::partitionReduceBy(fn($v, $k) => intval($k / 3), fn($acc, $v) => $acc + $v, 0);
+        $out = $fn([1,2,3,4,5,6,7,8,9,10]);
+        $this->assertTrue(is_array($out));
+        $this->assertEquals([6,15,24,10], $out);
+    }
+    
     public function testPartitionReduceByEmptyIterable()
     {
         $out = F::partitionReduceBy(fn($v) => intval($v / 3), fn($a, $v) => $a + $v, 0, $this->itGen([]));

@@ -1137,27 +1137,42 @@ final class FPHP
         return $out;
     }
 
-    public static function partitionByT(callable $fnGroup, callable $step)
+    /**
+     * Transducer for partitionBy function.
+     * 
+     * @param callable $fnGroup     Grouping function
+     * 
+     * @return callable     (stateful) transducer
+     */
+    public static function partitionByT(callable $fnGroup) : callable
     {
         return self::partitionReduceByT(
             $fnGroup,
             fn($acc, $v) => self::append($acc, $v),
-            [],
-            $step
-        );
-    }
-
-    public static function partitionMapByT(callable $fnGroup, callable $fnMap, callable $step)
-    {
-        return self::partitionReduceByT(
-            $fnGroup,
-            fn($acc, $v, $k) => self::append($acc, $fnMap($v, $k)),
-            [],
-            $step
+            []
         );
     }
 
     /**
+     * Transducer for partitionMapBy function.
+     * 
+     * @param callable $fnGroup     Grouping function
+     * @param callable $fnMap       Transformation function
+     * 
+     * @return callable     (stateful) transducer
+     */
+    public static function partitionMapByT(callable $fnGroup, callable $fnMap) : callable
+    {
+        return self::partitionReduceByT(
+            $fnGroup,
+            fn($acc, $v, $k) => self::append($acc, $fnMap($v, $k)),
+            []
+        );
+    }
+
+    /**
+     * Transducer for partitionReduceBy function.
+     * 
      * Returns a stateful transducer, which can be called as normal (3 args), or
      * called with 1 argument to cause it to flush through its value.
      *
@@ -1165,20 +1180,20 @@ final class FPHP
      * https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/Transducers/00.36.36.jpg
      * https://www.youtube.com/watch?v=6mTbuzafcII
      * 
-     * @param callable $fnGroup
-     * @param callable $fnReduce
-     * @param type $initial
-     * @param callable $step
-     * @return type
+     * @param callable $fnGroup     Grouping function
+     * @param callable $fnReduce    Reducing function
+     * @param type $initial         starting value for each group
+     * 
+     * @return callable     (stateful) transducer
      */
-    public static function partitionReduceByT(callable $fnGroup, callable $fnReduce, $initial, callable $step)
+    public static function partitionReduceByT(callable $fnGroup, callable $fnReduce, $initial) : callable
     {
         $started = false;
         $grp = null;
         $cache = null;
 
         // multi-arity transducer...
-        return self::multiArityfunction(
+        return fn(callable $step) => self::multiArityfunction(
             // arity-1 flushes out any value in the cache (called at the end to
             // get the data left in cache after the last item has been processed)
             function($acc) use(&$started, &$cache, &$grp, $step) {
@@ -1220,17 +1235,22 @@ final class FPHP
      *
      * @param callable $fnGroup         determines when to partition input collection,
      *                                  and index to use for output values.
-     * @param iterable $collection      input collection
+     * @param iterable $sequence        input sequence, threadable
      *
-     * @return iterable (same type as $collection)
+     * @return iterable|callable        same type as $sequence, or callable if sequence
+     *                                  is null
      */
-    public static function partitionBy(callable $fnGroup, iterable $collection)
+    public static function partitionBy(callable $fnGroup, ?iterable $sequence = null)
     {
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::partitionBy($fnGroup, $sequence);
+        }
         return self::transduce(
-            fn($step) => self::partitionByT($fnGroup, $step),
-            self::defaultStepK($collection),
-            self::emptied($collection),
-            $collection
+            self::partitionByT($fnGroup),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
     }
 
@@ -1248,17 +1268,22 @@ final class FPHP
      * @param callable $fnMap           each value in the input collection is mapped
      *                                  to create the corresponding value in the output
      *                                  collection
-     * @param iterable $collection      input collection
+     * @param iterable $sequence        input sequence, threadable
      *
-     * @return iterable (same type as $collection)
+     * @return iterable|callable        same type as $sequence, or callable if sequence
+     *                                  is null
      */
-    public static function partitionMapBy(callable $fnGroup, callable $fnMap, iterable $collection)
+    public static function partitionMapBy(callable $fnGroup, callable $fnMap, ?iterable $sequence = null)
     {
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::partitionMapBy($fnGroup, $fnMap, $sequence);
+        }
         return self::transduce(
-            fn($step) => self::partitionMapByT($fnGroup, $fnMap, $step),
-            self::defaultStepK($collection),
-            self::emptied($collection),
-            $collection
+            self::partitionMapByT($fnGroup, $fnMap),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
     }
 
@@ -1281,17 +1306,22 @@ final class FPHP
      *                                  values in the output collection.
      * @param mixed $initial            cloned to produce the initial value for each
      *                                  group reduction
-     * @param iterable $collection      input collection
+     * @param iterable $sequence        input sequence, threadable
      *
-     * @return iterable (same type as $collection)
+     * @return iterable|callable        same type as $sequence, or callable if sequence
+     *                                  is null
      */
-    public static function partitionReduceBy(callable $fnGroup, callable $fnReducer, $initial, iterable $collection)
+    public static function partitionReduceBy(callable $fnGroup, callable $fnReducer, $initial, ?iterable $sequence = null)
     {
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::partitionReduceBy($fnGroup, $fnReducer, $initial, $sequence);
+        }
         return self::transduce(
-            fn($step) => self::partitionReduceByT($fnGroup, $fnReducer, $initial, $step),
-            self::defaultStepK($collection),
-            self::emptied($collection),
-            $collection
+            self::partitionReduceByT($fnGroup, $fnReducer, $initial),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
     }
 
