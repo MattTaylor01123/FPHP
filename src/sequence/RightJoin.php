@@ -27,13 +27,18 @@ trait RightJoin
      * @param callable $fnPred          (v2, v1, k2, k1) => bool
      * @param callable $fnCombinator    (v2, v1 (optional)) => new value
      * @param iterable $seq1            first (outer) sequence
-     * @param iterable $seq2            second (inner) sequence
+     * @param iterable $seq2            optional, second (inner) sequence, threadable
      * 
      * @return iterable         a new sequence containing all values produced
      * by fnCombinator
      */
-    public static function rightJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, iterable $seq2) : iterable
+    public static function rightJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, ?iterable $seq2 = null) : iterable
     {
+        if($seq2 === null)
+        {
+            return fn(iterable $seq2) => self::rightJoin($fnPred, $fnCombinator, $seq1, $seq2);
+        }
+        
         return self::transduce2(
             self::leftJoinT2($fnPred, $fnCombinator),
             self::defaultStep($seq1), 

@@ -8,10 +8,28 @@ namespace src\sequence;
 
 trait Take
 {
-    public static function takeT(int $count, callable $step)
+    // Because Take operates from the start of the sequence, for indexed arrays
+    // (and sequences) the keys in the destination are the same as in the source
+    // hence why takeWhileK and takeK are not required (whereas skipK and
+    // skipWhileK are).
+    
+    /**
+     * Transducer for the take function.
+     * 
+     * Returns a transducer that takes the specified number of elements from the
+     * input, or less if the full amount are not available.
+     * 
+     * Once the quota has been met, the transducer signals completion using
+     * 'Reduced'.
+     * 
+     * @param int $count    number of elements to take
+     * 
+     * @return callable
+     */
+    public static function takeT(int $count) : callable
     {
         $i = 0;
-        return function($acc, $v, $k) use($step, $count, &$i) {
+        return fn(callable $step) => function($acc, $v, $k) use($step, $count, &$i) {
             $i++;
             if($i < $count)
             {
@@ -28,21 +46,27 @@ trait Take
         };
     }
 
-    public static function take(int $count, $target)
+    /**
+     * Takes the given number of elements from the sequence, or less if the
+     * full number isn't available.
+     * 
+     * @param int $count                the number of elements to take
+     * @param iterable|null $sequence   optional, the sequence to take from, threadable
+     * @return type
+     */
+    public static function take(int $count, ?iterable $sequence = null)
     {
-        if(is_object($target) && method_exists($target, "take"))
+        if($sequence === null)
         {
-            return $target->take($count);
+            return fn(iterable $sequence) => self::take($count, $sequence);
         }
-        else
-        {
-            // step preserves keys, so use K step
-            return self::transduce(
-                fn($step) => self::takeT($count, $step),
-                self::defaultStepK($target),
-                self::emptied($target),
-                $target
-            );
-        }
+        
+        // take preserves keys, so use K step
+        return self::transduce(
+            self::takeT($count),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
+        );
     }
 }

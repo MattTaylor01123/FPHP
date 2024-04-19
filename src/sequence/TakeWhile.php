@@ -8,6 +8,11 @@ namespace src\sequence;
 
 trait TakeWhile 
 {
+    // Because Take operates from the start of the sequence, for indexed arrays
+    // (and sequences) the keys in the destination are the same as in the source
+    // hence why takeWhileK and takeK are not required (whereas skipK and
+    // skipWhileK are).
+    
     /**
      * takeWhile transducer
      * 
@@ -38,24 +43,24 @@ trait TakeWhile
      * input collection up to the first value that does not satisfy the given
      * predicate.
      * 
-     * @param callable $pred    predicate
-     * @param iterable $coll    collection to read values from, threadable
+     * @param callable $pred        predicate
+     * @param iterable $sequence    optional, collection to read values from, threadable
      * 
      * @return iterable|callable new collection with only the taken values, or
      * a callable if $coll was null.
      */
-    public static function takeWhile(callable $pred, ?iterable $coll = null)
+    public static function takeWhile(callable $pred, ?iterable $sequence = null)
     {
-        if($coll === null)
+        if($sequence === null)
         {
-            return fn(iterable $coll) => self::takeWhile($pred, $coll);
+            return fn(iterable $sequence) => self::takeWhile($pred, $sequence);
         }
         // takeWhile preserves keys so use K step
         return self::transduce(
             self::takeWhileT($pred),
-            self::defaultStepK($coll),
-            self::emptied($coll),
-            $coll
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
     }
 }

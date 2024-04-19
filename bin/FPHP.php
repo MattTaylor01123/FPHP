@@ -984,13 +984,18 @@ final class FPHP
      * @param callable $fnPred          (v1, v2, k1, k2) => bool
      * @param callable $fnCombinator    (v1, v2 (optional)) => new value
      * @param iterable $seq1            first (outer) sequence
-     * @param iterable $seq2            second (inner) sequence
+     * @param iterable $seq2            optional, second (inner) sequence, threadable
      * 
      * @return iterable         a new sequence containing all values produced
      * by fnCombinator
      */
-    public static function leftJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, iterable $seq2) : iterable
+    public static function leftJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, ?iterable $seq2 = null) : iterable
     {
+        if($seq2 === null)
+        {
+            return fn(iterable $seq2) => self::leftJoin($fnPred, $fnCombinator, $seq1, $seq2);
+        }
+        
         return self::transduce2(
             self::leftJoinT2($fnPred, $fnCombinator),
             self::defaultStep($seq1), 
@@ -1325,81 +1330,6 @@ final class FPHP
         );
     }
 
-    public static function path(iterable $path, $target)
-    {
-        return self::reduce(function($acc, $part) {
-            if($acc)
-            {
-                return self::prop($part, $acc);
-            }
-            else
-            {
-                return new Reduced($acc);
-            }
-        }, $target, $path);
-    }
-
-    public static function dissocPath(iterable $path, $val, $target)
-    {
-        return self::ssocPath($path, $val, $target, fn($acc, $p) => self::dissoc($acc, $p));
-    }
-
-    private static function ssocPath(iterable $path, $val, $target, $step)
-    {
-        $pathArr = is_array($path) ? $path : iterator_to_array($path, false);
-        $pathLen = count($pathArr);
-
-        if($pathLen === 0)
-        {
-            throw new InvalidArgumentException("Invalid path length");
-        }
-        else if($pathLen === 1)
-        {
-            return $step($target, $val, $path[0]);
-        }
-        else if(self::isTraversable($target) || self::isGenerator($target))
-        {
-            $fn = function() use($pathArr, $val, $target, $pathLen, $step) {
-                $returnedVal = false;
-                foreach($target as $k => $v)
-                {
-                    if($k === $pathArr[0] && $pathLen > 1)
-                    {
-                        $returnedVal = true;
-                        yield $k => self::ssocPath(array_slice($pathArr, 1), $val, $v, $step);
-                    }
-                    else
-                    {
-                        yield $k => $v;
-                    }
-                }
-                if(!$returnedVal)
-                {
-                    throw new Exception("Invalid path");
-                }
-            };
-            $out = self::generatorToIterable($fn);
-        }
-        else if(is_array($target) || is_object($target))
-        {
-            if(self::hasProp($pathArr[0], $target))
-            {
-                $currV = self::prop($path[0], $target);
-                $newV = self::ssocPath(array_slice($pathArr, 1), $val, $currV, $step);
-                $out = $step($target, $newV, $pathArr[0]);
-            }
-            else
-            {
-                throw new Exception("Invalid path");
-            }
-        }
-        else
-        {
-            throw new InvalidArgumentException("'target' must be of type array, traversable, generator, or object");
-        }
-        return $out;
-    }
-
     public static function pick(iterable $properties, $target)
     {
         return self::filterK(fn($v, $k) => self::includes($k, $properties), $target);
@@ -1463,11 +1393,6 @@ final class FPHP
         $this->v = $v;
     }
 
-    public static function reject(callable $func, iterable $target)
-    {
-        return self::filter(self::complement($func), $target);
-    }
-
     /**
      * Perform an SQL-style right join on two sequences.
      * 
@@ -1484,13 +1409,18 @@ final class FPHP
      * @param callable $fnPred          (v2, v1, k2, k1) => bool
      * @param callable $fnCombinator    (v2, v1 (optional)) => new value
      * @param iterable $seq1            first (outer) sequence
-     * @param iterable $seq2            second (inner) sequence
+     * @param iterable $seq2            optional, second (inner) sequence, threadable
      * 
      * @return iterable         a new sequence containing all values produced
      * by fnCombinator
      */
-    public static function rightJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, iterable $seq2) : iterable
+    public static function rightJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, ?iterable $seq2 = null) : iterable
     {
+        if($seq2 === null)
+        {
+            return fn(iterable $seq2) => self::rightJoin($fnPred, $fnCombinator, $seq1, $seq2);
+        }
+        
         return self::transduce2(
             self::leftJoinT2($fnPred, $fnCombinator),
             self::defaultStep($seq1), 
@@ -1552,22 +1482,22 @@ final class FPHP
     /**
      * Transducer for the skip functions.
      *
-     * Creates a new step function which when called skips over the first $count
-     * values, only passing every value after that to the passed in step function.
+     * Creates a new transducer which when called skips over the first $count
+     * values, only passing every value after that to the passed in step 
+     * function.
      *
      * @param int $count        Number of items to skip
-     * @param callable $step    Step function
      * 
      * @return callable
      */
-    public static function skipT(int $count, callable $step) : callable
+    public static function skipT(int $count) : callable
     {
         if($count < 0)
         {
             throw new InvalidArgumentException("'count' cannot be negative");
         }
         $skipped = 0;
-        return function($acc, $v, $k) use($count, $step, &$skipped)
+        return fn(callable $step) => function($acc, $v, $k) use($count, $step, &$skipped)
         {
             if($skipped < $count)
             {
@@ -1582,21 +1512,91 @@ final class FPHP
     }
 
     /**
+     * Creates and returns a collection of the same type as the input but with the
+     * first $count items removed.
+     *
+     * @param int $count          Number of items to skip.
+     * @param iterable $sequence  Optional, collection whose starting items will be skipped, threadable.
+     *
+     * @return iterable new collection with leading $count items removed.
+     */
+    public static function skip(int $count, ?iterable $sequence = null)
+    {
+        if($count < 0)
+        {
+            throw new InvalidArgumentException("'count' cannot be negative");
+        }
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::skip($count, $sequence);
+        }
+        else if(is_array($sequence))
+        {
+            $out = array_values(array_slice($sequence, $count));
+        }
+        else
+        {
+            $out = self::transduce(
+                self::skipT($count),
+                self::defaultStep($sequence),
+                self::emptied($sequence),
+                $sequence
+            );
+        }
+        return $out;
+    }
+
+    /**
+     * Creates and returns a collection of the same type as the input but with the
+     * first $count items removed.
+     *
+     * @param int $count            Number of items to skip.
+     * @param iterable $sequence    Optional, collection whose starting items will be skipped, threadable.
+     *
+     * @return iterable new collection with leading $count items removed. Retains
+     * keys from input collection.
+     */
+    public static function skipK(int $count, ?iterable $sequence = null)
+    {
+        if($count < 0)
+        {
+            throw new InvalidArgumentException("'count' cannot be negative");
+        }
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::skipK($count, $sequence);
+        }
+        if(is_array($sequence))
+        {
+            $out = array_slice($sequence, $count);
+        }
+        else
+        {
+            $out = self::transduce(
+                self::skipT($count),
+                self::defaultStepK($sequence),
+                self::emptied($sequence),
+                $sequence
+            );
+        }
+        return $out;
+    }
+
+    /**
      * Transducer for skip-while functions
      *
-     * Given a predicate and a step function, creates a new step function
-     * that when called skips any leading values up until the first leading
-     * value that matches the given predicate.
+     * Given a predicate, creates a new transducer that when called skips any 
+     * leading values up until the first leading value that matches the given 
+     * predicate.
      *
      * @param callable $pred        predicate function
-     * @param callable $step        step function
      *
      * @return callable
      */
-    public static function skipWhileT(callable $pred, callable $step) : callable
+    public static function skipWhileT(callable $pred) : callable
     {
         $skipping = true;
-        return function($acc, $v, $k) use($pred, $step, &$skipping)
+        return fn(callable $step) => function($acc, $v, $k) use($pred, $step, &$skipping)
         {
             $skipping = $skipping && $pred($v, $k);
             if(!$skipping)
@@ -1611,85 +1611,27 @@ final class FPHP
     }
 
     /**
-     * Creates and returns a collection of the same type as the input but with the
-     * first $count items removed.
-     *
-     * @param int $count            Number of items to skip.
-     * @param iterable $collection  Collection whose starting items will be skipped.
-     *
-     * @return iterable new collection with leading $count items removed.
-     */
-    public static function skip(int $count, iterable $collection) : iterable
-    {
-        if($count < 0)
-        {
-            throw new InvalidArgumentException("'count' cannot be negative");
-        }
-        if(is_array($collection))
-        {
-            $out = array_values(array_slice($collection, $count));
-        }
-        else
-        {
-            $out = self::transduce(
-                fn($step) => self::skipT($count, $step),
-                self::defaultStep($collection),
-                self::emptied($collection),
-                $collection
-            );
-        }
-        return $out;
-    }
-
-    /**
-     * Creates and returns a collection of the same type as the input but with the
-     * first $count items removed.
-     *
-     * @param int $count            Number of items to skip.
-     * @param iterable $collection  Collection whose starting items will be skipped.
-     *
-     * @return iterable new collection with leading $count items removed. Retains
-     * keys from input collection.
-     */
-    public static function skipK(int $count, iterable $collection) : iterable
-    {
-        if($count < 0)
-        {
-            throw new InvalidArgumentException("'count' cannot be negative");
-        }
-        if(is_array($collection))
-        {
-            $out = array_slice($collection, $count);
-        }
-        else
-        {
-            $out = self::transduce(
-                fn($step) => self::skipT($count, $step),
-                self::defaultStepK($collection),
-                self::emptied($collection),
-                $collection
-            );
-        }
-        return $out;
-    }
-
-    /**
      * Returns a new collection that omits all leading items in the input collection
      * up until the first item to satisfy the given predicate.
      *
      * @param callable $pred            Test items in the input collection
-     * @param iterable $collection      Input collection
+     * @param iterable $sequence        Optional, input collection, threadable.
      *
      * @return iterable new collection with leading items that fail the predicate
      * removed.
      */
-    public static function skipWhile(callable $pred, iterable $collection) : iterable
+    public static function skipWhile(callable $pred, ?iterable $sequence = null)
     {
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::skipWhile($pred, $sequence);
+        }
+        
         $out = self::transduce(
-            fn($step) => self::skipWhileT($pred, $step),
-            self::defaultStep($collection),
-            self::emptied($collection),
-            $collection
+            self::skipWhileT($pred),
+            self::defaultStep($sequence),
+            self::emptied($sequence),
+            $sequence
         );
         return $out;
     }
@@ -1699,18 +1641,23 @@ final class FPHP
      * up until the first item to satisfy the given predicate.
      *
      * @param callable $pred            Test items in the input collection
-     * @param iterable $collection      Input collection
+     * @param iterable $sequence        Input collection
      *
      * @return iterable new collection with leading items that fail the predicate
      * removed. Retains keys from input collection.
      */
-    public static function skipWhileK(callable $pred, iterable $collection) : iterable
+    public static function skipWhileK(callable $pred, ?iterable $sequence = null)
     {
+        if($sequence === null)
+        {
+            return fn(iterable $sequence) => self::skipWhileK($pred, $sequence);
+        }
+        
         $out = self::transduce(
-            fn($step) => self::skipWhileT($pred, $step),
-            self::defaultStepK($collection),
-            self::emptied($collection),
-            $collection
+            self::skipWhileT($pred),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
         return $out;
     }
@@ -1820,10 +1767,23 @@ final class FPHP
         return $out;
     }
 
-    public static function takeT(int $count, callable $step)
+    /**
+     * Transducer for the take function.
+     * 
+     * Returns a transducer that takes the specified number of elements from the
+     * input, or less if the full amount are not available.
+     * 
+     * Once the quota has been met, the transducer signals completion using
+     * 'Reduced'.
+     * 
+     * @param int $count    number of elements to take
+     * 
+     * @return callable
+     */
+    public static function takeT(int $count) : callable
     {
         $i = 0;
-        return function($acc, $v, $k) use($step, $count, &$i) {
+        return fn(callable $step) => function($acc, $v, $k) use($step, $count, &$i) {
             $i++;
             if($i < $count)
             {
@@ -1840,22 +1800,28 @@ final class FPHP
         };
     }
 
-    public static function take(int $count, $target)
+    /**
+     * Takes the given number of elements from the sequence, or less if the
+     * full number isn't available.
+     * 
+     * @param int $count                the number of elements to take
+     * @param iterable|null $sequence   optional, the sequence to take from, threadable
+     * @return type
+     */
+    public static function take(int $count, ?iterable $sequence = null)
     {
-        if(is_object($target) && method_exists($target, "take"))
+        if($sequence === null)
         {
-            return $target->take($count);
+            return fn(iterable $sequence) => self::take($count, $sequence);
         }
-        else
-        {
-            // step preserves keys, so use K step
-            return self::transduce(
-                fn($step) => self::takeT($count, $step),
-                self::defaultStepK($target),
-                self::emptied($target),
-                $target
-            );
-        }
+        
+        // take preserves keys, so use K step
+        return self::transduce(
+            self::takeT($count),
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
+        );
     }
 
     /**
@@ -1888,43 +1854,43 @@ final class FPHP
      * input collection up to the first value that does not satisfy the given
      * predicate.
      * 
-     * @param callable $pred    predicate
-     * @param iterable $coll    collection to read values from, threadable
+     * @param callable $pred        predicate
+     * @param iterable $sequence    optional, collection to read values from, threadable
      * 
      * @return iterable|callable new collection with only the taken values, or
      * a callable if $coll was null.
      */
-    public static function takeWhile(callable $pred, ?iterable $coll = null)
+    public static function takeWhile(callable $pred, ?iterable $sequence = null)
     {
-        if($coll === null)
+        if($sequence === null)
         {
-            return fn(iterable $coll) => self::takeWhile($pred, $coll);
+            return fn(iterable $sequence) => self::takeWhile($pred, $sequence);
         }
         // takeWhile preserves keys so use K step
         return self::transduce(
             self::takeWhileT($pred),
-            self::defaultStepK($coll),
-            self::emptied($coll),
-            $coll
+            self::defaultStepK($sequence),
+            self::emptied($sequence),
+            $sequence
         );
     }
 
     /**
-     * Creates a new collection from an existing collection by applying a
-     * transducer to the existing collection.
+     * Creates a new sequence from an existing sequence by applying a
+     * transducer to the existing sequence.
      * 
      * @param callable $transducer  transducer function
      * @param callable $step        step function
      * @param mixed $initial        output initial value
-     * @param mixed $collection     input to transduce
+     * @param mixed $sequence   input to transduce
      * 
-     * @return mixed transduced collection
+     * @return mixed transduced sequence
      */
-    public static function transduce(callable $transducer, callable $step, $initial, $collection)
+    public static function transduce(callable $transducer, callable $step, $initial, $sequence)
     {
         if($initial instanceof Traversable)
         {
-            return new TransformedTraversable($transducer, $step, $collection);
+            return new TransformedTraversable($transducer, $step, $sequence);
         }
         else
         {
@@ -1933,7 +1899,7 @@ final class FPHP
             // the transducer
             $out = $initial;
             $reducer = $transducer($step);
-            foreach($collection as $k => $v)
+            foreach($sequence as $k => $v)
             {
                 $out = $reducer($out, $v, $k);
                 if($out instanceof Reduced)
@@ -1953,18 +1919,30 @@ final class FPHP
         }
     }
 
-    public static function transduce2(callable $transducer, callable $step, $initial, $sequence1, $sequence2)
+    /**
+     * Creates a new collection from two existing collections by applying a 2D
+     * transducer to the existing collections.
+     * 
+     * @param callable $transducer2D    transducer function
+     * @param callable $step            step function
+     * @param mixed $initial            output initial value
+     * @param iterable $sequence1       input to transduce
+     * @param iterable $sequence2       input to transduce
+     * 
+     * @return mixed result
+     */
+    public static function transduce2(callable $transducer2D, callable $step, $initial, iterable $sequence1, iterable $sequence2)
     {
         if($sequence1 instanceof Traversable)
         {
-            return new TransformedTraversable2($transducer, $step, $sequence1, $sequence2);
+            return new TransformedTraversable2($transducer2D, $step, $sequence1, $sequence2);
         }
 
         // do our own reduction here as we need to know whether we exited
         // early or not, so that we know whether or not to try to flush
         // the transducer
         $out = $initial;
-        $reducer = $transducer($step);
+        $reducer = $transducer2D($step);
         foreach($sequence1 as $k1 => $v1)
         {
             foreach($sequence2 as $k2 => $v2)
@@ -2126,6 +2104,62 @@ final class FPHP
             $out = self::assoc($map, $newSubColl, $path[0]);
             return $out;
         }
+    }
+
+    public static function dissocPath(iterable $path, $val, $target)
+    {
+        $pathArr = is_array($path) ? $path : iterator_to_array($path, false);
+        $pathLen = count($pathArr);
+
+        if($pathLen === 0)
+        {
+            throw new InvalidArgumentException("Invalid path length");
+        }
+        else if($pathLen === 1)
+        {
+            return self::dissoc($target, $val, $path[0]);
+        }
+        else if(self::isTraversable($target) || self::isGenerator($target))
+        {
+            $fn = function() use($pathArr, $val, $target, $pathLen) {
+                $returnedVal = false;
+                foreach($target as $k => $v)
+                {
+                    if($k === $pathArr[0] && $pathLen > 1)
+                    {
+                        $returnedVal = true;
+                        yield $k => self::dissocPath(array_slice($pathArr, 1), $val, $v);
+                    }
+                    else
+                    {
+                        yield $k => $v;
+                    }
+                }
+                if(!$returnedVal)
+                {
+                    throw new Exception("Invalid path");
+                }
+            };
+            $out = self::generatorToIterable($fn);
+        }
+        else if(is_array($target) || is_object($target))
+        {
+            if(self::hasProp($pathArr[0], $target))
+            {
+                $currV = self::prop($path[0], $target);
+                $newV = self::dissocPath(array_slice($pathArr, 1), $val, $currV);
+                $out = self::dissoc($target, $newV, $pathArr[0]);
+            }
+            else
+            {
+                throw new Exception("Invalid path");
+            }
+        }
+        else
+        {
+            throw new InvalidArgumentException("'target' must be of type array, traversable, generator, or object");
+        }
+        return $out;
     }
 
     /**
@@ -2414,6 +2448,20 @@ final class FPHP
                 self::reduce(fn($acc, $v, $k) => self::assoc($acc, $v, $k), $acc, $map), $initial, [$map2, $map1]);
         }
         return $out;
+    }
+
+    public static function path(iterable $path, $target)
+    {
+        return self::reduce(function($acc, $part) {
+            if($acc)
+            {
+                return self::prop($part, $acc);
+            }
+            else
+            {
+                return new Reduced($acc);
+            }
+        }, $target, $path);
     }
 
     public static function prop(string $propName, $target)

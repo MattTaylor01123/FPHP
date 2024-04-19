@@ -65,13 +65,18 @@ trait LeftJoin
      * @param callable $fnPred          (v1, v2, k1, k2) => bool
      * @param callable $fnCombinator    (v1, v2 (optional)) => new value
      * @param iterable $seq1            first (outer) sequence
-     * @param iterable $seq2            second (inner) sequence
+     * @param iterable $seq2            optional, second (inner) sequence, threadable
      * 
      * @return iterable         a new sequence containing all values produced
      * by fnCombinator
      */
-    public static function leftJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, iterable $seq2) : iterable
+    public static function leftJoin(callable $fnPred, callable $fnCombinator, iterable $seq1, ?iterable $seq2 = null) : iterable
     {
+        if($seq2 === null)
+        {
+            return fn(iterable $seq2) => self::leftJoin($fnPred, $fnCombinator, $seq1, $seq2);
+        }
+        
         return self::transduce2(
             self::leftJoinT2($fnPred, $fnCombinator),
             self::defaultStep($seq1), 
