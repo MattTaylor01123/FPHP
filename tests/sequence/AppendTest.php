@@ -18,6 +18,10 @@ final class AppendTest extends TestCase
         $o = F::append([1,2,3,4,5], 6);
         $this->assertTrue(is_array($o));
         $this->assertEquals([1,2,3,4,5,6], $o);
+        
+        $o2 = F::append([1,2,3,4], 5, 6);
+        $this->assertTrue(is_array($o2));
+        $this->assertEquals([1,2,3,4,5,6], $o2);
     }
 
     public function testAppendArrayAssoc()
@@ -25,6 +29,10 @@ final class AppendTest extends TestCase
         $o = F::append(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5], 6);
         $this->assertTrue(is_array($o));
         $this->assertEquals([1,2,3,4,5,6], $o);
+        
+        $o2 = F::append(["a" => 1, "b" => 2, "c" => 3, "d" => 4], 5, 6);
+        $this->assertTrue(is_array($o2));
+        $this->assertEquals([1,2,3,4,5,6], $o2);
     }
 
     public function testAppendItIdx()
@@ -32,6 +40,10 @@ final class AppendTest extends TestCase
         $o = F::append(F::generatorToIterable(fn() => yield from [10, 20, 30, 40]), 50);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([10, 20, 30, 40, 50], iterator_to_array($o, true));
+        
+        $o2 = F::append(F::generatorToIterable(fn() => yield from [10, 20, 30, 40]), 50, 60);
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals([10, 20, 30, 40, 50, 60], iterator_to_array($o2, true));
     }
 
     public function testAppendItAssoc()
@@ -39,6 +51,10 @@ final class AppendTest extends TestCase
         $o = F::append(F::generatorToIterable(fn() => yield from ["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([10, 20, 30, 40, 50], iterator_to_array($o, true));
+        
+        $o2 = F::append(F::generatorToIterable(fn() => yield from ["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50, 60);
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals([10, 20, 30, 40, 50, 60], iterator_to_array($o2, true));
     }
 
     // appendK
@@ -48,6 +64,10 @@ final class AppendTest extends TestCase
         $o = F::appendK([1,2,3,4,5], 6, 5);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([1,2,3,4,5,6], iterator_to_array($o, true));
+        
+        $o2 = F::appendK([1,2,3,4], 5, 4, 6, 5);
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals([1,2,3,4,5,6], iterator_to_array($o2, true));
     }
 
     public function testAppendKArrayAssoc()
@@ -55,6 +75,10 @@ final class AppendTest extends TestCase
         $o = F::appendK(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5], 6, "f");
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5, "f" => 6], iterator_to_array($o, true));
+        
+        $o2 = F::appendK(["a" => 1, "b" => 2, "c" => 3, "d" => 4], 5, "e", 6, "f");
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5, "f" => 6], iterator_to_array($o2, true));
     }
 
     public function testAppendKItIdx()
@@ -62,6 +86,10 @@ final class AppendTest extends TestCase
         $o = F::appendK($this->toGen([10, 20, 30, 40]), 50, 4);
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals([10, 20, 30, 40, 50], iterator_to_array($o, true));
+        
+        $o2 = F::appendK($this->toGen([10, 20, 30, 40]), 50, 4, 60, 5);
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals([10, 20, 30, 40, 50, 60], iterator_to_array($o2, true));
     }
 
     public function testAppendKItAssoc()
@@ -69,6 +97,10 @@ final class AppendTest extends TestCase
         $o = F::appendK($this->toGen(["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50, "m");
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals(["i" => 10, "j" => 20, "k" => 30, "l" => 40, "m" => 50], iterator_to_array($o, true));
+        
+        $o2 = F::appendK($this->toGen(["i" => 10, "j" => 20, "k" => 30, "l" => 40]), 50, "m", 60, "n");
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals(["i" => 10, "j" => 20, "k" => 30, "l" => 40, "m" => 50, "n" => 60], iterator_to_array($o2, true));
     }
 
     public function testAppendKRepeatedKeys()
@@ -76,6 +108,10 @@ final class AppendTest extends TestCase
         $o = F::appendK(["a" => 1, "b" => 2, "c" => 3], 4, "b");
         $this->assertTrue($o instanceof \Traversable);
         $this->assertEquals(["a" => 1, "b" => 2, "c" => 3, "b" => 4], iterator_to_array($o, true));
+        
+        $o2 = F::appendK(["a" => 1, "b" => 2, "c" => 3], 4, "b", 5, "c");
+        $this->assertTrue($o2 instanceof \Traversable);
+        $this->assertEquals(["a" => 1, "b" => 2, "c" => 3, "b" => 4, "c" => 5], iterator_to_array($o2, true));
     }
 
     private function toGen($arr)
