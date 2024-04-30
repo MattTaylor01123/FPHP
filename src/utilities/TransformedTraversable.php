@@ -34,7 +34,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             
             public function append($v)
             {
-                $this->vals[$this->i] = $v;
+                $this->vals[] = [$this->i, $v];
                 $this->i++;
                 $this->set = true;
                 return $this;
@@ -42,7 +42,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             
             public function appendK($v, $k)
             {
-                $this->vals[$k] = $v;
+                $this->vals[] = [$k, $v];
                 $this->set = true;
                 return $this;
             }
@@ -62,7 +62,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             {
                 if($current->v->set)
                 {
-                    foreach($current->v->vals as $k => $v)
+                    foreach($current->v->vals as list($k, $v))
                     {
                         yield $k => $v;
                     }
@@ -73,7 +73,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
             }
             else if($current->set)
             {
-                foreach($current->vals as $k => $v)
+                foreach($current->vals as list($k, $v))
                 {
                     yield $k => $v;
                 }
@@ -88,7 +88,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
                 $current = $reducer($current);
                 if($current->set)
                 {
-                    foreach($current->vals as $k => $v)
+                    foreach($current->vals as list($k, $v))
                     {
                         yield $k => $v;
                     }
