@@ -19,7 +19,12 @@ trait Map
      */
     public static function mapT(callable $transform) : callable
     {
-        return fn($step) => fn($acc, $v, $k) => $step($acc, $transform($v, $k), $k);
+        // multi-arity transducer...
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            fn($acc, $v, $k) => $step($acc, $transform($v, $k), $k)
+        );
     }
 
     /**

@@ -48,12 +48,55 @@ final class TransformedTraversable2 implements IteratorAggregate, JsonSerializab
                 $this->set = true;
                 return $this;
             }
+
+            /**
+             * prepend cannot be lazy - have to process the entirety of the input
+             * sequence to find out which value will be at the start of the output
+             * sequence.
+             * 
+             * Therefore, every time values are to be pre-pended, keep track of them
+             * but don't flag as data available (set = true).
+             * 
+             * Then, when no values are passed in, treat as 1-arity reducer and flush
+             * the accumulated values.
+             */
+            public function prepend($v = "__DEF__")
+            {
+                if($v === "__DEF__")
+                {
+                    $this->set = true;
+                    foreach($this->vals as list(&$k,))
+                    {
+                        $k = ($this->i - 1) - $k;
+                    }
+                    return $this;
+                }
+                $this->vals = [[$this->i, $v], ...$this->vals];
+                $this->i++;
+                return $this;
+            }
             
-            // as prepend cannot be supported without making the traversable
-            // eager
-            
-            // do not support assoc as that can update existing keys, which
-            // again forces us to be eager.
+            /**
+             * prependK cannot be lazy - have to process the entirety of the input
+             * sequence to find out which value will be at the start of the output
+             * sequence.
+             * 
+             * Therefore, every time values are to be prepended, keep track of them
+             * but don't flag as data available (set = true).
+             * 
+             * Then, when no values are passed in, treat as 1-arity reducer and flush
+             * the accumulated values.
+             */
+            public function prependK($v = "__DEF__", $k = "__DEF__")
+            {
+                if($v === "__DEF__" && $k === "__DEF__")
+                {
+                    $this->set = true;
+                    return $this;
+                }
+                $this->vals = [[$k, $v], ...$this->vals];
+                return $this;
+            }
         };
 
         $reducer = ($this->transducer)($this->step);
