@@ -117,9 +117,9 @@ trait Prepend
                 $i = 0;
                 yield $i => $v;
                 $i++;
-                foreach($seq as $v)
+                foreach($seq as $val)
                 {
-                    yield $i => $v;
+                    yield $i => $val;
                     $i++;
                 }
             };
