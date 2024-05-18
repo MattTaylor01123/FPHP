@@ -15,7 +15,7 @@ final class InToTest extends TestCase
     {
         $fn = F::pipe(
             F::mapT(fn($v) => $v + 1),
-            F::filterT(fn($v) => $v % 2)
+            F::filterKT(fn($v) => $v % 2)
         );
 
         $out1 = F::inToK([], $fn, [

@@ -112,4 +112,17 @@ final class MapTest extends TestCase
         $o1 = $fn(["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5]);
         $this->assertSame(["a" => "a1", "b" => "b2", "c" => "c3", "d" => "d4", "e" => "e5"], $o1);       
     }
+    
+    function testEarlyCompletion()
+    {
+        $transducer = F::compose(
+            F::mapT(fn($v) => strtoupper($v)),
+            F::partitionByT(fn($v, $k) => intval($k / 3)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["ABC", "DEF", "GH"], $out);
+    }
 }

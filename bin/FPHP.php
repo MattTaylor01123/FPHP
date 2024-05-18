@@ -66,8 +66,8 @@ final class FPHP
      * I.e. keys are not guaranteed to be unique in the returned Traversable.
      *
      * @param iterable|object $seq  input sequence or object with appendK method
-     * @param mixed $v              value to prepend
-     * @param mixed $k              key to prepend
+     * @param mixed $v              value to append
+     * @param mixed $k              key to append
      *
      * @return Traversable|object new sequence or return value from $seq->appendK
      *
@@ -116,7 +116,7 @@ final class FPHP
      * input sequence followed by the passed in value.
      *
      * @param iterable|object $seq  input sequence or object with "append" method
-     * @param mixed $v              value to prepend
+     * @param mixed $v              value to append
      * 
      * @return iterable|object new sequence or return value of $seq->append. If
      *                         $vals is empty then return input sequence $seq.
@@ -354,7 +354,32 @@ final class FPHP
      */
     public static function filterT(callable $predicate) : callable
     {
-        return fn(callable $step) => fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
+        // multi-arity transducer...
+        $idx = 0;
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            function($acc, $v, $k) use(&$idx, $predicate, $step) {
+                return ($predicate($v, $k) ? $step($acc, $v, $idx++) : $acc);
+            }
+        );
+    }
+
+    /**
+     * filter transducer, preserves keys
+     *
+     * @param callable $predicate       test applied to each value passed in
+     *
+     * @return callable transducer
+     */
+    public static function filterKT(callable $predicate) : callable
+    {
+        // multi-arity transducer...
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc)
+        );
     }
 
     /**
@@ -384,7 +409,7 @@ final class FPHP
         {
             // preserve keys
             $out = self::transduce(
-                self::filterT($predicate),
+                self::filterKT($predicate),
                 self::defaultStepK($target),
                 self::emptied($target),
                 $target
@@ -425,7 +450,7 @@ final class FPHP
         else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
             $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
-            // use the transduce filter, but ignore key
+            // ignore keys
             $out = self::transduce(
                 self::filterT($predicate),
                 self::defaultStep($target),
@@ -2941,21 +2966,44 @@ final class FPHP
         };
     }
 
+    public static function compose(callable ...$funcs)
+    {
+        return function(...$args) use($funcs)
+        {
+            $out = null;
+            $first = true;
+            for($i = count($funcs) - 1; $i >= 0; $i--)
+            {
+                if($first)
+                {
+                    $first = false;
+                    $out = ($funcs[$i])(...$args);
+                }
+                else
+                {
+                    $out = ($funcs[$i])($out);
+                }
+            }
+            return $out;
+        };
+    }
+
     public static function pipex($firstParameter, callable ...$funcs)
     {
         $fn = self::pipe(...$funcs);
         return $fn($firstParameter);
     }
 
-    public static function tapT(...$args)
+    public static function tapT(callable $func)
     {
-        $tapT = self::curry(function(callable $func, callable $step) {
-            return function($acc, $v, $k) use($func, $step) {
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            function($acc, $v, $k) use($func, $step) {
                 $func($v, $k);
                 return $step($acc, $v, $k);
-            };
-        });
-        return $tapT(...$args);
+            }
+        );
     }
 
     public static function tap(...$args)
@@ -3061,7 +3109,7 @@ final class FPHP
             }
             else
             {
-                throw new Exception("Invalid number of arguments for multi arity function");
+                throw new ArgumentCountError("Invalid number of arguments for multi arity function");
             }
         };
     }

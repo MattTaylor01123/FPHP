@@ -43,6 +43,7 @@ final class PrependTest extends TestCase
     
     public function testTransducePrepend()
     {
+        // the ...v is to make v optional, for when the step function gets called with only one argument
         $out = F::transduce(F::mapT(fn($x) => $x * 2), fn($acc, ...$v) => F::prepend($acc, ...$v), $this->toGen([]), $this->toGen([1,2,3]));
         $this->assertTrue($out instanceof \Traversable);
         $this->assertEquals([6,4,2], iterator_to_array($out, false));
@@ -73,6 +74,7 @@ final class PrependTest extends TestCase
 
     public function testTransducePrependK()
     {
+        // the ...v is to make v optional, for when the step function gets called with only one argument
         $out = F::transduce(F::mapT(fn($x, $k) => "{$x}{$k}"), fn($acc, ...$v) => F::prependK($acc, ...$v), $this->toGen([]), $this->toGen(["a" => 1, "b" => 2, "c" => 3]));
         $this->assertTrue($out instanceof \Traversable);
         $this->assertEquals(["3c", "2b", "1a"], iterator_to_array($out, false));

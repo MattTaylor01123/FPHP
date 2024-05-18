@@ -19,7 +19,32 @@ trait Filter
      */
     public static function filterT(callable $predicate) : callable
     {
-        return fn(callable $step) => fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc);
+        // multi-arity transducer...
+        $idx = 0;
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            function($acc, $v, $k) use(&$idx, $predicate, $step) {
+                return ($predicate($v, $k) ? $step($acc, $v, $idx++) : $acc);
+            }
+        );
+    }
+    
+    /**
+     * filter transducer, preserves keys
+     *
+     * @param callable $predicate       test applied to each value passed in
+     *
+     * @return callable transducer
+     */
+    public static function filterKT(callable $predicate) : callable
+    {
+        // multi-arity transducer...
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            fn($acc, $v, $k) => ($predicate($v, $k) ? $step($acc, $v, $k) : $acc)
+        );
     }
 
     /**
@@ -49,7 +74,7 @@ trait Filter
         {
             // preserve keys
             $out = self::transduce(
-                self::filterT($predicate),
+                self::filterKT($predicate),
                 self::defaultStepK($target),
                 self::emptied($target),
                 $target
@@ -90,7 +115,7 @@ trait Filter
         else if(is_object($target) || ($target instanceof \Traversable) || self::isGenerator($target))
         {
             $notTravOrGen = !($target instanceof \Traversable || self::isGenerator($target));
-            // use the transduce filter, but ignore key
+            // ignore keys
             $out = self::transduce(
                 self::filterT($predicate),
                 self::defaultStep($target),

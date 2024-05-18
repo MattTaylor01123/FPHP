@@ -120,4 +120,17 @@ final class FilterTest extends TestCase
         $out2 = $fn2(["l" => 1, "m" => 2, "n" => 3]);
         $this->assertEquals(["m" => 2], $out2);
     }
+    
+    function testEarlyCompletion()
+    {
+        $transducer = F::compose(
+            F::filterT(fn($v) => $v !== "d"),
+            F::partitionByT(fn($v, $k) => intval($k / 3)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["abc", "efg", "h"], $out);
+    }
 }

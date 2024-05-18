@@ -147,6 +147,28 @@ trait Functions
             return $out;
         };
     }
+    
+    public static function compose(callable ...$funcs)
+    {
+        return function(...$args) use($funcs)
+        {
+            $out = null;
+            $first = true;
+            for($i = count($funcs) - 1; $i >= 0; $i--)
+            {
+                if($first)
+                {
+                    $first = false;
+                    $out = ($funcs[$i])(...$args);
+                }
+                else
+                {
+                    $out = ($funcs[$i])($out);
+                }
+            }
+            return $out;
+        };
+    }
 
     public static function pipex($firstParameter, callable ...$funcs)
     {
@@ -154,15 +176,16 @@ trait Functions
         return $fn($firstParameter);
     }
 
-    public static function tapT(...$args)
+    public static function tapT(callable $func)
     {
-        $tapT = self::curry(function(callable $func, callable $step) {
-            return function($acc, $v, $k) use($func, $step) {
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            function($acc, $v, $k) use($func, $step) {
                 $func($v, $k);
                 return $step($acc, $v, $k);
-            };
-        });
-        return $tapT(...$args);
+            }
+        );
     }
 
     public static function tap(...$args)
@@ -268,7 +291,7 @@ trait Functions
             }
             else
             {
-                throw new Exception("Invalid number of arguments for multi arity function");
+                throw new ArgumentCountError("Invalid number of arguments for multi arity function");
             }
         };
     }
