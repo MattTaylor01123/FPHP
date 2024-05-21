@@ -36,7 +36,11 @@ final class FPHP
      */
     public static function adjustT($idx, callable $transform) : callable
     {
-        return fn(callable $step) => fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k)
+        );
     }
 
     public static function adjust($idx, callable $transform, ?iterable $collection = null)

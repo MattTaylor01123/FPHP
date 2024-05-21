@@ -128,4 +128,17 @@ final class AdjustTest extends TestCase
         $this->assertEquals([1,2,3,4,5], $v1);
         $this->assertEquals([1,2,4,4,5], $o1);       
     }
+    
+    function testEarlyCompletion()
+    {
+        $transducer = F::compose(
+            F::adjustT(1, fn($v) => strtoupper($v)),
+            F::partitionByT(fn($v, $k) => intval($k / 3)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["aBc", "def", "gh"], $out);
+    }
 }
