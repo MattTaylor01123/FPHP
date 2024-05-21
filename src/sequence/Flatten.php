@@ -36,9 +36,9 @@ trait Flatten
      */
     public static function flatMapT(callable $transform) : callable
     {
-        return self::pipe(
-            self::flattenT(),
-            self::mapT($transform));
+        return self::compose(
+            self::mapT($transform),
+            self::flattenT());
     }
     
     /**

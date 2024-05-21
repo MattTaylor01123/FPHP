@@ -82,16 +82,28 @@ class FlattenTest extends TestCase
         ], $out2);
     }
     
-    function testEarlyCompletion()
+    function testEarlyCompletionFlatten()
     {
         $transducer = F::compose(
             F::flattenT(),
-            F::tapT(fn($v, $k) => error_log("$k => $v")),
             F::partitionByT(fn($v, $k) => intval($k / 3)),
             F::mapT(fn($v) => implode("", $v))
         );
         
         $input = ["a", "b", ["c", "d"], "e", ["f", "g", "h"]];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["abc", "def", "gh"], $out);
+    }
+    
+    function testEarlyCompletionFlatMap()
+    {
+        $transducer = F::compose(
+            F::flatMapT(fn($v) => F::filter(fn($x) => !is_int($x), $v)),
+            F::partitionByT(fn($v, $k) => intval($k / 3)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = [["a"], ["b"], ["c", "d", 1, 2], ["e"], ["f", "g", "h"]];
         $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
         $this->assertSame(["abc", "def", "gh"], $out);
     }
