@@ -34,9 +34,9 @@ final class FPHP
      *
      * @return callable transducer
      */
-    public static function adjustT($idx, callable $transform, callable $step) : callable
+    public static function adjustT($idx, callable $transform) : callable
     {
-        return fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
+        return fn(callable $step) => fn($acc, $v, $k) => $step($acc, $k === $idx ? $transform($v, $k) : $v, $k);
     }
 
     public static function adjust($idx, callable $transform, ?iterable $collection = null)
@@ -46,7 +46,7 @@ final class FPHP
             return fn($collection) => self::adjust($idx, $transform, $collection);
         }
         return self::transduce(
-            fn($step) => self::adjustT($idx, $transform, $step),
+            self::adjustT($idx, $transform),
             // preserve keys (array itself isn't mutated, only elements)
             self::defaultStepK($collection),
             self::emptied($collection),
