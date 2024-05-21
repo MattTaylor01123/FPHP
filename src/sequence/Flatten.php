@@ -15,8 +15,16 @@ trait Flatten
      */
     public static function flattenT() : callable
     {
-        return fn($step) => fn($acc, $v) => 
-            self::reduce($step, $acc, is_iterable($v) ? $v : [$v]);
+        $i = 0;
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            function($acc, $v, $k) use(&$i, $step) {
+                return self::reduce(function($acc, $v) use(&$i, $step) {
+                    return $step($acc, $v, $i++);
+                }, $acc, is_iterable($v) ? $v : [$v]);
+            }
+        );
     }
     
     /**
