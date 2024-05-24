@@ -20,7 +20,11 @@ trait IndexBy
      */
     public static function indexByT(callable $func) : callable
     {
-        return fn(callable $step) => fn($acc, $v, $k) => $step($acc, $v, $func($v, $k));
+        return fn(callable $step) => self::multiArityfunction(
+            fn() => $step(),
+            fn($acc) => $step($acc),
+            fn($acc, $v, $k) => $step($acc, $v, $func($v, $k))
+        );
     }
 
     /**

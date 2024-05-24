@@ -124,4 +124,17 @@ final class IndexByTest extends TestCase
         $this->assertSame($v[2], $out["M"]);
         $this->assertSame($v[4], $out["F"]);
     }
+    
+    function testEarlyCompletion()
+    {
+        $transducer = F::compose(
+            F::indexByT(fn($v, $k) => $k + 1),
+            F::partitionByT(fn($v, $k) => intval($k / 2)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["a", "bc", "de", "fg", "h"], $out);
+    }
 }
