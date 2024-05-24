@@ -3,9 +3,8 @@
 ## Motivations
 
 - PHP has support for iterators and generators but its built-in collection functions work only on arrays (e.g. array_map, array_filter, array_reduce).
-- PHP's built-in collection functions have behaviour inconsistent with other language implementations and the parameter order is inconsistent.
 - Improve ease of usage of lazy evaluation via iterators and generators through collection functions which support laziness.
-- Support for partial application of functions, to support a more declerative style of coding.
+- Support for threading of the collection, to support more declerative coding styles.
 
 ## Inspirations
 
@@ -13,37 +12,6 @@
 - [Clojure](https://clojure.org/)
 
 ## Description
-
-### Partial application
-
-This library supports partial application. Library functions can be called providing 0 or more of the function's arguments. If all arguments are provided, then the function is invoked, otherwise a new function is returned which has arity of the original function's arity - the number of arguments provided. E.g. the assoc function takes 3 arguments: the target collection, the value to associate, and the key to associate with the value. The following are all valid calls to assoc:
-
-```
-use FPHP\FPHP as F;
-
-$out1 = F::assoc();
-$this->assertTrue(is_callable($out1));
-
-$out2 = F::assoc([]);
-$this->assertTrue(is_callable($out2));
-
-$out3 = F::assoc([], 27);
-$this->assertTrue(is_callable($out3));
-
-$out4 = F::assoc([], 27, "age");
-$this->assertEquals(["age" => 27], $out4);
-```
-
-This library also supports placeholder arguments:
-
-```
-use FPHP\FPHP as F;
-
-$out1 = f::assoc([], F::__(), "age");
-$this->assertTrue(is_callable($out1));
-$out2 = $out1(27);
-$this->assertEquals(["age" => 27], $out2);
-```
 
 ### Support for arrays, associative arrays, and objects
 
@@ -61,11 +29,8 @@ $this->assertEquals([2,4,6], $resArr);
 $assocArr = ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5];
 $actAssocArr = $fnTransform($assocArr);
 $this->assertEquals(["a" => 2, "b" => 4, "c" => 6], $actAssocArr);
-
-$obj = (object)["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5];
-$actObj = $fnTransform($obj);
-$this->assertEquals((object)["a" => 2, "b" => 4, "c" => 6], $actAssocArr);
 ```
+
 ### Laziness
 
 This library's core functions support laziness when applied to iterators and generators. Given the following transformation function:
@@ -81,7 +46,7 @@ $fnTransform = F::pipe(
 );
 ```
 
-When the function is applied to an array or object the result is evaluated eagerly - **map** gets called 5 times even though we only want 3 values from the result, and further, the output **$actAssocArr** is calculated straight away, even though it hasn't been used yet.
+When the function is applied to an array the result is evaluated eagerly - **map** gets called 5 times even though we only want 3 values from the result, and further, the output **$actAssocArr** is calculated straight away, even though it hasn't been used yet.
 
 ```
 $count = 0;
@@ -103,7 +68,7 @@ $this->assertEquals(3, $count);
 ```
 ### Transducers ###
 
-This library also supports transducers, which allow for lazy evaluation when transforming arrays and objects. The evaluation of the function call is performed immediatly (unlike laziness with iterators and generators, as shown above), however it is generated through backwards propogation this time:
+This library also supports transducers, which allow for lazy evaluation when transforming any iterable. The evaluation of the function call is performed immediatly (unlike laziness with iterators and generators, as shown above), however it is generated through backwards propogation this time:
 In the example below, $out is fully calculated when the call to **transduce** finishes, however **map** only gets called 3 times, like in the example above with iterators and generators.
 ```
 $count = 0;
@@ -114,10 +79,10 @@ $fnTransformT = F::pipe(
     }),
     F::takeT(3)
 );
-$assocArr = ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5];
-$out = F::transduce($fnTransformT, F::assoc(), [], $assocArr);
+$assocArr = [1, 2, 3, 4, 5];
+$out = F::transduce($fnTransformT, fn($acc, $v, $k) => F::append($acc, $v, $k), [], $assocArr);
 
 $this->assertEquals(3, $count);
-$this->assertEquals(["a" => 2, "b" => 4, "c" => 6], $out);
+$this->assertEquals([2,4,6], $out);
 $this->assertEquals(3, $count);
 ```
