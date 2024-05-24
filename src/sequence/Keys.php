@@ -15,7 +15,16 @@ trait Keys
      */
     public static function keysT() : callable
     {
-        return fn($step) => fn($acc, $v, $k) => $step($acc, $k);
+        $i = 0;
+        return function(callable $step) use(&$i) { 
+            return self::multiArityfunction(
+                fn() => $step(),
+                fn($acc) => $step($acc),
+                function($acc, $v, $k) use(&$i, $step) {
+                    return $step($acc, $k, $i++);
+                }
+            );
+        };
     }
 
     /**

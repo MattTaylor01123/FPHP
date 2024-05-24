@@ -60,4 +60,17 @@ final class KeysTest extends TestCase
         $out1 = $fn($v);
         $this->assertSame($out1, [0, 1, 2, 3, 4]);
     }
+    
+    function testEarlyCompletion()
+    {
+        $transducer = F::compose(
+            F::keysT(),
+            F::partitionByT(fn($v, $k) => intval($k / 3)),
+            F::mapT(fn($v) => implode("", $v))
+        );
+        
+        $input = ["a" => 1, "b" => 2, "c" => 3, "d" => 4, "e" => 5, "f" => 6, "g" => 7, "h" => 8];
+        $out = F::transduce($transducer, fn($acc, $v) => F::append($acc, $v), [], $input);
+        $this->assertSame(["abc", "def", "gh"], $out);
+    }
 }
