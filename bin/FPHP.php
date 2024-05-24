@@ -859,9 +859,9 @@ final class FPHP
     {
         return fn($step2) => self::multiArityfunction(
             // arity-1 - do nothing when flushing outer sequence
-            fn($acc1) => $acc1,
+            fn($acc1) => $step2($acc1),
             // arity-3 - for inner join, do nothing when flushing inner sequence
-            fn($acc3, $v, $k) => $acc3,
+            fn($acc3, $v, $k) => $step2($acc3),
             // arity-5 - do the inner join
             fn($acc5, $vl, $vr, $kl, $kr) =>
                 $fnPred($vl, $vr, $kl, $kr) ? $step2($acc5, $fnCombinator($vl, $vr), $kl) : $acc5
