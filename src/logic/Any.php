@@ -10,21 +10,29 @@ use FPHP\collection\Reduced;
 
 trait Any
 {
-    public static function any(callable $fnPred, iterable $iterable) : bool
+    /**
+     * Submit every value in an iterable to a predicate test. If the predicate
+     * returns True for any value then this function returns True, otherwise
+     * False.
+     * 
+     * @param callable $fnPred          predicate
+     * @param iterable|null $sequence   values to check, threadable
+     * 
+     * @return bool True if any values match the predicate, false otherwise. If
+     * $sequence is null then returns a callable.
+     */
+    public static function any(callable $fnPred, ?iterable $sequence = null)
     {
-        if(is_object($iterable) && method_exists($iterable, "any"))
+        if(is_null($sequence))
         {
-            return $iterable->any($fnPred);
+            return fn(iterable $sequence) => self::any($fnPred, $sequence);
         }
-        else
+        if(is_object($sequence) && method_exists($sequence, "any"))
         {
-            return self::reduce(fn($acc, $v, $k) =>
-                ($fnPred($v, $k) ? new Reduced(true) : false), false, $iterable);
+            return $sequence->any($fnPred);
         }
-    }
-
-    public static function anyPass(callable ...$args)
-    {
-        return fn($v) => self::any(fn($fn) => $fn($v), $args);
+        
+        return self::reduce(fn($acc, $v, $k) =>
+            ($fnPred($v, $k) ? new Reduced(true) : false), false, $sequence);
     }
 }

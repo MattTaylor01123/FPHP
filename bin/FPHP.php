@@ -2718,49 +2718,84 @@ final class FPHP
         return $out;
     }
 
-    public static function all(callable $fnPred, iterable $iterable) : bool
+    /**
+     * Submit every value in an iterable to a predicate test. If the predicate
+     * returns True for any value then this function returns True, otherwise
+     * False.
+     * 
+     * @param callable $fnPred          predicate
+     * @param iterable|null $sequence   values to check, threadable
+     * 
+     * @return bool True if any values match the predicate, false otherwise. If
+     * $sequence is null then returns a callable.
+     */
+    public static function all(callable $fnPred, ?iterable $sequence = null)
     {
-        if(is_object($iterable) && method_exists($iterable, "all"))
+        if(is_null($sequence))
         {
-            return $iterable->all($fnPred);
+            return fn(iterable $sequence) => self::all($fnPred, $sequence);
         }
-        else
+        if(is_object($sequence) && method_exists($sequence, "all"))
         {
-            return self::reduce(fn($acc, $v, $k) =>
-                (!$fnPred($v, $k) ? new Reduced(false) : true), true, $iterable);
+            return $sequence->all($fnPred);
         }
+        
+        return self::reduce(fn($acc, $v, $k) =>
+            (!$fnPred($v, $k) ? new Reduced(false) : true), true, $sequence);
     }
 
     /**
-     * Creates a predicate function by combining other predicate functions.
-     * The new predicate function takes 0 or more arguments which are all
-     * passed to the individual predicate functions.
+     * Takes one or multiple predicate functions and returns a new predicate
+     * function which takes one or more arguments and returns true if all of 
+     * the predicates returns true. Short circuits.
      * 
-     * @param callable $preds       the predicates to combine
+     * @param callable $predicates
      * 
-     * @return callable the combined predicate
+     * @return callable
      */
-    public static function allPass(callable ...$preds) : callable
+    public static function allPass(callable ...$predicates) : callable
     {
-        return fn(...$vals) => self::all(fn($pred) => $pred(...$vals), $preds);
+        return fn(...$vals) => self::all(fn($pred) => $pred(...$vals), $predicates);
     }
 
-    public static function any(callable $fnPred, iterable $iterable) : bool
+    /**
+     * Submit every value in an iterable to a predicate test. If the predicate
+     * returns True for any value then this function returns True, otherwise
+     * False.
+     * 
+     * @param callable $fnPred          predicate
+     * @param iterable|null $sequence   values to check, threadable
+     * 
+     * @return bool True if any values match the predicate, false otherwise. If
+     * $sequence is null then returns a callable.
+     */
+    public static function any(callable $fnPred, ?iterable $sequence = null)
     {
-        if(is_object($iterable) && method_exists($iterable, "any"))
+        if(is_null($sequence))
         {
-            return $iterable->any($fnPred);
+            return fn(iterable $sequence) => self::any($fnPred, $sequence);
         }
-        else
+        if(is_object($sequence) && method_exists($sequence, "any"))
         {
-            return self::reduce(fn($acc, $v, $k) =>
-                ($fnPred($v, $k) ? new Reduced(true) : false), false, $iterable);
+            return $sequence->any($fnPred);
         }
+        
+        return self::reduce(fn($acc, $v, $k) =>
+            ($fnPred($v, $k) ? new Reduced(true) : false), false, $sequence);
     }
 
-    public static function anyPass(callable ...$args)
+    /**
+     * Takes one or multiple predicate functions and returns a new predicate
+     * function which takes one or more arguments and returns true if any of 
+     * the predicates returns true. Short circuits.
+     * 
+     * @param callable $predicates
+     * 
+     * @return callable
+     */
+    public static function anyPass(callable ...$predicates) : callable
     {
-        return fn($v) => self::any(fn($fn) => $fn($v), $args);
+        return fn(...$vals) => self::any(fn($fn) => $fn(...$vals), $predicates);
     }
 
     public static function eq($v1, $v2)

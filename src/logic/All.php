@@ -10,16 +10,29 @@ use src\collection\Reduced;
 
 trait All
 {
-    public static function all(callable $fnPred, iterable $iterable) : bool
+    /**
+     * Submit every value in an iterable to a predicate test. If the predicate
+     * returns True for any value then this function returns True, otherwise
+     * False.
+     * 
+     * @param callable $fnPred          predicate
+     * @param iterable|null $sequence   values to check, threadable
+     * 
+     * @return bool True if any values match the predicate, false otherwise. If
+     * $sequence is null then returns a callable.
+     */
+    public static function all(callable $fnPred, ?iterable $sequence = null)
     {
-        if(is_object($iterable) && method_exists($iterable, "all"))
+        if(is_null($sequence))
         {
-            return $iterable->all($fnPred);
+            return fn(iterable $sequence) => self::all($fnPred, $sequence);
         }
-        else
+        if(is_object($sequence) && method_exists($sequence, "all"))
         {
-            return self::reduce(fn($acc, $v, $k) =>
-                (!$fnPred($v, $k) ? new Reduced(false) : true), true, $iterable);
+            return $sequence->all($fnPred);
         }
+        
+        return self::reduce(fn($acc, $v, $k) =>
+            (!$fnPred($v, $k) ? new Reduced(false) : true), true, $sequence);
     }
 }
