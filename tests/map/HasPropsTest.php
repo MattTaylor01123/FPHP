@@ -51,11 +51,10 @@ final class HasPropsTest extends TestCase
     {
         $v = new TestType();
         $v->a = 1;
-        $v->b = 2;
-        $v->c = 3;
-
-        $this->assertTrue(F::hasProps(["a", "b", "c"], $v));
-        $this->assertFalse(F::hasProps(["a", "b", "c", "d"], $v));
+        $v->b = "2";
+        
+        $this->assertTrue(F::hasProps(["a", "b"], $v));
+        $this->assertFalse(F::hasProps(["a", "b", "c"], $v));
     }
     
     public function testThreadable()
