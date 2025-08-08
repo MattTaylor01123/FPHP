@@ -812,10 +812,13 @@ final class FPHP
      * Creates a new sequence indexed by the result of calling the mapping
      * function on each element.
      * 
+     * To allow for repeated keys, the returned result is a lazy Traversable 
+     * (unless $sequence is an object which implements indexBy / appendK).
+     * 
      * @param callable $func                maps sequence values onto keys
      * @param iterable|object $sequence     the sequence to index. Threadable
      * 
-     * @return iterable|object|callable  same as type of $sequence, or else 
+     * @return Traversable|object|callable  same as type of $sequence, or else 
      * callable if $sequence is null.
      * 
      * @throws InvalidArgumentException if $sequence is not an iterable or an
@@ -835,7 +838,7 @@ final class FPHP
         {
             $out = self::transduce(
                 self::indexByT($func),
-                fn($acc, $v, $k) => self::assoc($acc, $v, $k),
+                fn($acc, $v, $k) => self::appendK($acc, $v, $k),
                 self::emptied($sequence),
                 $sequence
             );

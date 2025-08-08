@@ -17,7 +17,7 @@ final class IndexByTest extends TestCase
 
     function testIndexByIdx()
     {
-        $v = [
+        $in = [
             (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
             (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
             (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
@@ -25,13 +25,15 @@ final class IndexByTest extends TestCase
             (object)["gender" => "F", "name" => "Verity", "family" => "Smith"]
         ];
         
-        $out1 = F::indexBy(fn($x) => F::prop("gender", $x), $v);
-        $this->assertIsArray($out1);
-        $this->assertCount(2, $out1);
-        $this->assertArrayHasKey("M", $out1);
-        $this->assertArrayHasKey("F", $out1);
-        $this->assertSame($v[2], $out1["M"]);
-        $this->assertSame($v[4], $out1["F"]);
+        $out1 = F::indexBy(fn($x) => F::prop("gender", $x), $in);       
+        $this->assertTrue($out1 instanceof Traversable);
+        $i = 0;
+        foreach($out1 as $k => $v)
+        {
+            $this->assertEquals($in[$i]->gender, $k);
+            $this->assertEquals($in[$i], $v);
+            $i++;
+        }
     }
 
     function testIndexByItAssoc()
@@ -107,7 +109,7 @@ final class IndexByTest extends TestCase
     
     function testThreadable()
     {
-        $v = [
+        $in = [
             (object)["gender" => "M", "name" => "Matt", "family" => "Smith"],
             (object)["gender" => "F", "name" => "Sheila", "family" => "Smith"],
             (object)["gender" => "M", "name" => "Steve", "family" => "Jones"],
@@ -116,13 +118,15 @@ final class IndexByTest extends TestCase
         ];
         $fn = F::indexBy(fn($x) => F::prop("gender", $x));
         $this->assertTrue(is_callable($fn));
-        $out = $fn($v);
-        $this->assertIsArray($out);
-        $this->assertCount(2, $out);
-        $this->assertArrayHasKey("M", $out);
-        $this->assertArrayHasKey("F", $out);
-        $this->assertSame($v[2], $out["M"]);
-        $this->assertSame($v[4], $out["F"]);
+        $out = $fn($in);
+        $this->assertTrue($out instanceof Traversable);
+        $i = 0;
+        foreach($out as $k => $v)
+        {
+            $this->assertEquals($in[$i]->gender, $k);
+            $this->assertEquals($in[$i], $v);
+            $i++;
+        }
     }
     
     function testEarlyCompletion()
