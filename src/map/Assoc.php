@@ -34,7 +34,7 @@ trait Assoc
             $out = $map;
             $out[$key] = $val;
         }
-        else if(is_object($map))
+        else if($map instanceof \stdClass)
         {
             $out = clone $map;
             $out->$key = $val;

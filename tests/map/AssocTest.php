@@ -9,7 +9,6 @@ namespace tests\map;
 use FPHP\FPHP as F;
 use PHPUnit\Framework\TestCase;
 use stdClass;
-use tests\TestType;
 
 final class AssocTest extends TestCase
 {
@@ -33,20 +32,5 @@ final class AssocTest extends TestCase
 
         $this->assertTrue(is_array($arr2));
         $this->assertEquals(["a" => 1, "b" => 2], $arr2);
-    }
-
-    public function testAssocCusType()
-    {
-        $obj = new TestType();
-        $obj->a = 5;
-        $obj->b = "h";
-        $obj2 = F::assoc($obj, 15, "c");
-
-        $exp = new TestType();
-        $exp->a = 5;
-        $exp->b = "h";
-        $exp->c = 15;
-        $this->assertTrue($obj2 instanceof TestType);
-        $this->assertEquals($exp, $obj2);
     }
 }
