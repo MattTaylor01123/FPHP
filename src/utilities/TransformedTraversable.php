@@ -143,7 +143,7 @@ final class TransformedTraversable implements IteratorAggregate, JsonSerializabl
         }
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize() : mixed
     {
         return FPHP::iterableToArray($this->getIterator());
     }
